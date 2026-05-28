@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { BsCart3 } from "react-icons/bs";
 import { FiSearch } from "react-icons/fi";
@@ -126,7 +126,7 @@ const Navbar = () => {
                     </p>
 
                     <p className="text-gray-400 text-xs">
-                      My Profile
+                      My Account
                     </p>
 
                   </div>
@@ -157,18 +157,22 @@ const Navbar = () => {
 
                     <div className="flex flex-col p-3">
 
-                      <button
+                      <NavLink
+                        to="/Profile"
                         className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition text-left"
                       >
+
                         <FaUserCircle className="text-green-600 text-lg" />
+
                         <span className="font-medium text-gray-700">
                           My Profile
                         </span>
-                      </button>
+
+                      </NavLink>
 
                       <button
                         onClick={handleLogout}
-                        className="mt-2 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition"
+                        className="mt-2 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition cursor-pointer"
                       >
                         Logout
                       </button>
@@ -240,7 +244,7 @@ const Navbar = () => {
 
       {
         menuOpen &&
-        <div className="lg:hidden fixed top-20 left-0 w-full bg-black/90 backdrop-blur-md flex flex-col items-center gap-6 py-8 rounded-b-2xl shadow-xl z-40 cursor-pointer">
+        <div className="lg:hidden fixed top-20 left-0 w-full bg-black/90 backdrop-blur-md flex flex-col items-center gap-6 py-8 rounded-b-2xl shadow-xl z-40">
 
           <NavLink
             to="/"
@@ -297,9 +301,17 @@ const Navbar = () => {
                   {user.user_name}
                 </p>
 
+                <NavLink
+                  to="/Profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-xl font-semibold transition"
+                >
+                  My Profile
+                </NavLink>
+
                 <button
                   onClick={handleLogout}
-                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-xl font-semibold transition cursor-pointer relative z-50"
+                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-xl font-semibold transition cursor-pointer"
                 >
                   Logout
                 </button>

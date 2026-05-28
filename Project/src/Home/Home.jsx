@@ -3,7 +3,6 @@ import {
   FaUserMd,
   FaFlask,
   FaTruck,
-  FaArrowRight,
 } from "react-icons/fa";
 import Carousel from "../components/Carousel";
 import slides from "../data/Slides";
@@ -11,8 +10,6 @@ import { useRef, useEffect } from "react";
 import { FaStar, FaShoppingCart } from "react-icons/fa";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import { NavLink } from "react-router-dom";
-import top from "./top.png";
-import oc from "./oc.png";
 const Home = () => {
   const sliderRef = useRef(null);
 

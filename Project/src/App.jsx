@@ -12,6 +12,7 @@ import Login from "./Login/Login";
 import Home from "./Home/Home";
 import Consult from "./ConsultDoctor/Consult";
 import Cart from "./Cart/Cart"
+import Profile from "./Profile/Profile";
 
 
 
@@ -27,6 +28,7 @@ function App() {
         <Route path="Contact" element={<Contact />} />
         <Route path="Cart" element={<Cart />} />
         <Route path="Login" element={<Login />} />
+        <Route path="Profile" element={<Profile />} />
       </Route>
     )
   );
