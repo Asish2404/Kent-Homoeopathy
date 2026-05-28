@@ -6,25 +6,30 @@ import {
   FaArrowRight,
 } from "react-icons/fa";
 import Carousel from "../components/Carousel";
-import slides from "../data/Slides"; // adjust path if needed
-import { useRef } from "react";
+import slides from "../data/Slides";
+import { useRef, useEffect } from "react";
 import { FaStar, FaShoppingCart } from "react-icons/fa";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
-// import './index.css' // for no-scrollbar class
-
 import { NavLink } from "react-router-dom";
 import top from "./top.png";
 import oc from "./oc.png";
 const Home = () => {
   const sliderRef = useRef(null);
 
+  useEffect(() => {
+    fetch("http://localhost:4000/api/test")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+      });
+
+  }, []);
   const scrollLeft = () => {
     sliderRef.current.scrollBy({
       left: -420,
       behavior: "smooth",
     });
   };
-
   const scrollRight = () => {
     sliderRef.current.scrollBy({
       left: 420,
@@ -114,10 +119,8 @@ const Home = () => {
 
   return (
     <>
-      {/* HERO CAROUSEL ADDED TOP */}
-
       <Carousel slides={slides} />
-      <section className="py-24">
+      <section className="py-24 overflow-hidden">
         <div className="text-center mb-14">
           <p className="text-green-600 font-semibold mb-4 text-lg">
             Featured Products
@@ -140,11 +143,10 @@ const Home = () => {
                 key={i}
                 className={`
             px-6 py-3 rounded-full font-medium cursor-pointer transition
-            ${
-              i === 0
-                ? "bg-green-100 text-green-800"
-                : "bg-white shadow-md hover:bg-green-50"
-            }
+            ${i === 0
+                    ? "bg-green-100 text-green-800"
+                    : "bg-white shadow-md hover:bg-green-50"
+                  }
             `}
               >
                 {tag}
