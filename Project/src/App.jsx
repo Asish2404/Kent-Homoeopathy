@@ -11,7 +11,7 @@ import Labtest from "./Lab Tests/Labtest";
 import Login from "./Login/Login";
 import Home from "./Home/Home";
 import Consult from "./ConsultDoctor/Consult";
-
+import Cart from "./Cart/Cart"
 
 
 
@@ -25,7 +25,7 @@ function App() {
         <Route path="Consult" element={<Consult />} />
         <Route path="Products" element={<Products />} />
         <Route path="Contact" element={<Contact />} />
-        <Route path="Cart" element={<h1>Cart</h1>} />
+        <Route path="Cart" element={<Cart />} />
         <Route path="Login" element={<Login />} />
       </Route>
     )
