@@ -1,4 +1,4 @@
-# 🏥 Kent Web
+# 🏥 Kent HomoeoPathy app
 
 Kent Web is a full-stack healthcare management platform built using **React**, **Node.js**, **Express.js**, and **MongoDB**. The platform provides a secure and user-friendly environment where users can register, log in, consult doctors, manage healthcare services, and access medical-related features through a modern web interface.
 
