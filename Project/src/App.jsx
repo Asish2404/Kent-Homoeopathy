@@ -5,7 +5,8 @@ import {
   Route
 } from "react-router-dom";
 import Layout from "./Layout";
-import Products from "./ProductDescription/Products"
+import ProductsCatalog from "./ProductsCatalog"
+import ProductsDetails from "./ProductDescription/Products";
 import Contact from "./ContactUS/Contact";
 import Labtest from "./Lab Tests/Labtest";
 import Login from "./Login/Login";
@@ -16,15 +17,24 @@ import Profile from "./Profile/Profile";
 
 
 
+
+import CartProvider from "./cart/CartProvider";
+
+
 function App() {
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route path="/" element={<Layout />}>
+        <Route path="/" element={<CartProvider><Layout /></CartProvider>}>
+
+
+
+
         <Route index element={<Home />} />
         <Route path="Labtest" element={<Labtest />} />
         <Route path="Consult" element={<Consult />} />
-        <Route path="Products" element={<Products />} />
+        <Route path="Products" element={<ProductsCatalog />} />
+        <Route path="products/:productId" element={<ProductsDetails />} />
         <Route path="Contact" element={<Contact />} />
         <Route path="Cart" element={<Cart />} />
         <Route path="Login" element={<Login />} />

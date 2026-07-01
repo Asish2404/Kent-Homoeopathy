@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useCartContext } from "../Cart/CartContext";
+
 import { BsCart3 } from "react-icons/bs";
 import { FiSearch, FiHeart, FiPhone } from "react-icons/fi";
 import { HiMenuAlt3, HiX } from "react-icons/hi";
@@ -12,6 +14,8 @@ import {
 } from "react-icons/fa";
 
 const Navbar = () => {
+  const { totalCount } = useCartContext();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -160,14 +164,16 @@ const Navbar = () => {
                        hover:scale-105"
           >
             <BsCart3 className="text-xl" />
-            <span
-              className="absolute -top-1 -right-1
-                         bg-[var(--brand-500)] text-white text-[10px] font-bold
-                         px-1.5 py-0.5 rounded-full min-w-[18px] text-center
-                         ring-2 ring-[var(--neutral-900)]"
-            >
-              2
-            </span>
+            {totalCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1
+                           bg-[var(--brand-500)] text-white text-[10px] font-bold
+                           px-1.5 py-0.5 rounded-full min-w-[18px] text-center
+                           ring-2 ring-[var(--neutral-900)]"
+              >
+                {totalCount > 99 ? "99+" : totalCount}
+              </span>
+            )}
           </NavLink>
 
           {user ? (
@@ -229,19 +235,30 @@ const Navbar = () => {
                     </NavLink>
 
                     <button
+                      type="button"
+                      onClick={() => {
+                        // graceful UX when routes/pages are not present
+                        alert("Coming Soon");
+                        setProfileOpen(false);
+                      }}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl
-                                 hover:bg-[var(--brand-50)] text-neutral-700 transition text-left"
+                                 hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
                     >
                       <FaCog className="text-[var(--brand-600)] text-lg" />
                       <span className="font-medium">Settings</span>
                     </button>
 
                     <button
+                      type="button"
+                      onClick={() => {
+                        alert("Coming Soon");
+                        setProfileOpen(false);
+                      }}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl
-                                 hover:bg-[var(--brand-50)] text-neutral-700 transition text-left"
+                                 hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
                     >
                       <FaUserMd className="text-[var(--brand-600)] text-lg" />
-                      <span className="font-medium">My Consultations</span>
+                      <span className="font-medium">My Appointments</span>
                     </button>
 
                     <div className="border-t border-neutral-100 my-1" />
@@ -292,14 +309,16 @@ const Navbar = () => {
                        flex items-center justify-center text-white"
           >
             <BsCart3 className="text-xl" />
-            <span
-              className="absolute -top-1 -right-1
-                         bg-[var(--brand-500)] text-white text-[10px] font-bold
-                         px-1.5 py-0.5 rounded-full min-w-[18px] text-center
-                         ring-2 ring-[var(--neutral-900)]"
-            >
-              2
-            </span>
+            {totalCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1
+                           bg-[var(--brand-500)] text-white text-[10px] font-bold
+                           px-1.5 py-0.5 rounded-full min-w-[18px] text-center
+                           ring-2 ring-[var(--neutral-900)]"
+              >
+                {totalCount > 99 ? "99+" : totalCount}
+              </span>
+            )}
           </NavLink>
 
           <button

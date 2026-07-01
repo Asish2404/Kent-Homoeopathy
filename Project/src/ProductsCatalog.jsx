@@ -1,0 +1,595 @@
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { FaHeart } from "react-icons/fa";
+import { HiOutlineSparkles } from "react-icons/hi2";
+import { FiSearch } from "react-icons/fi";
+import { allCategories } from "./data/products";
+
+
+
+const ProductsCatalog = () => {
+  const navigate = useNavigate();
+
+  const allProducts = useMemo(() => {
+    return allCategories.flatMap((c) => c.products || []).map((p) => ({
+      ...p,
+      categoryTitle:
+        allCategories.find((cc) => cc.products?.some((pp) => pp.id === p.id))?.title || "Products",
+      // Normalize discount% when missing
+      discountPct:
+        typeof p.discount === "string" && p.discount.includes("₹")
+          ? undefined
+          : undefined,
+      isInStock: true,
+      brand: "Dr. Kent",
+      deliveryETA: "24 hrs",
+      consultRequired: true,
+    }));
+  }, []);
+
+  // UI state
+  const [query, setQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [availability, setAvailability] = useState("any");
+  const [brand, setBrand] = useState("any");
+  const [minRating, setMinRating] = useState(0);
+  const [consultRequired, setConsultRequired] = useState("any");
+  const [deliveryOption, setDeliveryOption] = useState("any");
+  const [priceMax, setPriceMax] = useState(() => {
+    const max = allProducts.reduce((m, p) => Math.max(m, Number(p.price) || 0), 0);
+    return Math.ceil(max || 0);
+  });
+  const [sortKey, setSortKey] = useState("relevance");
+
+  const categoriesForSidebar = useMemo(() => {
+    return allCategories.map((c) => ({ id: c.id, title: c.title }));
+  }, []);
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+
+    let list = [...allProducts];
+
+    if (activeCategory !== "all") {
+      const cat = allCategories.find((c) => c.id === activeCategory);
+      const ids = new Set(cat?.products?.map((p) => p.id) || []);
+      list = list.filter((p) => ids.has(p.id));
+    }
+
+    if (q) {
+      list = list.filter((p) =>
+        [p.name, p.categoryTitle].some((x) => String(x || "").toLowerCase().includes(q))
+      );
+    }
+
+    if (availability !== "any") {
+      if (availability === "in_stock") list = list.filter((p) => p.isInStock);
+      if (availability === "out_of_stock") list = list.filter((p) => !p.isInStock);
+    }
+
+    if (brand !== "any") {
+      list = list.filter((p) => p.brand === brand);
+    }
+
+    if (minRating > 0) {
+      list = list.filter((p) => Number(p.rating || 0) >= minRating);
+    }
+
+    if (consultRequired !== "any") {
+      const want = consultRequired === "required";
+      list = list.filter((p) => Boolean(p.consultRequired) === want);
+    }
+
+    if (deliveryOption !== "any") {
+      list = list.filter((p) => String(p.deliveryETA || "").includes(deliveryOption === "fast" ? "hrs" : ""));
+    }
+
+    // price range (simple max)
+    list = list.filter((p) => Number(p.price || 0) <= priceMax);
+
+    // sorting
+    list.sort((a, b) => {
+      if (sortKey === "price_low") return Number(a.price) - Number(b.price);
+      if (sortKey === "price_high") return Number(b.price) - Number(a.price);
+      if (sortKey === "rating_high") return Number(b.rating) - Number(a.rating);
+      // relevance fallback
+      const ar = Number(a.rating || 0) * 0.7 + Number(a.reviews || 0) * 0.00001;
+      const br = Number(b.rating || 0) * 0.7 + Number(b.reviews || 0) * 0.00001;
+      return br - ar;
+    });
+
+    return list;
+  }, [activeCategory, availability, allProducts, brand, consultRequired, deliveryOption, minRating, priceMax, query, sortKey]);
+
+  const resetFilters = () => {
+    setQuery("");
+    setActiveCategory("all");
+    setAvailability("any");
+    setBrand("any");
+    setMinRating(0);
+    setConsultRequired("any");
+    setDeliveryOption("any");
+    setPriceMax(() => {
+      const max = allProducts.reduce((m, p) => Math.max(m, Number(p.price) || 0), 0);
+      return Math.ceil(max || 0);
+    });
+    setSortKey("relevance");
+  };
+
+  const handleProductClick = (product) => {
+    navigate(`/products/${product.id}`, { state: { product } });
+  };
+
+  const formatDiscountPct = (p) => {
+    // Prefer explicit discount format in data; fallback to computed old/new prices
+    if (typeof p.discount === "string" && p.discount.includes("%")) return p.discount;
+    const oldP = Number(p.oldPrice);
+    const curP = Number(p.price);
+    if (!Number.isFinite(oldP) || !Number.isFinite(curP) || oldP <= 0 || oldP <= curP) return null;
+    const pct = Math.round(((oldP - curP) / oldP) * 100);
+    return pct > 0 ? `-${pct}%` : null;
+  };
+
+  const reviewCountSafe = (p) => {
+    const r = Number(p.reviews || p.reviewCount || 0);
+    return r > 0 ? r.toLocaleString() : "";
+  };
+
+  return (
+    <div className="min-h-screen bg-neutral-50">
+      {/* Breadcrumb */}
+      <div className="bg-white border-b border-neutral-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+            <div className="flex items-center gap-2 text-sm text-neutral-500 flex-wrap">
+            <a href="/" className="hover:text-[var(--brand-700)]">Home</a>
+            <span>›</span>
+            <span className="text-neutral-900 font-medium">Products</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Title bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-neutral-900 tracking-tight">
+              Products
+            </h1>
+            <p className="text-neutral-500 mt-2">
+              {results.length} results
+            </p>
+          </div>
+
+          <div className="w-full md:w-auto">
+            <div className="flex gap-3 items-stretch">
+              {/* Search */}
+              <div className="flex items-center gap-2 bg-white border border-neutral-200 rounded-xl px-3 py-2.5 shadow-sm w-full md:w-[340px]">
+                <FiSearch className="text-neutral-400" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search products, categories..."
+                  className="w-full outline-none bg-transparent text-sm text-neutral-800"
+                />
+              </div>
+
+              {/* Sort */}
+              <select
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value)}
+                className="bg-white border border-neutral-200 rounded-xl px-3 py-2.5 shadow-sm text-sm text-neutral-800"
+                aria-label="Sort"
+              >
+                <option value="relevance">Sort: Relevance</option>
+                <option value="price_low">Sort: Price (Low)</option>
+                <option value="price_high">Sort: Price (High)</option>
+                <option value="rating_high">Sort: Rating</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main section: Filters + Product list */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+          {/* Sidebar */}
+          <aside className="lg:sticky lg:top-24 self-start hidden md:block">
+            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm">
+              <div className="p-5 border-b border-neutral-100">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="font-bold text-neutral-900">Filters</h2>
+                  <button
+                    onClick={resetFilters}
+                    className="text-sm text-[var(--brand-700)] hover:text-[var(--brand-800)] font-semibold"
+                    type="button"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">Refine your search</p>
+              </div>
+
+              <div className="p-5 space-y-7">
+                {/* Category */}
+                <div>
+                  <div className="font-semibold text-neutral-900 mb-3">Category</div>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveCategory("all")}
+                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                        activeCategory === "all"
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                      }`}
+                    >
+                      All
+                    </button>
+                    {categoriesForSidebar.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setActiveCategory(c.id)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                          activeCategory === c.id
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                        }`}
+                      >
+                        {c.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Range */}
+                <div>
+                  <div className="font-semibold text-neutral-900 mb-3">Price</div>
+                  <div className="text-sm text-neutral-500 mb-2">Up to ₹{priceMax}</div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={priceMax}
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(Number(e.target.value))}
+                    className="w-full accent-[var(--brand-600)]"
+                  />
+                  <div className="flex justify-between text-xs text-neutral-500 mt-2">
+                    <span>₹0</span>
+                    <span>₹{priceMax}</span>
+                  </div>
+                </div>
+
+                {/* Availability */}
+                <div>
+                  <div className="font-semibold text-neutral-900 mb-3">Availability</div>
+                  <div className="space-y-2">
+                    {[
+                      { id: "any", label: "Any" },
+                      { id: "in_stock", label: "In stock" },
+                      { id: "out_of_stock", label: "Out of stock" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setAvailability(opt.id)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                          availability === opt.id
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Brand */}
+                <div>
+                  <div className="font-semibold text-neutral-900 mb-3">Brand</div>
+                  <div className="space-y-2">
+                    {[
+                      { id: "any", label: "Any" },
+                      { id: "Dr. Kent", label: "Dr. Kent" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setBrand(opt.id)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                          brand === opt.id
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Rating */}
+                <div>
+                  <div className="font-semibold text-neutral-900 mb-3">Rating</div>
+                  <div className="space-y-2">
+                    {[
+                      { id: 0, label: "Any" },
+                      { id: 4.5, label: "4.5+" },
+                      { id: 4.0, label: "4.0+" },
+                      { id: 3.5, label: "3.5+" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setMinRating(opt.id)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                          minRating === opt.id
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Consultation Required */}
+                <div>
+                  <div className="font-semibold text-neutral-900 mb-3">Consultation</div>
+                  <div className="space-y-2">
+                    {[
+                      { id: "any", label: "Any" },
+                      { id: "required", label: "Required" },
+                      { id: "not_required", label: "Not required" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setConsultRequired(opt.id)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                          consultRequired === opt.id
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Delivery Options */}
+                <div>
+                  <div className="font-semibold text-neutral-900 mb-3">Delivery Options</div>
+                  <div className="space-y-2">
+                    {[
+                      { id: "any", label: "Any" },
+                      { id: "fast", label: "Fast delivery" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setDeliveryOption(opt.id)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                          deliveryOption === opt.id
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          {/* Product list */}
+          <section>
+            {/* Mobile filters button (collapses sidebar in future); for now keep compact */}
+            <div className="md:hidden mb-4">
+              <div className="bg-white border border-neutral-100 rounded-2xl p-4 shadow-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-bold text-neutral-900">Filters</div>
+                    <div className="text-xs text-neutral-500">Use search and sorting above</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="text-sm font-semibold text-[var(--brand-700)] hover:text-[var(--brand-800)]"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {results.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-8 text-center">
+                  <div className="mx-auto w-12 h-12 rounded-2xl bg-[var(--brand-50)] text-[var(--brand-700)] flex items-center justify-center mb-3">
+                    <HiOutlineSparkles className="text-xl" />
+                  </div>
+                  <h3 className="text-neutral-900 font-bold">No products found</h3>
+                  <p className="text-neutral-500 text-sm mt-1">
+                    Try changing filters or searching for something else.
+                  </p>
+                </div>
+              ) : (
+                results.map((p) => {
+                  const discountLabel = formatDiscountPct(p);
+                  const rating = Number(p.rating || 0);
+
+                  return (
+                    <div
+                      key={p.id}
+                      className="group bg-white border border-neutral-100 shadow-sm hover:shadow-md transition-shadow rounded-xl overflow-hidden"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleProductClick(p)}
+                        className="w-full text-left"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-stretch">
+                          {/* Compact Image */}
+                          <div className="flex-shrink-0 p-3 md:p-4">
+                            <div className="relative w-[76px] sm:w-[88px] h-[76px] sm:h-[88px] rounded-xl overflow-hidden bg-gradient-to-br from-[var(--brand-50)] to-white border border-neutral-100 flex items-center justify-center">
+                              {discountLabel && (
+                                <div className="absolute top-2 left-2 z-10 bg-[var(--brand-600)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                                  {discountLabel}
+                                </div>
+                              )}
+                              {p.badge && (
+                                <div className="absolute top-2 right-2 z-10 bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                                  {p.badge}
+                                </div>
+                              )}
+                              <img
+                                src={p.image}
+                                alt={p.name}
+                                className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-[1.06]"
+                                loading="lazy"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Row content */}
+                          <div className="flex-1 px-3 sm:px-0 pb-3 md:pb-0">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-[14px] sm:text-[15px] font-bold text-neutral-900 line-clamp-1">
+                                  {p.name}
+                                </h3>
+                                <p className="text-[12px] sm:text-[13px] text-neutral-500 mt-0.5 line-clamp-1">
+                                  {p.categoryTitle}
+                                </p>
+
+                                <div className="flex items-center gap-2 mt-2">
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-amber-500 font-extrabold">★</span>
+                                    <span className="font-semibold text-neutral-800 text-[13px]">
+                                      {rating.toFixed(1)}
+                                    </span>
+                                  </div>
+                                  <span className="text-neutral-500 text-[12px]">
+                                    ({reviewCountSafe(p)} reviews)
+                                  </span>
+                                </div>
+
+                                <div className="mt-2 flex flex-wrap items-center gap-2">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-100">
+                                    Delivery {p.deliveryETA}
+                                  </span>
+
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--brand-50)] text-[var(--brand-700)] text-[11px] font-semibold border border-[var(--brand-100)]">
+                                    {p.consultRequired ? "Consultation" : "No consult"}
+                                  </span>
+
+                                  <span
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                                      p.isInStock
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                        : "bg-rose-50 text-rose-700 border-rose-100"
+                                    }`}
+                                  >
+                                    {p.isInStock ? "In stock" : "Out of stock"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Price + actions */}
+                              <div className="shrink-0 w-full sm:w-auto">
+                                <div className="flex items-end justify-between gap-3">
+                                  <div className="flex items-baseline gap-2">
+                                    <div className="text-[18px] sm:text-[20px] font-extrabold text-neutral-900">
+                                      ₹{p.price}
+                                    </div>
+                                    {p.oldPrice && (
+                                      <div className="text-[12px] text-neutral-400 line-through">
+                                        ₹{p.oldPrice}
+                                      </div>
+                                    )}
+                                    {p.discount && typeof p.discount === "string" && !p.discount.includes("%") && (
+                                      <div className="text-[11px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                                        {p.discount}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="hidden sm:flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      className="w-9 h-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center text-neutral-400 hover:text-red-500 transition"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                      }}
+                                      aria-label="Wishlist"
+                                    >
+                                      <FaHeart className="text-sm" />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
+                                  <button
+                                    type="button"
+                                    className="btn-primary py-2 px-3 text-xs font-bold rounded-lg shadow-sm hover:shadow-md"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      navigate(`/Cart`);
+                                    }}
+                                  >
+                                    Add
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className="btn-outline py-2 px-3 text-xs font-bold rounded-lg hover:bg-[var(--brand-50)]"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      navigate(`/Products#product-${p.id}`);
+                                    }}
+                                  >
+                                    Buy
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className="sm:hidden w-9 h-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center text-neutral-400 hover:text-red-500 transition"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                    }}
+                                    aria-label="Wishlist"
+                                  >
+                                    <FaHeart className="text-sm" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductsCatalog;
+
