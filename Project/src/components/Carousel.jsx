@@ -94,7 +94,7 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
   );
 
   return (
-    <section className="w-full rounded-2xl overflow-hidden relative">
+    <section className="w-full overflow-hidden relative">
       <div
         className="relative"
         onMouseEnter={() => setIsHovered(true)}
@@ -116,34 +116,47 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
 
         {/* left arrow */}
         <button
-        onClick={prevSlide}
-        aria-label="Previous Slide"
-        className="hidden md:flex absolute left-5 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white shadow-xl items-center justify-center hover:scale-110 transition cursor-pointer"
+          onClick={prevSlide}
+          aria-label="Previous Slide"
+          className="hidden md:flex absolute left-5 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full
+                     bg-white/95 backdrop-blur shadow-xl
+                     items-center justify-center
+                     hover:scale-110 hover:bg-[var(--brand-600)] hover:text-white
+                     text-neutral-700
+                     transition cursor-pointer"
         >
-        <ChevronLeft />
+          <ChevronLeft />
         </button>
 
         {/* right arrow */}
         <button
-        onClick={nextSlide}
-        aria-label="Next Slide"
-        className="hidden md:flex absolute right-5 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white shadow-xl items-center justify-center hover:scale-110 transition cursor-pointer"
+          onClick={nextSlide}
+          aria-label="Next Slide"
+          className="hidden md:flex absolute right-5 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full
+                     bg-white/95 backdrop-blur shadow-xl
+                     items-center justify-center
+                     hover:scale-110 hover:bg-[var(--brand-600)] hover:text-white
+                     text-neutral-700
+                     transition cursor-pointer"
         >
-        <ChevronRight />
+          <ChevronRight />
         </button>
 
         {/* controls */}
-        <div className="mt-8 flex flex-wrap justify-center gap-4 items-center">
+        <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-20 flex flex-wrap justify-center gap-4 items-center">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             aria-label={isPlaying ? "Pause autoplay" : "Play autoplay"}
-            className="rounded-2xl px-5 py-3 bg-black text-white flex items-center gap-2 shadow-lg cursor-pointer hover:scale-105 transition"
+            className="rounded-full px-5 py-2.5 bg-white/95 backdrop-blur text-neutral-800
+                       flex items-center gap-2 shadow-lg cursor-pointer
+                       hover:scale-105 hover:bg-[var(--brand-600)] hover:text-white
+                       transition text-sm font-semibold"
           >
-            {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+            {isPlaying ? <Pause size={16} /> : <Play size={16} />}
             {isPlaying ? "Pause" : "Play"}
           </button>
 
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-2 items-center bg-white/90 backdrop-blur rounded-full px-3 py-2 shadow-lg">
             {slides.map((_, index) => (
               <button
                 key={index}
@@ -153,8 +166,8 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
                   transition-all rounded-full cursor-pointer
                   ${
                     current === index
-                      ? "w-10 h-3 bg-black"
-                      : "w-3 h-3 bg-slate-300 hover:bg-slate-400"
+                      ? "w-8 h-2 bg-[var(--brand-600)]"
+                      : "w-2 h-2 bg-neutral-300 hover:bg-[var(--brand-400)]"
                   }
                 `}
               />
@@ -163,21 +176,21 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
         </div>
 
         {/* mobile arrows */}
-        <div className="md:hidden mt-6 flex justify-center gap-4">
+        <div className="md:hidden absolute bottom-4 left-0 right-0 flex justify-center gap-3 z-20">
           <button
             onClick={prevSlide}
             aria-label="Previous"
-            className="p-4 rounded-2xl bg-white shadow-lg cursor-pointer"
+            className="p-3 rounded-full bg-white/90 backdrop-blur shadow-lg cursor-pointer"
           >
-            <ChevronLeft />
+            <ChevronLeft size={18} />
           </button>
 
           <button
             onClick={nextSlide}
             aria-label="Next"
-            className="p-4 rounded-2xl bg-white shadow-lg cursor-pointer"
+            className="p-3 rounded-full bg-white/90 backdrop-blur shadow-lg cursor-pointer"
           >
-            <ChevronRight />
+            <ChevronRight size={18} />
           </button>
         </div>
       </div>

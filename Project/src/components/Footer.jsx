@@ -1,144 +1,269 @@
-import React from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   FaLeaf,
-  FaGlobe,
-  FaShareAlt,
-  FaExternalLinkAlt,
-  FaArrowRight,
+  FaFacebookF,
+  FaTwitter,
+  FaInstagram,
+  FaLinkedinIn,
+  FaYoutube,
   FaMapMarkerAlt,
   FaPhoneAlt,
   FaEnvelope,
   FaClock,
+  FaArrowRight,
+  FaShieldAlt,
+  FaTruck,
+  FaUndo,
+  FaHeadset,
 } from "react-icons/fa";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (!email) return;
+    setSubscribed(true);
+    setEmail("");
+    setTimeout(() => setSubscribed(false), 3500);
+  };
+
   return (
-    <footer className="bg-black/90 text-gray-300 mt-auto rounded-t-2xl w-full">
-
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 md:px-10 py-12 md:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12">
-
-        <div>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-green-700 p-3 rounded-full">
-              <FaLeaf className="text-white"/>
+    <footer className="bg-[var(--neutral-900)] text-neutral-300 mt-auto w-full">
+      {/* Trust strip */}
+      <div className="border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[
+            { icon: <FaTruck />, title: "Free Delivery", sub: "On orders above ₹499" },
+            { icon: <FaShieldAlt />, title: "100% Genuine", sub: "Verified medicines only" },
+            { icon: <FaUndo />, title: "Easy Returns", sub: "Hassle-free refunds" },
+            { icon: <FaHeadset />, title: "24/7 Support", sub: "Expert help anytime" },
+          ].map((it, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div
+                className="w-11 h-11 rounded-xl bg-[var(--brand-600)]/15
+                           flex items-center justify-center text-[var(--brand-400)]
+                           text-lg shrink-0"
+              >
+                {it.icon}
+              </div>
+              <div>
+                <p className="text-white font-semibold text-sm">{it.title}</p>
+                <p className="text-neutral-400 text-xs">{it.sub}</p>
+              </div>
             </div>
+          ))}
+        </div>
+      </div>
 
+      {/* Newsletter */}
+      <div className="bg-gradient-to-r from-[var(--brand-700)] to-[var(--brand-900)]">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 py-10 md:py-12
+                        flex flex-col md:flex-row items-center gap-6 md:gap-10">
+          <div className="flex-1 text-center md:text-left">
+            <h3 className="text-white text-xl md:text-2xl font-bold mb-1">
+              Get health tips & exclusive offers
+            </h3>
+            <p className="text-[var(--brand-100)] text-sm">
+              Join 25,000+ subscribers. Unsubscribe anytime.
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleSubscribe}
+            className="w-full md:w-auto flex items-center gap-2
+                       bg-white/10 backdrop-blur p-1.5 rounded-full
+                       border border-white/20"
+          >
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="flex-1 md:w-72 bg-transparent outline-none
+                         text-white placeholder-white/60
+                         px-4 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              className="bg-white text-[var(--brand-700)] font-semibold
+                         px-5 py-2.5 rounded-full text-sm
+                         hover:bg-[var(--brand-50)] transition
+                         flex items-center gap-2 whitespace-nowrap"
+            >
+              {subscribed ? "Subscribed ✓" : (
+                <>
+                  Subscribe
+                  <FaArrowRight className="text-xs" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Main grid */}
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-14 md:py-16
+                      grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
+        {/* Brand */}
+        <div className="lg:col-span-2">
+          <div className="flex items-center gap-3 mb-5">
+            <div
+              className="w-11 h-11 rounded-full
+                         bg-gradient-to-br from-[var(--brand-400)] to-[var(--brand-700)]
+                         flex items-center justify-center shadow-lg shadow-[var(--brand-700)]/30"
+            >
+              <FaLeaf className="text-white text-lg" />
+            </div>
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-white">
-                Dr. Kent
-              </h2>
-
-              <p className="tracking-[3px] md:tracking-[4px] text-xs md:text-sm text-gray-400">
-                HOMOEO PHARMACY
+              <h2 className="text-2xl font-bold text-white">Dr. Kent</h2>
+              <p className="tracking-[3px] text-xs text-[var(--brand-300)] font-semibold">
+                HOMOEOPHARMACY
               </p>
             </div>
           </div>
 
-          <p className="leading-7 md:leading-8 mb-8 text-sm md:text-base">
+          <p className="leading-7 text-sm md:text-base text-neutral-400 mb-6 max-w-md">
             Your trusted destination for authentic homoeopathic medicines
-            and expert consultations. Serving the community for over 25 years.
+            and expert consultations. Serving the community for over 25 years
+            with care, integrity, and proven results.
           </p>
 
-          <div className="flex flex-wrap gap-4">
-            <button className="bg-zinc-800 p-3 rounded-lg hover:bg-green-700">
-              <FaGlobe />
-            </button>
-
-            <button className="bg-zinc-800 p-3 rounded-lg hover:bg-green-700">
-              <FaShareAlt />
-            </button>
-
-            <button className="bg-zinc-800 p-3 rounded-lg hover:bg-green-700">
-              <FaExternalLinkAlt />
-            </button>
-
-            <button className="bg-zinc-800 p-3 rounded-lg hover:bg-green-700">
-              <FaArrowRight />
-            </button>
+          {/* Socials */}
+          <div className="flex flex-wrap gap-3">
+            {[FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaYoutube].map((Icon, i) => (
+              <a
+                key={i}
+                href="#"
+                aria-label="social link"
+                className="w-10 h-10 rounded-full bg-white/5 hover:bg-[var(--brand-600)]
+                           flex items-center justify-center text-neutral-300 hover:text-white
+                           transition hover:-translate-y-0.5"
+              >
+                <Icon className="text-sm" />
+              </a>
+            ))}
           </div>
         </div>
 
+        {/* Quick Links */}
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 md:mb-8">
+          <h3 className="text-white font-bold text-base mb-5 uppercase tracking-wider">
             Quick Links
-          </h2>
-
-          <ul className="space-y-4 md:space-y-5 text-sm md:text-base">
-            <li>About Us</li>
-            <li>Products</li>
-            <li>Book Appointment</li>
-            <li>Online Consultation</li>
-            <li>Track Order</li>
-            <li>Blog</li>
+          </h3>
+          <ul className="space-y-3 text-sm">
+            {[
+              { to: "/", label: "About Us" },
+              { to: "/Products", label: "Products" },
+              { to: "/Consult", label: "Book Appointment" },
+              { to: "/Consult", label: "Online Consultation" },
+              { to: "/Cart", label: "Track Order" },
+              { to: "/", label: "Blog" },
+            ].map((l, i) => (
+              <li key={i}>
+                <Link
+                  to={l.to}
+                  className="text-neutral-400 hover:text-[var(--brand-300)] transition inline-flex items-center gap-2 group"
+                >
+                  <span className="w-1 h-1 rounded-full bg-[var(--brand-500)] group-hover:w-3 transition-all" />
+                  {l.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
+        {/* Categories */}
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 md:mb-8">
+          <h3 className="text-white font-bold text-base mb-5 uppercase tracking-wider">
             Categories
-          </h2>
-
-          <ul className="space-y-4 md:space-y-5 text-sm md:text-base">
-            <li>Dilutions</li>
-            <li>Mother Tinctures</li>
-            <li>Biochemic Salts</li>
-            <li>Tonics & Syrups</li>
-            <li>External Applications</li>
-            <li>Wellness Products</li>
+          </h3>
+          <ul className="space-y-3 text-sm">
+            {[
+              "Dilutions",
+              "Mother Tinctures",
+              "Biochemic Salts",
+              "Tonics & Syrups",
+              "External Applications",
+              "Wellness Products",
+            ].map((c, i) => (
+              <li key={i}>
+                <a
+                  href="#"
+                  className="text-neutral-400 hover:text-[var(--brand-300)] transition inline-flex items-center gap-2 group"
+                >
+                  <span className="w-1 h-1 rounded-full bg-[var(--brand-500)] group-hover:w-3 transition-all" />
+                  {c}
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
 
+        {/* Contact */}
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 md:mb-8">
+          <h3 className="text-white font-bold text-base mb-5 uppercase tracking-wider">
             Contact Us
-          </h2>
-
-          <div className="space-y-5 md:space-y-6 text-sm md:text-base">
-
-            <div className="flex gap-4 items-start">
-              <FaMapMarkerAlt className="text-green-500 mt-1 shrink-0"/>
-              <p>42 Wellness Lane, Green Park, New Delhi -110016</p>
+          </h3>
+          <div className="space-y-4 text-sm text-neutral-400">
+            <div className="flex gap-3 items-start">
+              <FaMapMarkerAlt className="text-[var(--brand-400)] mt-1 shrink-0" />
+              <p>42 Wellness Lane, Green Park, New Delhi - 110016</p>
             </div>
 
-            <div className="flex gap-4 items-center">
-              <FaPhoneAlt className="text-green-500 shrink-0"/>
-              <p>+91 98765 43210</p>
+            <div className="flex gap-3 items-center">
+              <FaPhoneAlt className="text-[var(--brand-400)] shrink-0" />
+              <a href="tel:+919876543210" className="hover:text-[var(--brand-300)]">
+                +91 98765 43210
+              </a>
             </div>
 
-            <div className="flex gap-4 items-center break-all">
-              <FaEnvelope className="text-green-500 shrink-0"/>
-              <p>care@drkenthomoeo.com</p>
+            <div className="flex gap-3 items-center break-all">
+              <FaEnvelope className="text-[var(--brand-400)] shrink-0" />
+              <a href="mailto:care@drkenthomoeo.com" className="hover:text-[var(--brand-300)]">
+                care@drkenthomoeo.com
+              </a>
             </div>
 
-            <div className="flex gap-4 items-start">
-              <FaClock className="text-green-500 mt-1 shrink-0"/>
+            <div className="flex gap-3 items-start">
+              <FaClock className="text-[var(--brand-400)] mt-1 shrink-0" />
               <p>
-                Mon-Sat: 9AM - 8PM <br/>
+                Mon - Sat: 9 AM - 8 PM
+                <br />
                 Sunday: Closed
               </p>
             </div>
-
           </div>
         </div>
-
       </div>
 
-      <div className="border-t border-zinc-800">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 md:px-10 py-6 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
-
-          <p className="text-sm md:text-base">
+      {/* Bottom bar */}
+      <div className="border-t border-white/10">
+        <div
+          className="max-w-7xl mx-auto px-6 md:px-10 py-6
+                     flex flex-col md:flex-row justify-between items-center
+                     gap-4 text-center md:text-left"
+        >
+          <p className="text-sm text-neutral-400">
             © 2026 Dr. Kent Homoeo Pharmacy. All rights reserved.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 text-sm md:text-base">
-            <p>Privacy Policy</p>
-            <p>Terms of Service</p>
-            <p>Refund Policy</p>
+          <div className="flex flex-wrap justify-center gap-5 md:gap-7 text-sm">
+            {["Privacy Policy", "Terms of Service", "Refund Policy", "Sitemap"].map((t, i) => (
+              <a
+                key={i}
+                href="#"
+                className="text-neutral-400 hover:text-[var(--brand-300)] transition"
+              >
+                {t}
+              </a>
+            ))}
           </div>
-
         </div>
       </div>
-
     </footer>
   );
 };

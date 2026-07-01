@@ -1,20 +1,44 @@
-import { useState } from 'react';
-import { Star, Heart, ShoppingCart, Stethoscope, Calendar, Phone } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import {
+  Star,
+  Heart,
+  ShoppingCart,
+  Stethoscope,
+  Calendar,
+  Phone,
+  Truck,
+  Shield,
+  RotateCcw,
+  Award,
+  ChevronRight,
+  Check,
+  Plus,
+  Minus,
+  Share2,
+  ThumbsUp,
+} from "lucide-react";
+import { FaLeaf, FaBolt, FaFire } from "react-icons/fa";
+import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
+import ProductCard from "../components/ProductCard";
+import { vitaminsSupplements, heartCare } from "../data/products";
 
 const Products = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedPotency, setSelectedPotency] = useState('30C');
-  const [selectedSize, setSelectedSize] = useState('30ml');
+  const [selectedPotency, setSelectedPotency] = useState("30C");
+  const [selectedSize, setSelectedSize] = useState("30ml");
+  const [activeTab, setActiveTab] = useState("description");
+  const [wishlisted, setWishlisted] = useState(false);
+  const relatedRef = useRef(null);
 
   const product = {
     name: "Arnica Montana",
     latinName: "Leopard's Bane",
     images: [
-      "/api/placeholder/600/600",
-      "/api/placeholder/600/600",
-      "/api/placeholder/600/600",
-      "/api/placeholder/600/600"
+      "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=900&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=900&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=900&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1550572017-edd951b55104?w=900&auto=format&fit=crop",
     ],
     rating: 4.8,
     reviewCount: 256,
@@ -22,9 +46,29 @@ const Products = () => {
     originalPrice: 16.99,
     discount: 24,
     shortDescription: "Natural remedy for bruises, muscle soreness, and trauma.",
-    potencies: ['6C', '12C', '30C', '200C', '1M'],
-    sizes: ['10ml', '30ml', '50ml', '100ml'],
-    inStock: true
+    longDescription:
+      "Arnica Montana is a well-known homoeopathic remedy prepared from the Arnica plant, traditionally used to treat bruises, muscle soreness, swelling, and post-traumatic injuries. It is a favourite among athletes, physiotherapists, and surgeons for speeding up recovery.",
+    potencies: ["6C", "12C", "30C", "200C", "1M"],
+    sizes: ["10ml", "30ml", "50ml", "100ml"],
+    inStock: true,
+    benefits: [
+      "Reduces bruising and swelling quickly",
+      "Eases muscle soreness after exercise",
+      "Speeds up post-surgical recovery",
+      "Relieves joint stiffness",
+      "100% natural — no side effects",
+    ],
+    ingredients: [
+      "Arnica Montana extract (30C potency)",
+      "Ethanol (as preservative)",
+      "Sucrose (in pellet form)",
+    ],
+    usage: [
+      "Adults: 5–10 drops in half a cup of water, 3 times daily",
+      "Children: Half the adult dose",
+      "Maintain 30-minute gap from meals",
+      "Avoid strong flavors (mint, coffee) near dose",
+    ],
   };
 
   const comboOffers = [
@@ -32,153 +76,327 @@ const Products = () => {
       id: 1,
       name: "Pain Relief Combo",
       medicines: ["Arnica Montana", "Rhus Tox", "Bryonia Alba"],
-      image: "/api/placeholder/300/300",
+      image:
+        "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=600&auto=format&fit=crop",
       price: 34.99,
-      originalPrice: 45.99
+      originalPrice: 45.99,
+      rating: 4.8,
+      discount: "Save ₹11",
     },
     {
       id: 2,
       name: "Immunity Booster",
       medicines: ["Echinacea", "Arsenicum", "Gelsemium"],
-      image: "/api/placeholder/300/300",
+      image:
+        "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=600&auto=format&fit=crop",
       price: 39.99,
-      originalPrice: 52.99
+      originalPrice: 52.99,
+      rating: 4.7,
+      discount: "Save ₹13",
     },
     {
       id: 3,
       name: "Digestive Health",
       medicines: ["Nux Vomica", "Carbo Veg", "Pulsatilla"],
-      image: "/api/placeholder/300/300",
+      image:
+        "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&auto=format&fit=crop",
       price: 36.99,
-      originalPrice: 48.99
-    }
+      originalPrice: 48.99,
+      rating: 4.6,
+      discount: "Save ₹12",
+    },
   ];
 
-  const suggestions = [
-    { id: 1, name: "Rhus Toxicodendron", indication: "Joint Pain", price: 13.99, rating: 4.6 },
-    { id: 2, name: "Calendula", indication: "Wound Healing", price: 11.99, rating: 4.8 },
-    { id: 3, name: "Belladonna", indication: "Fever", price: 12.99, rating: 4.5 },
-    { id: 4, name: "Nux Vomica", indication: "Digestion", price: 13.99, rating: 4.7 }
-  ];
+  const relatedProducts = [...vitaminsSupplements.slice(0, 4), ...heartCare.slice(0, 2)].map((p, i) => ({
+    ...p,
+    id: p.id + i,
+  }));
 
   const reviews = [
-    { id: 1, author: "Dr. Priya Sharma", rating: 5, date: "Jan 15", comment: "Excellent quality. Highly effective for my patients.", isDoctor: true },
-    { id: 2, author: "Rajesh Kumar", rating: 5, date: "Jan 10", comment: "Great relief from muscle soreness. Will buy again.", isDoctor: false },
-    { id: 3, author: "Dr. Meena Patel", rating: 4, date: "Jan 05", comment: "Good potency and results. Authentic product.", isDoctor: true }
+    {
+      id: 1,
+      author: "Dr. Priya Sharma",
+      rating: 5,
+      date: "Jan 15, 2026",
+      comment: "Excellent quality. Highly effective for my patients.",
+      isDoctor: true,
+      helpful: 42,
+    },
+    {
+      id: 2,
+      author: "Rajesh Kumar",
+      rating: 5,
+      date: "Jan 10, 2026",
+      comment: "Great relief from muscle soreness. Will buy again.",
+      isDoctor: false,
+      helpful: 28,
+    },
+    {
+      id: 3,
+      author: "Dr. Meena Patel",
+      rating: 4,
+      date: "Jan 05, 2026",
+      comment: "Good potency and results. Authentic product.",
+      isDoctor: true,
+      helpful: 19,
+    },
   ];
 
+  const ratingBreakdown = [
+    { stars: 5, count: 168, pct: 66 },
+    { stars: 4, count: 58, pct: 23 },
+    { stars: 3, count: 20, pct: 8 },
+    { stars: 2, count: 6, pct: 2 },
+    { stars: 1, count: 4, pct: 1 },
+  ];
+
+  const scrollRelated = (dir) => {
+    relatedRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  };
+
   return (
-    <div className="min-h-screen bg-white">
-      
-      {/* Simple Header Bar */}
-      <div className="border-b">
-        <div className="container mx-auto px-4 py-4">
-          <nav className="text-sm text-gray-500">
-            <span>Home</span> <span className="mx-2">/</span>
-            <span>Medicines</span> <span className="mx-2">/</span>
-            <span className="text-gray-900">Arnica Montana</span>
+    <div className="min-h-screen bg-neutral-50">
+      {/* Breadcrumb */}
+      <div className="bg-white border-b border-neutral-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <nav className="text-sm text-neutral-500 flex items-center gap-2 flex-wrap">
+            <a href="/" className="hover:text-[var(--brand-700)]">Home</a>
+            <ChevronRight className="w-3 h-3" />
+            <a href="/Products" className="hover:text-[var(--brand-700)]">Medicines</a>
+            <ChevronRight className="w-3 h-3" />
+            <span className="text-neutral-900 font-medium">Arnica Montana</span>
           </nav>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8">
         {/* Consultation Strip */}
-        <div className="mb-8 p-6 bg-gray-50 rounded-lg border">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div
+          className="mb-8 p-5 md:p-6
+                     bg-gradient-to-r from-[var(--brand-50)] to-white
+                     border border-[var(--brand-100)]
+                     rounded-2xl flex flex-col md:flex-row
+                     items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-4 text-center md:text-left">
+            <div
+              className="w-12 h-12 rounded-2xl
+                         bg-[var(--brand-600)] flex items-center justify-center
+                         text-white shadow-md shadow-[var(--brand-600)]/30"
+            >
+              <Stethoscope className="w-6 h-6" />
+            </div>
             <div>
-              <h3 className="font-semibold text-lg mb-1">Need Help Choosing?</h3>
-              <p className="text-sm text-gray-600">Consult with certified homeopathy doctors</p>
+              <h3 className="font-bold text-neutral-900 text-base md:text-lg">
+                Need Help Choosing?
+              </h3>
+              <p className="text-sm text-neutral-500">
+                Consult with certified homeopathy doctors — free first visit
+              </p>
             </div>
-            <div className="flex gap-3">
-              <button className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition flex items-center gap-2">
-                <Stethoscope className="w-4 h-4" />
-                Consult Doctor
-              </button>
-              <button className="px-6 py-2.5 border border-gray-900 rounded-lg hover:bg-gray-50 transition flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Book Appointment
-              </button>
-            </div>
+          </div>
+          <div className="flex gap-3 w-full md:w-auto">
+            <button className="flex-1 md:flex-none btn-primary py-2.5 text-sm">
+              <Stethoscope className="w-4 h-4" />
+              Consult Doctor
+            </button>
+            <button className="flex-1 md:flex-none btn-outline py-2.5 text-sm">
+              <Calendar className="w-4 h-4" />
+              Book Appointment
+            </button>
           </div>
         </div>
 
-        {/* Product Section */}
-        <div className="grid lg:grid-cols-2 gap-12 mb-16">
-          
+        {/* Product section */}
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
           {/* Images */}
           <div>
-            <div className="aspect-square bg-gray-50 rounded-lg mb-4 relative overflow-hidden">
-              <img 
-                src={product.images[selectedImage]} 
+            <div
+              className="relative bg-gradient-to-br from-[var(--brand-50)] to-white
+                         border border-neutral-100 rounded-3xl overflow-hidden
+                         aspect-square flex items-center justify-center group"
+            >
+              <img
+                src={product.images[selectedImage]}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover
+                           transition-transform duration-500 group-hover:scale-105"
               />
+
+              {/* Discount badge */}
               {product.discount > 0 && (
-                <div className="absolute top-4 left-4 bg-black text-white px-3 py-1 text-sm rounded">
-                  -{product.discount}%
+                <div
+                  className="absolute top-4 left-4
+                             bg-gradient-to-r from-[var(--brand-600)] to-[var(--brand-700)]
+                             text-white px-3 py-1.5 text-sm font-bold rounded-full
+                             shadow-lg flex items-center gap-1"
+                >
+                  <FaFire className="text-xs" />
+                  -{product.discount}% OFF
                 </div>
               )}
-              <button className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100">
-                <Heart className="w-5 h-5" />
-              </button>
+
+              {/* Action buttons */}
+              <div className="absolute top-4 right-4 flex flex-col gap-2">
+                <button
+                  onClick={() => setWishlisted(!wishlisted)}
+                  aria-label="Wishlist"
+                  className={`w-10 h-10 rounded-full bg-white shadow-md
+                              flex items-center justify-center transition
+                              ${
+                                wishlisted
+                                  ? "text-red-500"
+                                  : "text-neutral-500 hover:text-red-500"
+                              }`}
+                >
+                  <Heart
+                    className="w-5 h-5"
+                    fill={wishlisted ? "currentColor" : "none"}
+                  />
+                </button>
+                <button
+                  aria-label="Share"
+                  className="w-10 h-10 rounded-full bg-white shadow-md
+                             flex items-center justify-center text-neutral-500
+                             hover:text-[var(--brand-700)] transition"
+                >
+                  <Share2 className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Trust strip at bottom */}
+              <div
+                className="absolute bottom-4 left-4 right-4
+                           bg-white/95 backdrop-blur rounded-xl p-3
+                           flex items-center justify-around gap-2 text-xs
+                           border border-neutral-100"
+              >
+                <div className="flex items-center gap-1.5 text-neutral-700">
+                  <Shield className="w-4 h-4 text-[var(--brand-600)]" />
+                  <span className="font-medium">Genuine</span>
+                </div>
+                <div className="w-px h-4 bg-neutral-200" />
+                <div className="flex items-center gap-1.5 text-neutral-700">
+                  <Truck className="w-4 h-4 text-[var(--brand-600)]" />
+                  <span className="font-medium">Free Delivery</span>
+                </div>
+                <div className="w-px h-4 bg-neutral-200" />
+                <div className="flex items-center gap-1.5 text-neutral-700">
+                  <Award className="w-4 h-4 text-[var(--brand-600)]" />
+                  <span className="font-medium">GMP</span>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-4 gap-3">
+
+            {/* Thumbnails */}
+            <div className="grid grid-cols-4 gap-3 mt-4">
               {product.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`aspect-square rounded-lg overflow-hidden border-2 ${
-                    selectedImage === index ? 'border-gray-900' : 'border-gray-200'
-                  }`}
+                  className={`aspect-square rounded-xl overflow-hidden border-2
+                              transition bg-white
+                              ${
+                                selectedImage === index
+                                  ? "border-[var(--brand-600)] shadow-md"
+                                  : "border-neutral-200 hover:border-[var(--brand-300)]"
+                              }`}
                 >
-                  <img src={image} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={image}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>
           </div>
 
           {/* Product Info */}
-          <div>
-            <h1 className="text-3xl md:text-4xl font-light mb-2">{product.name}</h1>
-            <p className="text-gray-500 italic mb-4">{product.latinName}</p>
-            
+          <div className="lg:sticky lg:top-32 lg:self-start">
+            <div className="flex items-center gap-2 mb-3">
+              <span
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full
+                           bg-[var(--brand-100)] text-[var(--brand-700)]
+                           text-xs font-semibold"
+              >
+                <FaLeaf className="text-[10px]" />
+                Homoeopathic
+              </span>
+              <span
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full
+                           bg-amber-100 text-amber-700 text-xs font-semibold"
+              >
+                <Award className="w-3 h-3" />
+                Top Rated
+              </span>
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-1 tracking-tight">
+              {product.name}
+            </h1>
+            <p className="text-neutral-500 italic mb-4">{product.latinName}</p>
+
+            {/* Rating */}
             <div className="flex items-center gap-3 mb-6">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
                     className={`w-4 h-4 ${
-                      i < Math.floor(product.rating) 
-                        ? 'fill-gray-900 text-gray-900' 
-                        : 'text-gray-300'
+                      i < Math.floor(product.rating)
+                        ? "fill-amber-400 text-amber-400"
+                        : "text-neutral-200"
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-sm text-gray-600">{product.rating} ({product.reviewCount})</span>
+              <span className="text-sm font-medium text-neutral-700">
+                {product.rating}
+              </span>
+              <span className="text-sm text-neutral-500">
+                ({product.reviewCount} reviews)
+              </span>
             </div>
 
-            <div className="flex items-baseline gap-3 mb-6 pb-6 border-b">
-              <span className="text-3xl font-light">₹{product.currentPrice}</span>
-              <span className="text-xl text-gray-400 line-through">₹{product.originalPrice}</span>
+            {/* Price */}
+            <div
+              className="flex items-baseline gap-3 mb-2 pb-6 border-b border-dashed border-neutral-200"
+            >
+              <span className="text-4xl font-extrabold text-neutral-900">
+                ₹{product.currentPrice}
+              </span>
+              <span className="text-xl text-neutral-400 line-through">
+                ₹{product.originalPrice}
+              </span>
+              <span
+                className="bg-emerald-100 text-emerald-700
+                           text-xs font-bold px-2.5 py-1 rounded-full"
+              >
+                Save ₹{(product.originalPrice - product.currentPrice).toFixed(2)}
+              </span>
             </div>
 
-            <p className="text-gray-600 mb-8 leading-relaxed">{product.shortDescription}</p>
+            <p className="text-neutral-600 mb-7 leading-relaxed">
+              {product.shortDescription}
+            </p>
 
             {/* Potency */}
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-3">Potency</label>
-              <div className="flex gap-2">
+              <label className="block text-sm font-semibold text-neutral-800 mb-3">
+                Potency
+              </label>
+              <div className="flex flex-wrap gap-2">
                 {product.potencies.map((potency) => (
                   <button
                     key={potency}
                     onClick={() => setSelectedPotency(potency)}
-                    className={`px-4 py-2 border rounded ${
-                      selectedPotency === potency
-                        ? 'border-gray-900 bg-gray-900 text-white'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition
+                                ${
+                                  selectedPotency === potency
+                                    ? "bg-[var(--brand-600)] text-white shadow-md shadow-[var(--brand-600)]/30"
+                                    : "bg-white text-neutral-700 border border-neutral-200 hover:border-[var(--brand-300)] hover:text-[var(--brand-700)]"
+                                }`}
                   >
                     {potency}
                   </button>
@@ -188,17 +406,20 @@ const Products = () => {
 
             {/* Size */}
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-3">Size</label>
-              <div className="flex gap-2">
+              <label className="block text-sm font-semibold text-neutral-800 mb-3">
+                Pack Size
+              </label>
+              <div className="flex flex-wrap gap-2">
                 {product.sizes.map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 border rounded ${
-                      selectedSize === size
-                        ? 'border-gray-900 bg-gray-900 text-white'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition
+                                ${
+                                  selectedSize === size
+                                    ? "bg-[var(--brand-600)] text-white shadow-md shadow-[var(--brand-600)]/30"
+                                    : "bg-white text-neutral-700 border border-neutral-200 hover:border-[var(--brand-300)] hover:text-[var(--brand-700)]"
+                                }`}
                   >
                     {size}
                   </button>
@@ -207,73 +428,231 @@ const Products = () => {
             </div>
 
             {/* Quantity */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium mb-3">Quantity</label>
-              <div className="flex items-center gap-3">
+            <div className="mb-7">
+              <label className="block text-sm font-semibold text-neutral-800 mb-3">
+                Quantity
+              </label>
+              <div
+                className="inline-flex items-center bg-white border border-neutral-200
+                           rounded-xl overflow-hidden"
+              >
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 border rounded hover:bg-gray-50"
+                  className="w-11 h-11 flex items-center justify-center
+                             text-[var(--brand-700)] hover:bg-[var(--brand-50)]
+                             transition font-bold"
                 >
-                  −
+                  <Minus className="w-4 h-4" />
                 </button>
-                <span className="w-12 text-center">{quantity}</span>
+                <span className="w-14 text-center font-bold text-neutral-800 border-x border-neutral-200 tabular-nums">
+                  {quantity}
+                </span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 border rounded hover:bg-gray-50"
+                  className="w-11 h-11 flex items-center justify-center
+                             text-[var(--brand-700)] hover:bg-[var(--brand-50)]
+                             transition font-bold"
                 >
-                  +
+                  <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Buttons */}
-            <div className="flex gap-3 mb-6">
-              <button className="flex-1 bg-gray-900 text-white py-3.5 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2">
+            {/* CTA buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <button className="flex-1 btn-primary py-3.5 text-base">
                 <ShoppingCart className="w-5 h-5" />
                 Add to Cart
               </button>
-              <button className="px-8 border border-gray-900 rounded-lg hover:bg-gray-50 transition">
+              <button className="flex-1 btn-outline py-3.5 text-base">
+                <FaBolt />
                 Buy Now
               </button>
             </div>
 
             {/* Quick Contact */}
-            <div className="p-4 bg-gray-50 rounded-lg border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium mb-1">Need Expert Advice?</p>
-                  <p className="text-sm text-gray-600">Talk to our homeopathic specialist</p>
-                </div>
-                <button className="flex items-center gap-2 text-sm font-medium hover:underline">
-                  <Phone className="w-4 h-4" />
-                  Call Now
-                </button>
+            <div
+              className="p-4 bg-[var(--brand-50)] border border-[var(--brand-100)]
+                         rounded-xl flex items-center justify-between gap-3"
+            >
+              <div>
+                <p className="text-sm font-semibold text-neutral-800 mb-0.5">
+                  Need Expert Advice?
+                </p>
+                <p className="text-xs text-neutral-500">
+                  Talk to our homeopathic specialist
+                </p>
+              </div>
+              <a
+                href="tel:+919876543210"
+                className="flex items-center gap-2
+                           bg-white text-[var(--brand-700)]
+                           font-semibold text-sm px-4 py-2 rounded-lg
+                           hover:bg-[var(--brand-100)] transition"
+              >
+                <Phone className="w-4 h-4" />
+                Call Now
+              </a>
+            </div>
+
+            {/* Delivery info */}
+            <div
+              className="mt-4 grid grid-cols-2 gap-3 text-sm
+                         text-neutral-600"
+            >
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4 text-[var(--brand-600)]" />
+                Delivery in 24 hours
+              </div>
+              <div className="flex items-center gap-2">
+                <RotateCcw className="w-4 h-4 text-[var(--brand-600)]" />
+                7-day easy returns
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-[var(--brand-600)]" />
+                100% genuine
+              </div>
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-[var(--brand-600)]" />
+                COD available
               </div>
             </div>
           </div>
         </div>
 
+        {/* Tabs section */}
+        <section className="mb-12 md:mb-16">
+          <div className="bg-white border border-neutral-100 rounded-2xl overflow-hidden shadow-sm">
+            {/* Tab headers */}
+            <div className="flex overflow-x-auto no-scrollbar border-b border-neutral-100">
+              {[
+                { id: "description", label: "Description" },
+                { id: "benefits", label: "Benefits" },
+                { id: "ingredients", label: "Ingredients" },
+                { id: "usage", label: "How to Use" },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className={`px-6 py-4 text-sm font-semibold whitespace-nowrap transition
+                              relative
+                              ${
+                                activeTab === t.id
+                                  ? "text-[var(--brand-700)]"
+                                  : "text-neutral-500 hover:text-neutral-800"
+                              }`}
+                >
+                  {t.label}
+                  {activeTab === t.id && (
+                    <span
+                      className="absolute bottom-0 left-0 right-0 h-0.5
+                                 bg-[var(--brand-600)] rounded-t-full"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab content */}
+            <div className="p-6 md:p-8 text-neutral-600 leading-relaxed animate-fade-in">
+              {activeTab === "description" && (
+                <div className="space-y-4">
+                  <p>{product.longDescription}</p>
+                  <div
+                    className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg
+                               text-sm text-amber-800"
+                  >
+                    ⚠️ Consult a qualified homeopathic practitioner before use.
+                  </div>
+                </div>
+              )}
+              {activeTab === "benefits" && (
+                <ul className="space-y-3">
+                  {product.benefits.map((b, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <div
+                        className="w-6 h-6 rounded-full bg-[var(--brand-100)]
+                                   text-[var(--brand-700)] flex items-center justify-center
+                                   shrink-0 mt-0.5"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-neutral-700">{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {activeTab === "ingredients" && (
+                <ul className="space-y-2.5">
+                  {product.ingredients.map((b, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--brand-500)] mt-2.5 shrink-0" />
+                      <span className="text-neutral-700">{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {activeTab === "usage" && (
+                <ol className="space-y-2.5 list-decimal list-inside marker:text-[var(--brand-600)] marker:font-bold">
+                  {product.usage.map((u, i) => (
+                    <li key={i} className="text-neutral-700">{u}</li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </div>
+        </section>
+
         {/* Combo Offers */}
-        <section className="mb-16">
-          <h2 className="text-2xl font-light mb-8">Combo Offers</h2>
+        <section className="mb-12 md:mb-16">
+          <div className="text-center mb-8">
+            <span className="section-eyebrow">Bundle & Save</span>
+            <h2 className="section-title mt-3">Combo Offers</h2>
+          </div>
           <div className="grid md:grid-cols-3 gap-6">
             {comboOffers.map((combo) => (
-              <div key={combo.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition">
-                <div className="aspect-[4/3] bg-gray-50">
-                  <img src={combo.image} alt={combo.name} className="w-full h-full object-cover" />
+              <div
+                key={combo.id}
+                className="group bg-white rounded-2xl overflow-hidden
+                           border border-neutral-100 shadow-sm
+                           hover:shadow-xl card-lift"
+              >
+                <div className="relative aspect-[4/3] bg-gradient-to-br from-[var(--brand-50)] to-white overflow-hidden">
+                  <img
+                    src={combo.image}
+                    alt={combo.name}
+                    className="w-full h-full object-cover
+                               transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <span
+                    className="absolute top-3 left-3 bg-[var(--brand-600)] text-white
+                               text-xs font-bold px-2.5 py-1 rounded-full"
+                  >
+                    {combo.discount}
+                  </span>
                 </div>
                 <div className="p-5">
-                  <h3 className="font-medium text-lg mb-3">{combo.name}</h3>
-                  <ul className="text-sm text-gray-600 space-y-1 mb-4">
+                  <h3 className="font-bold text-lg text-neutral-900 mb-3">
+                    {combo.name}
+                  </h3>
+                  <ul className="text-sm text-neutral-500 space-y-1.5 mb-4">
                     {combo.medicines.map((med, i) => (
-                      <li key={i}>• {med}</li>
+                      <li key={i} className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-[var(--brand-500)]" />
+                        {med}
+                      </li>
                     ))}
                   </ul>
                   <div className="flex items-baseline gap-2 mb-4">
-                    <span className="text-xl font-light">₹{combo.price}</span>
-                    <span className="text-sm text-gray-400 line-through">₹{combo.originalPrice}</span>
+                    <span className="text-2xl font-bold text-neutral-900">
+                      ₹{combo.price}
+                    </span>
+                    <span className="text-sm text-neutral-400 line-through">
+                      ₹{combo.originalPrice}
+                    </span>
                   </div>
-                  <button className="w-full py-2.5 bg-gray-900 text-white rounded hover:bg-gray-800 transition">
+                  <button className="w-full btn-primary py-2.5">
+                    <ShoppingCart className="w-4 h-4" />
                     Add Combo
                   </button>
                 </div>
@@ -282,156 +661,210 @@ const Products = () => {
           </div>
         </section>
 
-        {/* Related Products */}
-        <section className="mb-16">
-          <h2 className="text-2xl font-light mb-8">You May Also Need</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {suggestions.map((item) => (
-              <div key={item.id} className="group">
-                <div className="aspect-square bg-gray-50 rounded-lg mb-3 overflow-hidden">
-                  <div className="w-full h-full bg-gray-100"></div>
-                </div>
-                <h3 className="font-medium mb-1 text-sm">{item.name}</h3>
-                <p className="text-xs text-gray-500 mb-2">{item.indication}</p>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-3 h-3 ${
-                          i < Math.floor(item.rating) 
-                            ? 'fill-gray-900 text-gray-900' 
-                            : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs text-gray-600">{item.rating}</span>
-                </div>
-                <p className="font-medium mb-3">₹{item.price}</p>
-                <button className="w-full py-2 border rounded hover:bg-gray-50 transition text-sm">
-                  Add to Cart
-                </button>
-              </div>
+        {/* Related Products slider */}
+        <section className="mb-12 md:mb-16">
+          <div className="flex items-end justify-between gap-4 mb-8">
+            <div>
+              <span className="section-eyebrow">You may also like</span>
+              <h2 className="section-title mt-3">Related Products</h2>
+            </div>
+            <div className="hidden md:flex gap-2">
+              <button
+                onClick={() => scrollRelated(-1)}
+                aria-label="Scroll left"
+                className="w-11 h-11 rounded-full bg-white shadow-md border border-neutral-100
+                           flex items-center justify-center text-neutral-700
+                           hover:bg-[var(--brand-50)] hover:text-[var(--brand-700)] transition"
+              >
+                <HiOutlineChevronLeft className="text-xl" />
+              </button>
+              <button
+                onClick={() => scrollRelated(1)}
+                aria-label="Scroll right"
+                className="w-11 h-11 rounded-full bg-white shadow-md border border-neutral-100
+                           flex items-center justify-center text-neutral-700
+                           hover:bg-[var(--brand-50)] hover:text-[var(--brand-700)] transition"
+              >
+                <HiOutlineChevronRight className="text-xl" />
+              </button>
+            </div>
+          </div>
+
+          <div
+            ref={relatedRef}
+            className="flex gap-5 overflow-x-auto scroll-smooth no-scrollbar pb-2 -mx-2 px-2"
+          >
+            {relatedProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
             ))}
-          </div>
-        </section>
-        <section className="mb-16 max-w-4xl">
-          <h2 className="text-2xl font-light mb-6">About This Medicine</h2>
-          
-          <div className="bg-yellow-50 border-l-2 border-yellow-400 p-4 mb-6 text-sm">
-            ⚠️ Consult a qualified homeopathic practitioner before use.
-          </div>
-
-          <div className="space-y-6 text-gray-600 leading-relaxed">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">Common Indications</h3>
-              <ul className="space-y-2">
-                <li>• Bruises and muscle soreness from physical trauma</li>
-                <li>• Reduces inflammation and swelling</li>
-                <li>• Post-surgical recovery and wound healing</li>
-                <li>• Sports injuries and sprains</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">Dosage</h3>
-              <p><strong>Adults:</strong> 5-10 drops in water, 3 times daily</p>
-              <p><strong>Children:</strong> Half the adult dose</p>
-              <p className="text-sm italic mt-2">Maintain 30-minute gap from meals</p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">Storage</h3>
-              <ul className="space-y-2">
-                <li>• Store in cool, dry place</li>
-                <li>• Keep away from strong odors</li>
-                <li>• Keep out of reach of children</li>
-              </ul>
-            </div>
           </div>
         </section>
 
         {/* Reviews */}
-        <section className="max-w-4xl">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-light">Reviews</h2>
-            <button className="text-sm font-medium hover:underline">Write Review</button>
+        <section className="mb-12 md:mb-16">
+          <div className="text-center mb-8">
+            <span className="section-eyebrow">Real customers</span>
+            <h2 className="section-title mt-3">Customer Reviews</h2>
           </div>
 
-          <div className="flex items-center gap-8 mb-8 pb-8 border-b">
-            <div>
-              <div className="text-5xl font-light mb-2">{product.rating}</div>
-              <div className="flex mb-1">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Rating summary */}
+            <div
+              className="bg-gradient-to-br from-[var(--brand-50)] to-white
+                         border border-[var(--brand-100)] rounded-2xl
+                         p-6 md:p-8 text-center lg:text-left"
+            >
+              <div className="text-6xl font-extrabold text-neutral-900 mb-2">
+                {product.rating}
+              </div>
+              <div className="flex justify-center lg:justify-start mb-2">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-4 h-4 ${
-                      i < Math.floor(product.rating) 
-                        ? 'fill-gray-900 text-gray-900' 
-                        : 'text-gray-300'
+                    className={`w-5 h-5 ${
+                      i < Math.floor(product.rating)
+                        ? "fill-amber-400 text-amber-400"
+                        : "text-neutral-200"
                     }`}
                   />
                 ))}
               </div>
-              <div className="text-sm text-gray-600">{product.reviewCount} reviews</div>
-            </div>
-          </div>
+              <p className="text-sm text-neutral-500 mb-6">
+                Based on {product.reviewCount} reviews
+              </p>
 
-          <div className="space-y-6">
-            {reviews.map((review) => (
-              <div key={review.id} className="pb-6 border-b last:border-0">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{review.author}</span>
-                      {review.isDoctor && (
-                        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">Doctor</span>
-                      )}
+              <div className="space-y-2">
+                {ratingBreakdown.map((r) => (
+                  <div key={r.stars} className="flex items-center gap-3 text-sm">
+                    <span className="w-3 text-neutral-600 font-medium">{r.stars}</span>
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <div className="flex-1 h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-amber-400 rounded-full"
+                        style={{ width: `${r.pct}%` }}
+                      />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3 h-3 ${
-                              i < review.rating 
-                                ? 'fill-gray-900 text-gray-900' 
-                                : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
+                    <span className="w-8 text-right text-neutral-500 text-xs">
+                      {r.count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <button className="btn-primary w-full mt-6 py-2.5 text-sm">
+                Write a Review
+              </button>
+            </div>
+
+            {/* Review list */}
+            <div className="lg:col-span-2 space-y-4">
+              {reviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="bg-white border border-neutral-100 rounded-2xl p-5 md:p-6
+                             hover:shadow-md transition"
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <div
+                      className="w-11 h-11 rounded-full
+                                 bg-gradient-to-br from-[var(--brand-400)] to-[var(--brand-700)]
+                                 text-white font-bold
+                                 flex items-center justify-center shrink-0"
+                    >
+                      {review.author[0]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-semibold text-neutral-900">
+                          {review.author}
+                        </span>
+                        {review.isDoctor && (
+                          <span
+                            className="text-[10px] font-bold
+                                       bg-[var(--brand-100)] text-[var(--brand-700)]
+                                       px-2 py-0.5 rounded-full uppercase tracking-wider"
+                          >
+                            Doctor
+                          </span>
+                        )}
                       </div>
-                      <span className="text-xs text-gray-500">{review.date}</span>
+                      <div className="flex items-center gap-2 text-xs text-neutral-500">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-3 h-3 ${
+                                i < review.rating
+                                  ? "fill-amber-400 text-amber-400"
+                                  : "text-neutral-200"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span>·</span>
+                        <span>{review.date}</span>
+                      </div>
                     </div>
                   </div>
+                  <p className="text-neutral-600 leading-relaxed mb-3">
+                    {review.comment}
+                  </p>
+                  <button
+                    className="flex items-center gap-1.5 text-xs text-neutral-500
+                               hover:text-[var(--brand-700)] transition"
+                  >
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                    Helpful ({review.helpful})
+                  </button>
                 </div>
-                <p className="text-gray-600">{review.comment}</p>
-              </div>
-            ))}
-          </div>
+              ))}
 
-          <div className="text-center mt-8">
-            <button className="px-6 py-2 border rounded hover:bg-gray-50 transition text-sm">
-              Load More
-            </button>
+              <button className="btn-outline w-full py-2.5 mt-2">
+                Load More Reviews
+              </button>
+            </div>
           </div>
         </section>
 
         {/* Bottom CTA */}
-        <div className="mt-16 p-8 bg-gray-900 text-white rounded-lg text-center">
-          <h3 className="text-2xl font-light mb-3">Still Have Questions?</h3>
-          <p className="text-gray-400 mb-6">Expert homeopathic doctors available 24/7</p>
-          <div className="flex justify-center gap-4">
-            <button className="px-8 py-3 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition">
-              Free Consultation
-            </button>
-            <button className="px-8 py-3 border border-white rounded-lg hover:bg-white hover:text-gray-900 transition">
-              Call Now
-            </button>
+        <div
+          className="mt-8 p-8 md:p-12 rounded-3xl text-center text-white
+                     bg-gradient-to-br from-[var(--brand-700)] via-[var(--brand-800)] to-[var(--brand-900)]
+                     relative overflow-hidden"
+        >
+          <div
+            className="absolute -top-20 -right-20 w-72 h-72 rounded-full
+                       bg-white/10 blur-2xl"
+          />
+          <div
+            className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full
+                       bg-[var(--accent-mint)]/20 blur-2xl"
+          />
+          <div className="relative">
+            <h3 className="text-2xl md:text-3xl font-bold mb-3 font-['Plus_Jakarta_Sans']">
+              Still Have Questions?
+            </h3>
+            <p className="text-[var(--brand-100)] mb-6 max-w-md mx-auto">
+              Expert homeopathic doctors available 24/7 to help you choose
+              the right remedy.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-3">
+              <button className="bg-white text-[var(--brand-700)] font-semibold
+                                 px-7 py-3 rounded-xl hover:bg-[var(--brand-50)]
+                                 transition flex items-center justify-center gap-2">
+                <Stethoscope className="w-4 h-4" />
+                Free Consultation
+              </button>
+              <button className="bg-white/10 backdrop-blur border border-white/30
+                                 text-white font-semibold px-7 py-3 rounded-xl
+                                 hover:bg-white/20 transition flex items-center
+                                 justify-center gap-2">
+                <Phone className="w-4 h-4" />
+                Call Now
+              </button>
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   );

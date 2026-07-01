@@ -1,15 +1,258 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Playwrite+NO:wght@100..400&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 
-body{
-  font-family: "Inter", sans-serif;
+/* ===========================================================
+   Centralized theme — change values here to re-skin the site.
+   Source of truth: src/theme.js
+   =========================================================== */
+:root {
+  /* Brand green scale */
+  --brand-50: #f0fdf4;
+  --brand-100: #dcfce7;
+  --brand-200: #bbf7d0;
+  --brand-300: #86efac;
+  --brand-400: #4ade80;
+  --brand-500: #22c55e;
+  --brand-600: #16a34a;
+  --brand-700: #15803d;
+  --brand-800: #166534;
+  --brand-900: #14532d;
+
+  /* Accents */
+  --accent-mint: #a7f3d0;
+  --accent-sage: #d1fae5;
+  --accent-emerald: #10b981;
+  --accent-teal: #14b8a6;
+
+  /* Neutrals */
+  --neutral-50: #f8fafc;
+  --neutral-100: #f1f5f9;
+  --neutral-200: #e2e8f0;
+  --neutral-300: #cbd5e1;
+  --neutral-400: #94a3b8;
+  --neutral-500: #64748b;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1e293b;
+  --neutral-900: #0f172a;
+
+  /* Surfaces */
+  --bg: #ffffff;
+  --bg-soft: #f7faf7;
+  --bg-card: #ffffff;
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* Radius / motion */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Brand shadow */
+  --shadow-brand: 0 10px 30px -10px rgba(22, 163, 74, 0.45);
+  --shadow-brand-lg: 0 20px 45px -12px rgba(22, 163, 74, 0.55);
 }
 
-.no-scrollbar::-webkit-scrollbar{
-display:none;
+/* ===========================================================
+   Base
+   =========================================================== */
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
-.no-scrollbar{
--ms-overflow-style:none;
-scrollbar-width:none;
+html,
+body {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--text-primary);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: var(--brand-200);
+  color: var(--brand-900);
+}
+
+/* Brand text classes (used in places where we want exact brand color) */
+.text-brand { color: var(--brand-600); }
+.text-brand-soft { color: var(--brand-700); }
+.bg-brand { background: var(--brand-600); }
+.bg-brand-soft { background: var(--brand-50); }
+.bg-brand-gradient {
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+}
+.bg-brand-gradient-soft {
+  background: linear-gradient(135deg, var(--brand-50), var(--accent-sage));
+}
+.border-brand { border-color: var(--brand-600); }
+.hover\:bg-brand-hover:hover { background: var(--brand-700); }
+.hover\:text-brand:hover { color: var(--brand-600); }
+
+/* Shadows */
+.shadow-brand { box-shadow: var(--shadow-brand); }
+.shadow-brand-lg { box-shadow: var(--shadow-brand-lg); }
+
+/* ===========================================================
+   Reusable utilities
+   =========================================================== */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Premium subtle scrollbar for main scroll areas */
+.thin-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+.thin-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--neutral-200);
+  border-radius: 9999px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--neutral-300); }
+
+/* Subtle gradient text */
+.brand-gradient-text {
+  background: linear-gradient(135deg, var(--brand-600), var(--accent-emerald));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Premium section background (soft healthcare) */
+.section-soft {
+  background: linear-gradient(180deg, #ffffff 0%, var(--brand-50) 100%);
+}
+.section-mint {
+  background: linear-gradient(180deg, var(--brand-50) 0%, var(--accent-sage) 100%);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in { animation: fade-in 0.5s var(--ease) both; }
+.animate-fade-up { animation: fade-up 0.6s var(--ease) both; }
+.animate-slide-in { animation: slide-in-right 0.4s var(--ease) both; }
+.animate-pulse-ring { animation: pulse-ring 2s infinite; }
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--brand-100) 0%, var(--brand-200) 50%, var(--brand-100) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+}
+
+/* Card hover lift (reusable) */
+.card-lift {
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.card-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.15);
+}
+
+/* Button ripple effect (lightweight) */
+.btn-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+  color: white;
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  transition: all 0.25s var(--ease);
+  box-shadow: var(--shadow-brand);
+  overflow: hidden;
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-brand-lg);
+  filter: brightness(1.05);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  color: var(--brand-700);
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--brand-200);
+  transition: all 0.25s var(--ease);
+}
+.btn-outline:hover {
+  background: var(--brand-50);
+  border-color: var(--brand-400);
+  transform: translateY(-1px);
+}
+
+/* Section heading helpers */
+.section-eyebrow {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  background: var(--brand-100);
+  color: var(--brand-700);
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.section-title {
+  font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--neutral-900);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.section-subtitle {
+  color: var(--neutral-500);
+  font-size: 1rem;
+  max-width: 36rem;
+  margin: 0.75rem auto 0;
+}
+
+/* Focus ring (a11y) */
+:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
 }

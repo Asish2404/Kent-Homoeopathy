@@ -3,132 +3,136 @@ import {
   FaUserMd,
   FaFlask,
   FaTruck,
+  FaShieldAlt,
+  FaStethoscope,
+  FaCheckCircle,
 } from "react-icons/fa";
+import { FiArrowRight, FiHeadphones, FiAward } from "react-icons/fi";
 import Carousel from "../components/Carousel";
+import ProductSlider from "../components/ProductSlider";
+import Statistics from "../components/Statistics";
 import slides from "../data/Slides";
-import { useRef, useEffect } from "react";
-import { FaStar, FaShoppingCart } from "react-icons/fa";
-import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
-import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import {
+  featuredProducts,
+  allCategories,
+} from "../data/products";
+
 const Home = () => {
-  const sliderRef = useRef(null);
-
-  useEffect(() => {
-    fetch("http://localhost:4000/api/test")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-      });
-
-  }, []);
-  const scrollLeft = () => {
-    sliderRef.current.scrollBy({
-      left: -420,
-      behavior: "smooth",
-    });
-  };
-  const scrollRight = () => {
-    sliderRef.current.scrollBy({
-      left: 420,
-      behavior: "smooth",
-    });
-  };
-
-  const products = [
-    {
-      id: 1,
-      name: "She Care Juice",
-      price: 541,
-      oldPrice: 543,
-      rating: 4.9,
-      reviews: 8921,
-      discount: "Save ₹2",
-      image: "https://krishnas.com/cdn/shop/files/shecare.png",
-    },
-    {
-      id: 2,
-      name: "Diabic Care Juice",
-      price: 457,
-      oldPrice: 459,
-      rating: 4.8,
-      reviews: 8335,
-      discount: "Save ₹2",
-      image: "https://krishnas.com/cdn/shop/files/diabiccare.png",
-    },
-    {
-      id: 3,
-      name: "Cholesterol Care",
-      price: 560,
-      oldPrice: 562,
-      rating: 5.0,
-      reviews: 6398,
-      discount: "Save ₹2",
-      image: "https://krishnas.com/cdn/shop/files/cholesterolcare.png",
-    },
-    {
-      id: 4,
-      name: "Shapefix Juice",
-      price: 476,
-      oldPrice: 478,
-      rating: 4.8,
-      reviews: 7432,
-      discount: "Save ₹2",
-      image: "https://krishnas.com/cdn/shop/files/shapefix.png",
-    },
-    {
-      id: 5,
-      name: "Liver Wellness",
-      price: 599,
-      oldPrice: 649,
-      rating: 4.9,
-      reviews: 5911,
-      discount: "Save ₹50",
-      image:
-        "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200",
-    },
-  ];
+  const navigate = useNavigate();
 
   const services = [
     {
       icon: <FaLeaf />,
-      title: "Medicines",
-      desc: "100% genuine homoeopathic medicines",
+      title: "Genuine Medicines",
+      desc: "100% authentic homoeopathy",
       link: "/Products",
+      color: "from-[var(--brand-500)] to-[var(--brand-700)]",
     },
     {
       icon: <FaUserMd />,
-      title: "Consultation",
-
-      desc: "Expert online doctor support",
+      title: "Expert Consultation",
+      desc: "Talk to certified doctors",
+      link: "/Consult",
+      color: "from-emerald-500 to-emerald-700",
     },
     {
       icon: <FaFlask />,
-      title: "Lab Tests",
+      title: "Home Lab Tests",
       desc: "Book accurate tests at home",
       link: "/Labtest",
+      color: "from-teal-500 to-teal-700",
     },
     {
       icon: <FaTruck />,
       title: "Fast Delivery",
-      desc: "Doorstep medicine delivery",
+      desc: "Doorstep in 24 hours",
+      link: "/Products",
+      color: "from-[var(--brand-600)] to-emerald-700",
+    },
+  ];
+
+  const whyChooseUs = [
+    {
+      icon: <FaShieldAlt />,
+      title: "100% Genuine",
+      desc: "Every product is sourced from certified manufacturers and verified by our pharmacists.",
+    },
+    {
+      icon: <FiAward />,
+      title: "25+ Years Trust",
+      desc: "A quarter-century of dedicated service in homoeopathic healthcare.",
+    },
+    {
+      icon: <FiHeadphones />,
+      title: "Expert Support",
+      desc: "Round-the-clock access to qualified homeopathy practitioners.",
+    },
+    {
+      icon: <FaCheckCircle />,
+      title: "Quality Assured",
+      desc: "GMP-certified, ISO-compliant storage and handling for every order.",
     },
   ];
 
   return (
     <>
+      {/* Hero Carousel */}
       <Carousel slides={slides} />
-      <section className="py-24 overflow-hidden">
-        <div className="text-center mb-14">
-          <p className="text-green-600 font-semibold mb-4 text-lg">
-            Featured Products
-          </p>
 
-          <h2 className="text-4xl md:text-6xl font-bold mb-6">
-            Select Your Concern
-          </h2>
+      {/* Services strip */}
+      <section className="relative -mt-12 z-10 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl border border-neutral-100
+                          p-5 md:p-6 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {services.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => s.link && navigate(s.link)}
+                className="group flex items-center gap-3 md:gap-4 p-3 rounded-xl
+                           hover:bg-[var(--brand-50)] transition text-left
+                           cursor-pointer"
+              >
+                <div
+                  className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl
+                              bg-gradient-to-br ${s.color}
+                              flex items-center justify-center text-white text-xl
+                              shadow-md shrink-0
+                              group-hover:scale-110 group-hover:rotate-3 transition`}
+                >
+                  {s.icon}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-neutral-800 text-sm md:text-base leading-tight">
+                    {s.title}
+                  </p>
+                  <p className="text-xs md:text-sm text-neutral-500 mt-0.5 truncate">
+                    {s.desc}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          <div className="flex flex-wrap justify-center gap-4 mt-8">
+      {/* Featured Products */}
+      <section className="py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <span className="section-eyebrow">Handpicked for you</span>
+            <h2 className="section-title mt-3">
+              Featured <span className="brand-gradient-text">Products</span>
+            </h2>
+            <p className="section-subtitle">
+              Best-selling wellness essentials trusted by thousands of customers.
+            </p>
+          </div>
+
+          {/* Category chips */}
+          <div className="flex flex-wrap justify-center gap-2.5 mt-6 mb-10">
             {[
+              "All",
               "Best Solutions",
               "Diabetic Wellness",
               "Digestive Wellness",
@@ -139,12 +143,13 @@ const Home = () => {
               <button
                 key={i}
                 className={`
-            px-6 py-3 rounded-full font-medium cursor-pointer transition
-            ${i === 0
-                    ? "bg-green-100 text-green-800"
-                    : "bg-white shadow-md hover:bg-green-50"
+                  px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer transition
+                  ${
+                    i === 0
+                      ? "bg-[var(--brand-600)] text-white shadow-md shadow-[var(--brand-600)]/30"
+                      : "bg-white text-neutral-600 border border-neutral-200 hover:border-[var(--brand-300)] hover:text-[var(--brand-700)] hover:bg-[var(--brand-50)]"
                   }
-            `}
+                `}
               >
                 {tag}
               </button>
@@ -152,104 +157,143 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="relative">
-          <button
-            onClick={scrollLeft}
-            className="hidden md:flex absolute left-[-20px] top-1/2 -translate-y-1/2 z-20 bg-white shadow-2xl h-14 w-14 rounded-full items-center justify-center cursor-pointer hover:scale-110 transition"
-          >
-            <HiOutlineChevronLeft className="text-3xl" />
-          </button>
+        <ProductSlider
+          title=""
+          subtitle=""
+          products={featuredProducts}
+          onViewAll={() => navigate("/Products")}
+          bgClass="bg-transparent"
+        />
+      </section>
 
-          <button
-            onClick={scrollRight}
-            className="hidden md:flex absolute right-[-20px] top-1/2 -translate-y-1/2 z-20 bg-white shadow-2xl h-14 w-14 rounded-full items-center justify-center cursor-pointer hover:scale-110 transition"
-          >
-            <HiOutlineChevronRight className="text-3xl" />
-          </button>
+      {/* Statistics */}
+      <Statistics />
 
-          <div
-            ref={sliderRef}
-            className="flex gap-6 overflow-x-auto scroll-smooth no-scrollbar pb-6 px-2"
-          >
-            {products.map((product) => (
+      {/* Category product sections (reusable sliders) */}
+      {allCategories.map((cat, idx) => (
+        <ProductSlider
+          key={cat.id}
+          title={cat.title}
+          subtitle={cat.subtitle}
+          products={cat.products}
+          onViewAll={() => navigate("/Products")}
+          bgClass={idx % 2 === 0 ? "bg-white" : "section-soft"}
+        />
+      ))}
+
+      {/* Why Choose Us */}
+      <section className="py-20 md:py-24 section-mint relative overflow-hidden">
+        <div
+          className="absolute -top-40 -left-40 w-96 h-96 rounded-full
+                     bg-[var(--brand-200)] opacity-40 blur-3xl"
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 md:mb-16">
+            <span className="section-eyebrow">Why Dr. Kent</span>
+            <h2 className="section-title mt-3">
+              Healthcare you can <span className="brand-gradient-text">trust</span>
+            </h2>
+            <p className="section-subtitle">
+              Four pillars that make us the preferred homoeopathy partner for
+              thousands of families.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {whyChooseUs.map((w, i) => (
               <div
-                key={product.id}
-                className="
-        shrink-0 
-        w-[85%] 
-        sm:w-[60%] 
-        md:w-[45%] 
-        lg:w-[30%] 
-        xl:w-[23%] 
-        bg-white rounded-2xl shadow-lg overflow-hidden 
-        hover:-translate-y-2 transition
-      "
+                key={i}
+                className="bg-white rounded-2xl p-7 border border-neutral-100
+                           shadow-sm hover:shadow-xl card-lift group
+                           animate-fade-up"
+                style={{ animationDelay: `${i * 100}ms` }}
               >
-                {/* IMAGE */}
-                <div className="relative bg-gradient-to-br from-green-50 to-white p-5">
-                  <span className="absolute top-3 left-3 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
-                    {product.discount}
-                  </span>
-
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-[200px] md:h-[220px] object-contain"
-                  />
+                <div
+                  className="w-14 h-14 rounded-2xl
+                             bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-700)]
+                             flex items-center justify-center text-white text-2xl
+                             shadow-lg shadow-[var(--brand-600)]/30
+                             group-hover:scale-110 group-hover:rotate-6 transition mb-5"
+                >
+                  {w.icon}
                 </div>
-
-                {/* CONTENT */}
-                <div className="p-5">
-                  <h3 className="text-lg md:text-xl font-semibold mb-2 line-clamp-2">
-                    {product.name}
-                  </h3>
-
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="flex text-green-500 gap-1 text-sm">
-                      <FaStar />
-                      <FaStar />
-                      <FaStar />
-                      <FaStar />
-                      <FaStar />
-                    </div>
-                    <span className="text-gray-500 text-sm">
-                      ({product.reviews})
-                    </span>
-                  </div>
-
-                  <div className="mb-4">
-                    <span className="text-xl md:text-2xl font-bold">
-                      ₹{product.price}
-                    </span>
-
-                    <span className="ml-2 text-gray-400 line-through text-sm">
-                      ₹{product.oldPrice}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2">
-                      <FaShoppingCart />
-                      Add
-                    </button>
-
-                    <button className="px-4 border border-green-600 text-green-700 rounded-lg text-sm font-semibold hover:bg-green-50">
-                      Buy
-                    </button>
-                  </div>
-                </div>
+                <h3 className="text-lg font-bold text-neutral-900 mb-2">
+                  {w.title}
+                </h3>
+                <p className="text-sm text-neutral-500 leading-relaxed">
+                  {w.desc}
+                </p>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="flex justify-center mt-12">
-            <button className="bg-white border-2 border-green-600 text-green-700 px-10 py-4 rounded-2xl font-bold hover:bg-green-50 transition cursor-pointer shadow-lg">
-              View All Products
-            </button>
+      {/* CTA Banner */}
+      <section className="py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div
+            className="relative overflow-hidden rounded-3xl
+                       bg-gradient-to-br from-[var(--brand-600)] via-[var(--brand-700)] to-[var(--brand-900)]
+                       p-8 md:p-14 text-white"
+          >
+            {/* Decorative shapes */}
+            <div
+              className="absolute -top-20 -right-20 w-72 h-72 rounded-full
+                         bg-white/10 blur-2xl"
+            />
+            <div
+              className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full
+                         bg-[var(--accent-mint)]/20 blur-2xl"
+            />
+
+            <div className="relative grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+                                 bg-white/15 backdrop-blur border border-white/20
+                                 text-sm font-semibold mb-5">
+                  <FaStethoscope />
+                  Free First Consultation
+                </span>
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4
+                               font-['Plus_Jakarta_Sans']">
+                  Not sure what you need?
+                  <br />
+                  <span className="text-[var(--brand-200)]">Talk to a doctor.</span>
+                </h2>
+                <p className="text-[var(--brand-100)] max-w-md leading-relaxed">
+                  Get personalised guidance from certified homeopathy practitioners —
+                  online, on call, or in-person.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row md:justify-end gap-3">
+                <button
+                  onClick={() => navigate("/Consult")}
+                  className="bg-white text-[var(--brand-700)] font-semibold
+                             px-7 py-3.5 rounded-xl
+                             hover:bg-[var(--brand-50)] hover:shadow-xl
+                             transition flex items-center justify-center gap-2 group"
+                >
+                  Book Consultation
+                  <FiArrowRight className="transition-transform group-hover:translate-x-1" />
+                </button>
+
+                <button
+                  onClick={() => navigate("/Labtest")}
+                  className="bg-white/10 backdrop-blur border border-white/30
+                             text-white font-semibold px-7 py-3.5 rounded-xl
+                             hover:bg-white/20 transition"
+                >
+                  Book Lab Test
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
     </>
   );
 };
+
 export default Home;
