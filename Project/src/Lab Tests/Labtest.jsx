@@ -5,7 +5,7 @@ import "./labtest.css";
 import { useForm } from "react-hook-form";
 import heroImg from "../assets/hero.png";
 import heroPlaceholderImg from "../assets/lab-hero-placeholder.png";
-
+import labtest from "../Lab Tests/labtest.png";
 const Labtest = () => {
   const [date, setDate] = useState(new Date());
   const { register, handleSubmit } = useForm();
@@ -378,12 +378,12 @@ const Labtest = () => {
             <div className="lab-hero-right">
               <div className="lab-hero-card">
                 <img
-                  src={heroImg}
+                  src={labtest}
                   alt="Healthcare and lab diagnostics"
                   className="lab-hero-image"
                   onError={(e) => {
                     e.currentTarget.onerror = null;
-                    e.currentTarget.src = heroPlaceholderImg;
+                    e.currentTarget.src = labtest;
                   }}
                 />
               </div>
