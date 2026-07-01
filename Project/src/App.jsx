@@ -18,18 +18,16 @@ import Profile from "./Profile/Profile";
 
 
 
-import CartProvider from "./cart/CartProvider";
+import CartProvider from "./Cart/CartProvider";
 
 
 function App() {
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-        <Route path="/" element={<CartProvider><Layout /></CartProvider>}>
-
-
-
-
+        <Route path="/" element={<CartProvider>
+          <Layout />
+        </CartProvider>}>
         <Route index element={<Home />} />
         <Route path="Labtest" element={<Labtest />} />
         <Route path="Consult" element={<Consult />} />
