@@ -1,3 +1,13 @@
+import Consult1 from "../assets/TrustedCare.png";
+import Consult2 from "../assets/Wellness.png";
+import Consult3 from "../assets/Product_image.png";
+import Consult4 from "../assets/Nutritions.png";
+import Consult5 from "../assets/Consult5.png";
+import Consult6 from "../assets/Consult6.png";
+import Consult7 from "../assets/Consult7.png";
+import Consult8 from "../assets/Consult8.png";
+
+
 const slides = [
   {
     id: 1,
@@ -6,7 +16,7 @@ const slides = [
     primaryCta: "Consult Doctor",
     secondaryCta: "Find a Specialist",
     image:
-      "https://images.unsplash.com/photo-1580281658628-93a3e2c21cbf?q=80&w=2000&auto=format&fit=crop"
+      Consult1
   },
   {
     id: 2,
@@ -15,7 +25,7 @@ const slides = [
     primaryCta: "Shop Now",
     secondaryCta: "See Wellness Packs",
     image:
-      "https://images.unsplash.com/photo-1579154204601-01588f6bbd78?q=80&w=2000&auto=format&fit=crop"
+      Consult2
   },
   {
     id: 3,
@@ -24,7 +34,7 @@ const slides = [
     primaryCta: "Explore Products",
     secondaryCta: "Order Medicines",
     image:
-      "https://images.unsplash.com/photo-1606813904079-59b2b6b4e0f4?q=80&w=2000&auto=format&fit=crop"
+      Consult3
   },
   {
     id: 4,
@@ -32,7 +42,7 @@ const slides = [
     description: "Small steps for a stronger routine—nutrition, mobility, and self-care.",
     primaryCta: "Explore Products",
     image:
-      "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2000&auto=format&fit=crop"
+      Consult4
   },
   {
     id: 5,
@@ -41,7 +51,7 @@ const slides = [
     primaryCta: "Shop Now",
     secondaryCta: "Discover Wellness",
     image:
-      "https://images.unsplash.com/photo-1559757175-5700dde67536?q=80&w=2000&auto=format&fit=crop"
+      Consult5
   },
   {
     id: 6,
@@ -50,7 +60,7 @@ const slides = [
     primaryCta: "Explore Products",
     secondaryCta: "View Categories",
     image:
-      "https://images.unsplash.com/photo-1580281798621-2f0a1e8f9f04?q=80&w=2000&auto=format&fit=crop"
+      Consult6
   },
   {
     id: 7,
@@ -59,7 +69,7 @@ const slides = [
     primaryCta: "Consult Doctor",
     secondaryCta: "Book Lab Tests",
     image:
-      "https://images.unsplash.com/photo-1580286664389-2d0d6c4d7e3a?q=80&w=2000&auto=format&fit=crop"
+      Consult7
   },
   {
     id: 8,
@@ -67,7 +77,7 @@ const slides = [
     description: "Premium experience—real people, reliable medicines, and timely support.",
     primaryCta: "Shop Now",
     image:
-      "https://images.unsplash.com/photo-1606811091041-7a4b6c6c9d6a?q=80&w=2000&auto=format&fit=crop"
+      Consult8
   }
 ];
 
