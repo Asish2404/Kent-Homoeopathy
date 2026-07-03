@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { useLocation, useParams, Link } from "react-router-dom";
+import { useLocation, useNavigate, useParams, Link } from "react-router-dom";
 import {
   Star,
   Heart,
@@ -21,11 +21,13 @@ import {
 import { FaLeaf, FaBolt, FaFire } from "react-icons/fa";
 import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import ProductCard from "../components/ProductCard";
+import { useCartContext } from "../Cart/CartContext";
 import { vitaminsSupplements, heartCare } from "../data/products";
 
 const Products = () => {
   const location = useLocation();
   const { productId } = useParams();
+  const cart = useCartContext();
 
   const locationProduct = location.state?.product || null;
   void productId;
@@ -135,7 +137,6 @@ const Products = () => {
   const [selectedPotency, setSelectedPotency] = useState("30C");
   const [selectedSize, setSelectedSize] = useState("30ml");
   const [activeTab, setActiveTab] = useState("description");
-  const [wishlisted, setWishlisted] = useState(false);
   const relatedRef = useRef(null);
 
   const comboOffers = [
@@ -221,6 +222,26 @@ const Products = () => {
     relatedRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
   };
 
+  const addCurrentToCart = () => {
+    cart.addToCart(
+      {
+        ...locationProduct,
+        id: product.id,
+        name: product.name,
+        image: product.image,
+        price: product.currentPrice,
+        mrp: product.originalPrice || product.currentPrice,
+        category: product.category,
+        inStock: product.inStock,
+      },
+      quantity
+    );
+  };
+
+  const buyCurrentNow = () => {
+    addCurrentToCart();
+  };
+
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Breadcrumb */}
@@ -287,11 +308,18 @@ const Products = () => {
               </div>
             </div>
             <div className="flex gap-3 w-full md:w-auto">
-              <button className="flex-1 md:flex-none btn-primary py-2.5 text-sm">
+              <button
+                className="flex-1 md:flex-none btn-primary py-2.5 text-sm"
+                onClick={() => navigate("/Consult")}
+              >
                 <Stethoscope className="w-4 h-4" />
                 Consult Doctor
               </button>
-              <button className="flex-1 md:flex-none btn-outline py-2.5 text-sm">
+              <button
+                className="flex-1 md:flex-none btn-outline py-2.5 text-sm"
+                onClick={() => navigate("/Labtest")}
+              >
+              <button className="flex-1 md:flex-none btn-outline py-2.5 text-sm" onClick={() => navigate("/Consult")}>
                 <Calendar className="w-4 h-4" />
                 Book Appointment
               </button>
@@ -310,6 +338,10 @@ const Products = () => {
                 <img
                   src={product.images?.[selectedImage] || product.image}
                   alt={product.name}
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=900&auto=format&fit=crop";
+                  }}
                   className="w-full h-full object-cover
                            transition-transform duration-500 group-hover:scale-105"
                 />
@@ -330,23 +362,31 @@ const Products = () => {
                 {/* Action buttons */}
                 <div className="absolute top-4 right-4 flex flex-col gap-2">
                   <button
-                    onClick={() => setWishlisted(!wishlisted)}
+                    onClick={() => cart.toggleWishlist(product)}
                     aria-label="Wishlist"
                     className={`w-10 h-10 rounded-full bg-white shadow-md
                                 flex items-center justify-center transition
                                 ${
-                                  wishlisted
+                                  cart.isWishlisted?.(product.id)
                                     ? "text-red-500"
                                     : "text-neutral-500 hover:text-red-500"
                                 }`}
                   >
                     <Heart
                       className="w-5 h-5"
-                      fill={wishlisted ? "currentColor" : "none"}
+                      fill={cart.isWishlisted?.(product.id) ? "currentColor" : "none"}
                     />
                   </button>
                   <button
                     aria-label="Share"
+                    onClick={async () => {
+                      const url = window.location.href;
+                      if (navigator.share) {
+                        await navigator.share({ title: product.name, url });
+                        return;
+                      }
+                      await navigator.clipboard.writeText(url);
+                    }}
                     className="w-10 h-10 rounded-full bg-white shadow-md
                                flex items-center justify-center text-neutral-500
                                hover:text-[var(--brand-700)] transition"
@@ -537,11 +577,22 @@ const Products = () => {
 
               {/* CTA buttons */}
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                <button className="flex-1 btn-primary py-3.5 text-base" disabled={!product.inStock}>
+                <button
+                  className="flex-1 btn-primary py-3.5 text-base"
+                  disabled={!product.inStock}
+                  onClick={addCurrentToCart}
+                >
                   <ShoppingCart className="w-5 h-5" />
                   Add to Cart
                 </button>
-                <button className="flex-1 btn-outline py-3.5 text-base" disabled={!product.inStock}>
+                <button
+                  className="flex-1 btn-outline py-3.5 text-base"
+                  disabled={!product.inStock}
+                  onClick={() => {
+                    buyCurrentNow();
+                    navigate("/Cart");
+                  }}
+                >
                   <FaBolt />
                   Buy Now
                 </button>
@@ -709,7 +760,20 @@ const Products = () => {
                       <span className="text-2xl font-bold text-neutral-900">₹{combo.price}</span>
                       <span className="text-sm text-neutral-400 line-through">₹{combo.originalPrice}</span>
                     </div>
-                    <button className="w-full btn-primary py-2.5">
+                    <button
+                      className="w-full btn-primary py-2.5"
+                      onClick={() => {
+                        cart.addToCart({
+                          id: `bundle-${combo.id}`,
+                          name: combo.name,
+                          image: combo.image,
+                          price: combo.price,
+                          mrp: combo.originalPrice,
+                          category: "Bundle",
+                          inStock: true,
+                        });
+                      }}
+                    >
                       <ShoppingCart className="w-4 h-4" />
                       Add Combo
                     </button>

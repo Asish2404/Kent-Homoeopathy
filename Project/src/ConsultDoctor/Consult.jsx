@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import {
-  FaUserMd,
-  FaCalendarCheck,
-  FaVideo,
-  FaHeartbeat,
-  FaStar,
-  FaArrowRight,
-  FaClock,
-  FaEnvelope,
-  FaPhone,
-} from "react-icons/fa";
+  Search,
+  UserRound,
+  Video,
+  Star,
+  Clock3,
+  Filter,
+  Stethoscope,
+} from "lucide-react";
 
 const doctors = [
   {
@@ -61,6 +59,48 @@ const slots = [
 function Consult() {
   const [mode, setMode] = useState("visit");
   const [selectedTime, setSelectedTime] = useState("");
+  const [query, setQuery] = useState("");
+  const [speciality, setSpeciality] = useState("all");
+  const [selectedDoctor, setSelectedDoctor] = useState(doctors[0]);
+  const [booking, setBooking] = useState({ name: "", email: "", phone: "", date: "", symptoms: "" });
+  const [bookingMessage, setBookingMessage] = useState("");
+
+  const filteredDoctors = doctors.filter((doc) => {
+    const search = query.trim().toLowerCase();
+    const matchesSearch = !search || [doc.name, doc.speciality].some((value) => value.toLowerCase().includes(search));
+    const matchesSpeciality = speciality === "all" || doc.speciality === speciality;
+    return matchesSearch && matchesSpeciality;
+  });
+
+  const specialities = ["all", ...new Set(doctors.map((doc) => doc.speciality))];
+
+  const handleBook = () => {
+    if (!booking.name || !booking.email || !booking.phone || !booking.date || !selectedTime) {
+      setBookingMessage("Please complete the required fields and select a time slot.");
+      return;
+    }
+
+    const existing = JSON.parse(localStorage.getItem("profile_appointments_v1") || "[]");
+    const next = [
+      ...existing,
+      {
+        id: `APT-${Date.now()}`,
+        doctor: selectedDoctor?.name || "Specialist Consultation",
+        speciality: selectedDoctor?.speciality || "Consultation",
+        date: booking.date,
+        time: selectedTime,
+        mode,
+        status: "Upcoming",
+        name: booking.name,
+        email: booking.email,
+        phone: booking.phone,
+        symptoms: booking.symptoms,
+      },
+    ];
+
+    localStorage.setItem("profile_appointments_v1", JSON.stringify(next));
+    setBookingMessage("Appointment booked successfully.");
+  };
 
   return (
     <div className="bg-gradient-to-br from-green-50 via-white to-emerald-50 min-h-screen">
@@ -69,7 +109,8 @@ function Consult() {
         <div className="grid lg:grid-cols-2 gap-14 items-center">
           {/* LEFT CONTENT */}
           <div>
-            <span className="bg-green-100 text-green-700 px-5 py-2 rounded-full font-semibold">
+            <span className="bg-green-100 text-green-700 px-5 py-2 rounded-full font-semibold inline-flex items-center gap-2">
+              <Stethoscope size={16} />
               Online Consultation
             </span>
 
@@ -87,7 +128,7 @@ function Consult() {
             <div className="flex gap-5 flex-wrap">
               {/* CTA → Scroll to Booking Section */}
               <a href="#book-appointment">
-                <button className="bg-green-600 text-white px-8 py-4 rounded-2xl font-semibold cursor-pointer hover:scale-105 transition">
+                <button className="bg-green-600 text-white px-8 py-4 rounded-2xl font-semibold cursor-pointer hover:scale-105 transition inline-flex items-center gap-2">
                   Book Free Consultation
                 </button>
               </a>
@@ -107,19 +148,43 @@ function Consult() {
 
       {/* DOCTORS */}
       <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold mb-4">Our Specialists</h2>
+        <div className="text-center mb-8 md:mb-10">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">Our Specialists</h2>
+          <div className="max-w-3xl mx-auto flex flex-col md:flex-row gap-3 items-stretch">
+            <div className="flex-1 flex items-center gap-3 bg-white rounded-2xl border border-green-100 px-4 py-3 shadow-sm">
+              <Search size={18} className="text-green-600" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search doctors or specialties"
+                className="w-full outline-none bg-transparent text-gray-700"
+              />
+            </div>
+            <div className="flex items-center gap-3 bg-white rounded-2xl border border-green-100 px-4 py-3 shadow-sm overflow-x-auto no-scrollbar">
+              <Filter size={18} className="text-green-600 shrink-0" />
+              {specialities.map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setSpeciality(item)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition ${speciality === item ? "bg-green-600 text-white" : "bg-green-50 text-green-700 hover:bg-green-100"}`}
+                >
+                  {item === "all" ? "All" : item}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-10">
-          {doctors.map((doc) => (
+          {filteredDoctors.map((doc) => (
             <div
               key={doc.id}
-              className="bg-white rounded-[35px] overflow-hidden shadow-2xl"
+              className="bg-white rounded-[35px] overflow-hidden shadow-2xl hover:-translate-y-1 transition"
             >
               <img
                 src={doc.image}
                 alt={doc.name}
+                loading="lazy"
                 className="w-full h-[330px] object-cover"
               />
 
@@ -130,13 +195,16 @@ function Consult() {
                   {doc.speciality}
                 </p>
 
-                <div className="flex justify-between mb-6 text-gray-600">
-                  <span>{doc.experience}</span>
-                  <span>⭐ {doc.rating}</span>
+                <div className="flex justify-between mb-6 text-gray-600 items-center gap-2">
+                  <span className="inline-flex items-center gap-1"><Clock3 size={16} />{doc.experience}</span>
+                  <span className="inline-flex items-center gap-1"><Star size={16} className="text-amber-500" fill="currentColor" />{doc.rating}</span>
                 </div>
 
                 <a href="#book-appointment">
-                  <button className="w-full bg-green-600 text-white py-4 rounded-2xl font-semibold cursor-pointer">
+                  <button
+                    className="w-full bg-green-600 text-white py-4 rounded-2xl font-semibold cursor-pointer inline-flex items-center justify-center gap-2"
+                    onClick={() => setSelectedDoctor(doc)}
+                  >
                     Consult Now
                   </button>
                 </a>
@@ -144,6 +212,10 @@ function Consult() {
             </div>
           ))}
         </div>
+
+        {filteredDoctors.length === 0 && (
+          <div className="text-center text-gray-500 mt-10">No doctors match your search.</div>
+        )}
       </section>
 
       {/* APPOINTMENT FORM ADDED */}
@@ -170,6 +242,7 @@ ${
 }
 `}
             >
+              <UserRound className="inline mr-2" size={18} />
               In-Person Visit
             </button>
 
@@ -184,6 +257,7 @@ ${
 }
 `}
             >
+              <Video className="inline mr-2" size={18} />
               Online Consultation
             </button>
           </div>
@@ -192,6 +266,8 @@ ${
             <div>
               <label className="block mb-3 font-medium">Full Name *</label>
               <input
+                value={booking.name}
+                onChange={(e) => setBooking({ ...booking, name: e.target.value })}
                 className="w-full border border-green-200 rounded-2xl px-5 py-4 outline-none"
                 placeholder="Enter your full name"
               />
@@ -200,6 +276,8 @@ ${
             <div>
               <label className="block mb-3 font-medium">Email *</label>
               <input
+                value={booking.email}
+                onChange={(e) => setBooking({ ...booking, email: e.target.value })}
                 className="w-full border border-green-200 rounded-2xl px-5 py-4 outline-none"
                 placeholder="your@email.com"
               />
@@ -208,6 +286,8 @@ ${
             <div>
               <label className="block mb-3 font-medium">Phone *</label>
               <input
+                value={booking.phone}
+                onChange={(e) => setBooking({ ...booking, phone: e.target.value })}
                 className="w-full border border-green-200 rounded-2xl px-5 py-4 outline-none"
                 placeholder="+91 9876543210"
               />
@@ -217,6 +297,8 @@ ${
               <label className="block mb-3 font-medium">Preferred Date *</label>
               <input
                 type="date"
+                value={booking.date}
+                onChange={(e) => setBooking({ ...booking, date: e.target.value })}
                 className="w-full border border-green-200 rounded-2xl px-5 py-4 outline-none"
               />
             </div>
@@ -251,11 +333,15 @@ ${
             <textarea
               rows="5"
               placeholder="Brief description of your health concern..."
+              value={booking.symptoms}
+              onChange={(e) => setBooking({ ...booking, symptoms: e.target.value })}
               className="w-full border border-green-200 rounded-2xl p-5 outline-none"
             ></textarea>
           </div>
 
-          <button className="w-full bg-green-700 hover:bg-green-800 text-white py-5 rounded-2xl text-xl font-semibold shadow-xl transition cursor-pointer">
+          {bookingMessage && <p className="text-center text-sm text-green-700 mb-4">{bookingMessage}</p>}
+
+          <button onClick={handleBook} className="w-full bg-green-700 hover:bg-green-800 text-white py-5 rounded-2xl text-xl font-semibold shadow-xl transition cursor-pointer">
             Confirm Appointment
           </button>
         </div>

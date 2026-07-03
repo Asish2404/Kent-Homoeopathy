@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   User,
   Mail,
@@ -22,9 +23,138 @@ import {
   FlaskConical,
   Calendar,
 } from "lucide-react";
+import { useCartContext } from "../Cart/CartContext";
 
 const ORDERS = [
   {
+
+            {
+              tab === "orders" &&
+              <div className="bg-white rounded-3xl shadow-md p-6 space-y-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <h2 className="text-lg font-bold text-gray-800">My Orders</h2>
+                  <button onClick={() => navigate("/Products")} className="text-sm font-semibold text-emerald-600 hover:underline">
+                    Shop more
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {orders.length === 0 ? (
+                    <p className="text-sm text-gray-500">No orders yet.</p>
+                  ) : (
+                    orders.map((order) => (
+                      <div key={order.id} className="rounded-2xl border border-gray-100 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                          <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest">{order.id}</p>
+                          <h3 className="font-semibold text-gray-800 mt-1">{order.name}</h3>
+                          <p className="text-sm text-gray-500">{order.brand} • {order.date}</p>
+                        </div>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_STYLE[order.status] || "bg-gray-100 text-gray-600"}`}>
+                            {order.status}
+                          </span>
+                          <span className="font-bold text-gray-800">{order.price}</span>
+                          <button onClick={() => navigate("/Products")} className="text-sm font-semibold text-emerald-600 hover:underline">
+                            Reorder
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            }
+
+            {
+              tab === "appointments" &&
+              <div className="bg-white rounded-3xl shadow-md p-6 space-y-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <h2 className="text-lg font-bold text-gray-800">Appointments</h2>
+                  <button onClick={() => navigate("/Consult")} className="text-sm font-semibold text-emerald-600 hover:underline">
+                    Book new
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {appointments.length === 0 ? (
+                    <p className="text-sm text-gray-500">No appointments scheduled.</p>
+                  ) : (
+                    appointments.map((appointment) => (
+                      <div key={appointment.id} className="rounded-2xl border border-gray-100 p-4 flex items-center justify-between gap-3">
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{appointment.doctor || "Consultation"}</h3>
+                          <p className="text-sm text-gray-500">{appointment.date || appointment.time || "Scheduled"}</p>
+                        </div>
+                        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                          {appointment.status || "Upcoming"}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            }
+
+            {
+              tab === "wishlist" &&
+              <div className="bg-white rounded-3xl shadow-md p-6 space-y-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <h2 className="text-lg font-bold text-gray-800">Wishlist</h2>
+                  <button onClick={() => navigate("/Products")} className="text-sm font-semibold text-emerald-600 hover:underline">
+                    Browse products
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {wishlistItems.length === 0 ? (
+                    <p className="text-sm text-gray-500">Your wishlist is empty.</p>
+                  ) : (
+                    wishlistItems.map((item) => (
+                      <div key={item.id} className="rounded-2xl border border-gray-100 p-4 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img src={item.image} alt={item.name} className="w-14 h-14 rounded-xl object-cover bg-gray-50" loading="lazy" />
+                          <div className="min-w-0">
+                            <h3 className="font-semibold text-gray-800 truncate">{item.name}</h3>
+                            <p className="text-sm text-gray-500">₹{Number(item.price || 0).toFixed(0)}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 flex-wrap justify-end">
+                          <button onClick={() => cart.addToCart(item, 1)} className="text-sm font-semibold text-emerald-600 hover:underline">
+                            Add to cart
+                          </button>
+                          <button onClick={() => cart.removeFromWishlist(item.id)} className="text-sm font-semibold text-gray-500 hover:text-red-500">
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            }
+
+            {
+              tab === "settings" &&
+              <div className="bg-white rounded-3xl shadow-md p-6 space-y-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <h2 className="text-lg font-bold text-gray-800">Settings</h2>
+                  <button onClick={handleLogout} className="text-sm font-semibold text-red-600 hover:underline">
+                    Logout
+                  </button>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+                  <div className="rounded-2xl bg-gray-50 p-4">
+                    <p className="font-semibold text-gray-800 mb-1">Account preferences</p>
+                    <p>Notifications, saved email, and password reset stay local for now.</p>
+                  </div>
+                  <div className="rounded-2xl bg-gray-50 p-4">
+                    <p className="font-semibold text-gray-800 mb-1">Session</p>
+                    <p>Profile and wishlist persist in localStorage on this device.</p>
+                  </div>
+                </div>
+              </div>
+            }
     id: "ORD-8821",
     name: "Arnica Montana 30C",
     brand: "SBL Homeopathy",
@@ -73,6 +203,17 @@ const STATUS_STYLE = {
   Processing: "bg-amber-100 text-amber-700",
 };
 
+const readList = (key, fallback) => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 function AnimatedCount({ target }) {
 
   const [val, setVal] = useState(0);
@@ -106,6 +247,9 @@ export default function Profile() {
   const [tab, setTab] = useState("overview");
   const [showEdit, setShowEdit] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const cart = useCartContext();
 
   const [user, setUser] = useState(() => {
 
@@ -122,6 +266,14 @@ export default function Profile() {
   });
 
   const [form, setForm] = useState(user || {});
+  const orders = readList("profile_orders_v1", ORDERS);
+  const appointments = readList("profile_appointments_v1", []);
+
+  useEffect(() => {
+    if (location.state?.tab) {
+      setTab(location.state.tab);
+    }
+  }, [location.state]);
 
   if (!user) {
 
@@ -161,35 +313,37 @@ export default function Profile() {
 
     localStorage.removeItem("user");
 
-    window.location.href = "/Login";
+    navigate("/Login");
 
   };
+
+  const wishlistItems = cart.wishlistItems || [];
 
   const STATS = [
     {
       label: "Total Orders",
-      value: 24,
+      value: orders.length,
       Icon: ShoppingBag,
       iconBg: "bg-emerald-100",
       iconColor: "text-emerald-600",
     },
     {
       label: "Cart Items",
-      value: 7,
+      value: cart.totalCount,
       Icon: ShoppingCart,
       iconBg: "bg-teal-100",
       iconColor: "text-teal-600",
     },
     {
       label: "Wishlist",
-      value: 12,
+      value: wishlistItems.length,
       Icon: Heart,
       iconBg: "bg-rose-100",
       iconColor: "text-rose-500",
     },
     {
       label: "Lab Tests",
-      value: 3,
+      value: appointments.length,
       Icon: FlaskConical,
       iconBg: "bg-violet-100",
       iconColor: "text-violet-500",
@@ -236,15 +390,19 @@ export default function Profile() {
     },
     {
       id: "orders",
-      label: "Orders",
+      label: "My Orders",
     },
     {
-      id: "addresses",
-      label: "Addresses",
+      id: "appointments",
+      label: "Appointments",
     },
     {
-      id: "security",
-      label: "Security",
+      id: "wishlist",
+      label: "Wishlist",
+    },
+    {
+      id: "settings",
+      label: "Settings",
     },
   ];
 

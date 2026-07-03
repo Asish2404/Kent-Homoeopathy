@@ -142,6 +142,8 @@ const Home = () => {
             ].map((tag, i) => (
               <button
                 key={i}
+                type="button"
+                onClick={() => navigate("/Products")}
                 className={`
                   px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer transition
                   ${

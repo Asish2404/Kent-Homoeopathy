@@ -5,11 +5,13 @@ import { FaHeart } from "react-icons/fa";
 import { HiOutlineSparkles } from "react-icons/hi2";
 import { FiSearch } from "react-icons/fi";
 import { allCategories } from "./data/products";
+import { useCartContext } from "./Cart/CartContext";
 
 
 
 const ProductsCatalog = () => {
   const navigate = useNavigate();
+  const cart = useCartContext();
 
   const allProducts = useMemo(() => {
     return allCategories.flatMap((c) => c.products || []).map((p) => ({
@@ -525,10 +527,13 @@ const ProductsCatalog = () => {
                                   <div className="hidden sm:flex items-center gap-2">
                                     <button
                                       type="button"
-                                      className="w-9 h-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center text-neutral-400 hover:text-red-500 transition"
+                                      className={`w-9 h-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center transition ${
+                                        cart.isWishlisted?.(p.id) ? "text-red-500" : "text-neutral-400 hover:text-red-500"
+                                      }`}
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
+                                        cart.toggleWishlist(p);
                                       }}
                                       aria-label="Wishlist"
                                     >
@@ -544,7 +549,7 @@ const ProductsCatalog = () => {
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      navigate(`/Cart`);
+                                      cart.addToCart(p, 1);
                                     }}
                                   >
                                     Add
@@ -556,7 +561,10 @@ const ProductsCatalog = () => {
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      navigate(`/Products#product-${p.id}`);
+                                      if (!cart.isInCart?.(p.id)) {
+                                        cart.addToCart(p, 1);
+                                      }
+                                      navigate(`/Cart`);
                                     }}
                                   >
                                     Buy
@@ -564,10 +572,13 @@ const ProductsCatalog = () => {
 
                                   <button
                                     type="button"
-                                    className="sm:hidden w-9 h-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center text-neutral-400 hover:text-red-500 transition"
+                                    className={`sm:hidden w-9 h-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center transition ${
+                                      cart.isWishlisted?.(p.id) ? "text-red-500" : "text-neutral-400 hover:text-red-500"
+                                    }`}
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
+                                      cart.toggleWishlist(p);
                                     }}
                                     aria-label="Wishlist"
                                   >

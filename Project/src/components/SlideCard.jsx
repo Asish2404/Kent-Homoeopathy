@@ -1,6 +1,25 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+
+const CTA_ROUTES = {
+  "Consult Doctor": "/Consult",
+  "Find a Specialist": "/Consult",
+  "Products": "/Products",
+  "Explore Products": "/Products",
+  "Shop Now": "/Products",
+  "View Categories": "/Products",
+  "Order Medicines": "/Products",
+  "Discover Wellness": "/Products",
+  "See Wellness Packs": "/Products",
+  "Lab Test": "/Labtest",
+  "Book Lab Test": "/Labtest",
+  "Book Lab Tests": "/Labtest",
+  "Book Test": "/Labtest",
+  "Consult Now": "/Consult",
+};
 
 const SlideCard = React.memo(({ slide }) => {
+  const navigate = useNavigate();
   const placeholderImg =
     "https://images.unsplash.com/photo-1580281658628-93a3e2c21cbf?q=80&w=2000&auto=format&fit=crop";
 
@@ -9,6 +28,11 @@ const SlideCard = React.memo(({ slide }) => {
   React.useEffect(() => {
     setImgSrc(slide.image || placeholderImg);
   }, [slide.image]);
+
+  const goToCta = (label) => {
+    const route = CTA_ROUTES[label];
+    if (route) navigate(route);
+  };
 
   return (
     <div className="relative w-full h-[78vh] md:h-[90vh] shrink-0 bg-white">
@@ -54,7 +78,11 @@ const SlideCard = React.memo(({ slide }) => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2">
-            <button className="btn-primary text-base px-6 sm:px-7 py-3.5" type="button">
+            <button
+              className="btn-primary text-base px-6 sm:px-7 py-3.5"
+              type="button"
+              onClick={() => goToCta(slide.primaryCta || slide.buttonText)}
+            >
               {slide.primaryCta || slide.buttonText}
             </button>
 
@@ -62,6 +90,7 @@ const SlideCard = React.memo(({ slide }) => {
               <button
                 className="btn-outline border-white/30 text-white bg-white/10 backdrop-blur hover:bg-white/20 hover:border-white/50"
                 type="button"
+                onClick={() => goToCta(slide.secondaryCta)}
               >
                 {slide.secondaryCta}
               </button>

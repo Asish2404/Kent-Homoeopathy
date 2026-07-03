@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     FaEye,
+    FaEyeSlash,
     FaGoogle,
     FaFacebookF
 } from "react-icons/fa";
@@ -18,65 +19,93 @@ const Login = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
+    const [rememberMe, setRememberMe] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [status, setStatus] = useState("");
 
-    const handleSignup = async () => {
-        if (password !== confirmPassword) {
-            alert("Passwords do not match");
-            return;
-        }
+    const USERS_KEY = "auth_users_v1";
+    const REMEMBERED_EMAIL_KEY = "auth_remembered_email_v1";
+
+    const readUsers = () => {
         try {
-            const response = await fetch(
-                "http://localhost:4000/api/signup",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        user_name,
-                        email,
-                        password,
-                        phone,
-                        address
-                    })
-                }
-            );
-            const data = await response.json();
-            console.log(data);
-            alert("Account Created Successfully");
-        } catch (error) {
-            console.log(error);
+            const raw = localStorage.getItem(USERS_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
         }
     };
-    const handleLogin = async () => {
-        try {
-            const response = await fetch(
-                "http://localhost:4000/api/login",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        email,
-                        password
-                    })
-                }
-            );
-            const data = await response.json();
-            console.log(data);
-            if (response.ok) {
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify(data.user)
-                );
-                navigate("/")
-            } else {
-                alert(data.message);
-            }
-        } catch (error) {
-            console.log(error);
+
+    const writeUsers = (users) => {
+        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    };
+
+    useEffect(() => {
+        const remembered = localStorage.getItem(REMEMBERED_EMAIL_KEY);
+        if (remembered) {
+            setEmail(remembered);
+            setRememberMe(true);
         }
+    }, []);
+
+    const validate = () => {
+        const nextErrors = {};
+        if (signup && !user_name.trim()) nextErrors.user_name = "Full name is required";
+        if (!email.trim()) nextErrors.email = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Enter a valid email";
+        if (!password) nextErrors.password = "Password is required";
+        else if (password.length < 6) nextErrors.password = "Password must be at least 6 characters";
+        if (signup && password !== confirmPassword) nextErrors.confirmPassword = "Passwords do not match";
+        if (signup && !phone.trim()) nextErrors.phone = "Phone number is required";
+        if (signup && !address.trim()) nextErrors.address = "Address is required";
+        setErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    };
+
+    const handleAuth = () => {
+        setStatus("");
+        if (!validate()) return;
+
+        const users = readUsers();
+
+        if (signup) {
+            const existing = users.find((item) => item.email.toLowerCase() === email.trim().toLowerCase());
+            if (existing) {
+                setErrors({ email: "An account already exists with this email" });
+                return;
+            }
+
+            const user = {
+                user_name: user_name.trim(),
+                email: email.trim(),
+                password,
+                phone: phone.trim(),
+                address: address.trim()
+            };
+
+            writeUsers([...users, user]);
+            localStorage.setItem("user", JSON.stringify(user));
+            setStatus("Account created. Redirecting...");
+            navigate("/");
+            return;
+        }
+
+        const found = users.find((item) => item.email.toLowerCase() === email.trim().toLowerCase() && item.password === password);
+        if (!found) {
+            setErrors({ password: "Invalid email or password" });
+            return;
+        }
+
+        localStorage.setItem("user", JSON.stringify(found));
+        if (rememberMe) {
+            localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
+        } else {
+            localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        }
+        navigate("/");
     };
 
     return (
@@ -143,6 +172,7 @@ const Login = () => {
                                     className="w-full p-4 rounded-2xl border border-gray-300 outline-none focus:ring-2 focus:ring-green-400 transition"
                                 />
                             }
+                            {signup && errors.user_name && <p className="-mt-3 text-sm text-red-500">{errors.user_name}</p>}
 
                             <input
                                 type="email"
@@ -151,6 +181,7 @@ const Login = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full p-4 rounded-2xl border border-gray-300 outline-none focus:ring-2 focus:ring-green-400 transition"
                             />
+                            {errors.email && <p className="-mt-3 text-sm text-red-500">{errors.email}</p>}
 
                             {
                                 signup &&
@@ -161,6 +192,7 @@ const Login = () => {
                                     onChange={(e) => setPhone(e.target.value)}
                                     className="w-full p-4 rounded-2xl border border-gray-300 outline-none focus:ring-2 focus:ring-green-400 transition"
                                 />
+                                {signup && errors.phone && <p className="-mt-3 text-sm text-red-500">{errors.phone}</p>}
                             }
 
                             {
@@ -173,48 +205,55 @@ const Login = () => {
                                     className="w-full p-4 rounded-2xl border border-gray-300 outline-none focus:ring-2 focus:ring-green-400 transition"
                                 />
                             }
+                            {signup && errors.address && <p className="-mt-3 text-sm text-red-500">{errors.address}</p>}
 
                             <div className="relative">
 
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full p-4 rounded-2xl border border-gray-300 outline-none focus:ring-2 focus:ring-green-400 transition"
                                 />
 
-                                <FaEye className="absolute right-5 top-5 text-gray-400 cursor-pointer hover:text-green-700 transition" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-5 text-gray-400 hover:text-green-700 transition" aria-label="Toggle password visibility">
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
 
                             </div>
+                            {errors.password && <p className="-mt-3 text-sm text-red-500">{errors.password}</p>}
 
                             {
                                 signup &&
                                 <div className="relative">
 
                                     <input
-                                        type="password"
+                                        type={showConfirmPassword ? "text" : "password"}
                                         placeholder="Confirm Password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         className="w-full p-4 rounded-2xl border border-gray-300 outline-none focus:ring-2 focus:ring-green-400 transition"
                                     />
 
-                                    <FaEye className="absolute right-5 top-5 text-gray-400 cursor-pointer hover:text-green-700 transition" />
+                                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-5 top-5 text-gray-400 hover:text-green-700 transition" aria-label="Toggle confirm password visibility">
+                                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                                    </button>
 
                                 </div>
                             }
+                            {signup && errors.confirmPassword && <p className="-mt-3 text-sm text-red-500">{errors.confirmPassword}</p>}
 
                             {
                                 !signup &&
                                 <div className="flex justify-between items-center flex-wrap gap-4 text-sm">
 
                                     <label className="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" />
+                                        <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
                                         Remember Me
                                     </label>
 
-                                    <button className="text-green-700 font-semibold cursor-pointer hover:underline">
+                                    <button type="button" onClick={() => setStatus(email ? `Password reset link queued for ${email}` : "Enter your email to reset password")} className="text-green-700 font-semibold cursor-pointer hover:underline">
                                         Forgot Password?
                                     </button>
 
@@ -222,7 +261,7 @@ const Login = () => {
                             }
 
                             <button
-                                onClick={signup ? handleSignup : handleLogin}
+                                onClick={handleAuth}
                                 className="cursor-pointer bg-gradient-to-r from-green-600 to-emerald-500 text-white py-4 rounded-2xl font-bold shadow-lg hover:scale-105 transition"
                             >
                                 {
@@ -231,6 +270,7 @@ const Login = () => {
                                         : "Login"
                                 }
                             </button>
+                            {status && <p className="text-center text-sm text-green-700 font-medium">{status}</p>}
 
                             <div className="flex items-center gap-4">
 
@@ -256,6 +296,8 @@ const Login = () => {
                   hover:bg-gray-50
                   group
                   "
+                                       type="button"
+                                       onClick={() => setStatus("Google sign-in is simulated in this build.")}
                                 >
                                     <FaGoogle
                                         className="
@@ -282,6 +324,8 @@ const Login = () => {
                   hover:bg-blue-50
                   group
                   "
+                                       type="button"
+                                       onClick={() => setStatus("Facebook sign-in is simulated in this build.")}
                                 >
                                     <FaFacebookF
                                         className="

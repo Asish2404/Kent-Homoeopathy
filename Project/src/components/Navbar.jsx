@@ -14,11 +14,12 @@ import {
 } from "react-icons/fa";
 
 const Navbar = () => {
-  const { totalCount } = useCartContext();
+  const { totalCount, wishlistCount } = useCartContext();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [query, setQuery] = useState("");
   const profileRef = useRef(null);
   const navigate = useNavigate();
 
@@ -59,8 +60,17 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    setProfileOpen(false);
+    setMenuOpen(false);
     navigate("/Login");
-    window.location.reload();
+  };
+
+  const handleSearch = (value) => {
+    const next = value.trim();
+    setQuery(value);
+    if (!next) return;
+    navigate(`/Products?query=${encodeURIComponent(next)}`);
+    setMenuOpen(false);
   };
 
   return (
@@ -143,6 +153,11 @@ const Navbar = () => {
             <input
               type="search"
               placeholder="Search medicines, brands..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch(e.currentTarget.value);
+              }}
               className="outline-none text-neutral-800 text-sm w-full bg-transparent"
             />
           </div>
@@ -150,11 +165,19 @@ const Navbar = () => {
           {/* Quick action icons */}
           <button
             aria-label="Wishlist"
-            className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10
+            onClick={() => navigate("/Profile", { state: { tab: "wishlist" } })}
+            className="relative w-10 h-10 rounded-full bg-white/5 hover:bg-white/10
                        flex items-center justify-center text-white transition
                        hover:scale-105"
           >
             <FiHeart className="text-lg" />
+            {wishlistCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 bg-[var(--brand-500)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ring-2 ring-[var(--neutral-900)]"
+              >
+                {wishlistCount > 99 ? "99+" : wishlistCount}
+              </span>
+            )}
           </button>
 
           <NavLink
@@ -237,8 +260,31 @@ const Navbar = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        // graceful UX when routes/pages are not present
-                        alert("Coming Soon");
+                        navigate("/Profile", { state: { tab: "orders" } });
+                        setProfileOpen(false);
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
+                    >
+                      <FaUserMd className="text-[var(--brand-600)] text-lg" />
+                      <span className="font-medium">My Orders</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate("/Profile", { state: { tab: "wishlist" } });
+                        setProfileOpen(false);
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
+                    >
+                      <FiHeart className="text-[var(--brand-600)] text-lg" />
+                      <span className="font-medium">Wishlist</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate("/Profile", { state: { tab: "security" } });
                         setProfileOpen(false);
                       }}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl
@@ -251,7 +297,7 @@ const Navbar = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        alert("Coming Soon");
+                        navigate("/Profile", { state: { tab: "appointments" } });
                         setProfileOpen(false);
                       }}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl
@@ -298,6 +344,11 @@ const Navbar = () => {
             <FiSearch className="text-neutral-500 text-sm" />
             <input
               type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch(e.currentTarget.value);
+              }}
               placeholder="Search..."
               className="outline-none text-neutral-800 text-sm w-full bg-transparent"
             />
@@ -320,6 +371,19 @@ const Navbar = () => {
               </span>
             )}
           </NavLink>
+
+          <button
+            onClick={() => navigate("/Profile", { state: { tab: "wishlist" } })}
+            className="relative w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-white"
+            aria-label="Wishlist"
+          >
+            <FiHeart className="text-lg" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[var(--brand-500)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ring-2 ring-[var(--neutral-900)]">
+                {wishlistCount > 99 ? "99+" : wishlistCount}
+              </span>
+            )}
+          </button>
 
           <button
             onClick={() => setMenuOpen(!menuOpen)}

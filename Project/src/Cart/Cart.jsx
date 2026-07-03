@@ -86,6 +86,7 @@ export default function Cart() {
 
   // This cart implementation becomes fully dynamic from CartContext.
   const items = cart?.items || [];
+  const savedItems = cart?.savedItems || [];
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 400);
@@ -115,7 +116,8 @@ export default function Cart() {
     const item = items.find((x) => String(x.id) === String(id));
     if (!item) return;
     const current = Number(item.qty || 1);
-    const next = Math.max(1, Math.min(15, current + delta));
+    const maxQty = Math.max(1, Number(item.stock || 15));
+    const next = Math.max(1, Math.min(maxQty, current + delta));
     cart.setQty(String(id), next);
   };
 
@@ -387,9 +389,8 @@ export default function Cart() {
                                   )}
                                 </div>
 
-                                {/* Keep existing button text; saved-for-later is simulated as UI-only here */}
                                 <button
-                                  onClick={() => {}}
+                                  onClick={() => cart.addToSaved(item)}
                                   className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
                                 >
                                   Save for later
@@ -445,8 +446,28 @@ export default function Cart() {
                 </div>
               )}
 
-              {/* Saved for later */}
-              {/* Not yet dynamic with CartContext saved list; left as-is structurally but disabled to avoid breaking UI. */}
+              {savedItems.length > 0 && (
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-slate-800 text-base">Saved for later</h3>
+                    <span className="text-xs text-slate-400 font-medium">{savedItems.length} item{savedItems.length !== 1 ? "s" : ""}</span>
+                  </div>
+                  <div className="space-y-3">
+                    {savedItems.map((item) => (
+                      <div key={item.id} className="flex items-center gap-3 rounded-2xl border border-slate-100 p-3">
+                        <img src={item.image} alt={item.name} className="w-14 h-14 rounded-xl object-cover bg-slate-50" loading="lazy" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-slate-800 line-clamp-1">{item.name}</p>
+                          <p className="text-xs text-slate-400">₹{Number(item.price || 0).toFixed(0)}</p>
+                        </div>
+                        <button onClick={() => cart.moveSavedToCart(item.id)} className="text-xs font-semibold text-emerald-600 hover:underline">
+                          Move to cart
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* RIGHT — Summary */}

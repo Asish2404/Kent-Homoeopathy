@@ -1,5 +1,7 @@
 import { FaStar, FaHeart, FaShoppingCart, FaBolt } from "react-icons/fa";
 import { HiCheckBadge } from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
+import { useCartContext } from "../Cart/CartContext";
 
 /**
  * Reusable premium product card.
@@ -11,6 +13,8 @@ import { HiCheckBadge } from "react-icons/hi2";
  *  - variant: "default" | "compact"
  */
 const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" }) => {
+  const cart = useCartContext();
+  const navigate = useNavigate();
   const {
     name,
     price,
@@ -24,6 +28,18 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
 
   const filledStars = Math.floor(rating);
   const isCompact = variant === "compact";
+  const wishlisted = cart.isWishlisted?.(product.id);
+
+  const handleAdd = onAdd || (() => cart.addToCart(product, 1));
+  const handleBuy =
+    onBuy ||
+    (() => {
+      if (!cart.isInCart?.(product.id)) {
+        cart.addToCart(product, 1);
+      }
+      navigate("/Cart");
+    });
+  const handleWishlist = onWishlist || (() => cart.toggleWishlist(product));
 
   return (
     <div
@@ -40,9 +56,11 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
       {/* Top action bar */}
       <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
         <button
-          onClick={onWishlist}
+          onClick={handleWishlist}
           aria-label="Add to wishlist"
-          className="w-9 h-9 rounded-full bg-white/90 backdrop-blur shadow-md flex items-center justify-center text-neutral-500 hover:text-red-500 hover:bg-white transition"
+          className={`w-9 h-9 rounded-full bg-white/90 backdrop-blur shadow-md flex items-center justify-center transition ${
+            wishlisted ? "text-red-500" : "text-neutral-500 hover:text-red-500 hover:bg-white"
+          }`}
         >
           <FaHeart className="text-sm" />
         </button>
@@ -106,7 +124,7 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
 
         <div className="flex gap-2">
           <button
-            onClick={onAdd}
+            onClick={handleAdd}
             className="flex-1 bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm hover:shadow-md"
           >
             <FaShoppingCart className="text-xs" />
@@ -114,7 +132,7 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
           </button>
 
           <button
-            onClick={onBuy}
+            onClick={handleBuy}
             className="px-3 border border-[var(--brand-600)] text-[var(--brand-700)] rounded-lg text-sm font-semibold hover:bg-[var(--brand-50)] transition flex items-center gap-1.5"
             aria-label="Buy now"
           >
