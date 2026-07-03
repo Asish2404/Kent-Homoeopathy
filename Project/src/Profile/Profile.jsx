@@ -26,6 +26,7 @@ import {
 import { useCartContext } from "../Cart/CartContext";
  
 const ORDERS = [
+  {
     id: "ORD-8821",
     name: "Arnica Montana 30C",
     brand: "SBL Homeopathy",
