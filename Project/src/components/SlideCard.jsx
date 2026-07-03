@@ -20,7 +20,7 @@ const SlideCard = React.memo(({ slide }) => {
         decoding="async"
         referrerPolicy="no-referrer"
         onError={() => setImgSrc(placeholderImg)}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover object-center"
       />
 
       {/* Premium readable overlays (green/dark, subtle) */}
@@ -31,11 +31,11 @@ const SlideCard = React.memo(({ slide }) => {
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-7 md:px-12 h-full flex items-center">
-        <div className="max-w-2xl text-white space-y-5 sm:space-y-6 animate-fade-up">
+          <div className="max-w-2xl text-white space-y-4 sm:space-y-6 animate-fade-up">
           <span
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full
                        bg-[var(--brand-500)]/20 backdrop-blur
-                       text-[var(--brand-100)] text-sm font-semibold
+                       text-[var(--brand-100)] text-xs sm:text-sm font-semibold
                        border border-[rgba(134,239,172,0.28)]"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-300)] animate-pulse" />
@@ -43,18 +43,18 @@ const SlideCard = React.memo(({ slide }) => {
           </span>
 
           <h2
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05]
+            className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05]
                        tracking-tight font-['Plus_Jakarta_Sans']"
           >
             {slide.title}
           </h2>
 
-          <p className="text-base sm:text-lg text-neutral-100/95 max-w-xl leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-neutral-100/95 max-w-xl leading-relaxed">
             {slide.description}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2">
-            <button className="btn-primary text-base px-7 sm:px-8 py-3.5" type="button">
+            <button className="btn-primary text-base px-6 sm:px-7 py-3.5" type="button">
               {slide.primaryCta || slide.buttonText}
             </button>
 

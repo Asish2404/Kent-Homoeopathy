@@ -96,7 +96,7 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
   return (
     <section className="w-full overflow-hidden relative">
       <div
-        className="relative"
+        className="relative touch-pan-x"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onTouchStart={onTouchStart}
@@ -143,19 +143,21 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
         </button>
 
         {/* controls */}
-        <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-20 flex flex-wrap justify-center gap-4 items-center">
+        <div className="absolute bottom-6 sm:bottom-10 md:bottom-14 left-1/2 -translate-x-1/2 z-20 flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 items-center">
+          {/* Autoplay toggle (desktop) */}
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             aria-label={isPlaying ? "Pause autoplay" : "Play autoplay"}
-            className="rounded-full px-5 py-2.5 bg-white/95 backdrop-blur text-neutral-800
+            className="rounded-full px-4 sm:px-5 py-2 bg-white/95 backdrop-blur text-neutral-800
                        flex items-center gap-2 shadow-lg cursor-pointer
                        hover:scale-105 hover:bg-[var(--brand-600)] hover:text-white
                        transition text-sm font-semibold"
           >
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-            {isPlaying ? "Pause" : "Play"}
+            <span className="hidden sm:inline">{isPlaying ? "Pause" : "Play"}</span>
           </button>
 
+          {/* Indicators */}
           <div className="flex gap-2 items-center bg-white/90 backdrop-blur rounded-full px-3 py-2 shadow-lg">
             {slides.map((_, index) => (
               <button
@@ -166,8 +168,8 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
                   transition-all rounded-full cursor-pointer
                   ${
                     current === index
-                      ? "w-8 h-2 bg-[var(--brand-600)]"
-                      : "w-2 h-2 bg-neutral-300 hover:bg-[var(--brand-400)]"
+                      ? "w-8 h-2.5 bg-[var(--brand-600)]"
+                      : "w-2.5 h-2.5 bg-neutral-300 hover:bg-[var(--brand-400)]"
                   }
                 `}
               />
@@ -176,11 +178,11 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
         </div>
 
         {/* mobile arrows */}
-        <div className="md:hidden absolute bottom-4 left-0 right-0 flex justify-center gap-3 z-20">
+        <div className="md:hidden absolute bottom-3 left-0 right-0 flex justify-between items-center px-4 z-20 pointer-events-none">
           <button
             onClick={prevSlide}
             aria-label="Previous"
-            className="p-3 rounded-full bg-white/90 backdrop-blur shadow-lg cursor-pointer"
+            className="pointer-events-auto p-3 rounded-full bg-white/90 backdrop-blur shadow-lg cursor-pointer"
           >
             <ChevronLeft size={18} />
           </button>
@@ -188,7 +190,7 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
           <button
             onClick={nextSlide}
             aria-label="Next"
-            className="p-3 rounded-full bg-white/90 backdrop-blur shadow-lg cursor-pointer"
+            className="pointer-events-auto p-3 rounded-full bg-white/90 backdrop-blur shadow-lg cursor-pointer"
           >
             <ChevronRight size={18} />
           </button>
