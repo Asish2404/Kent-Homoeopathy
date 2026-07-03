@@ -317,9 +317,8 @@ const Products = () => {
               </button>
               <button
                 className="flex-1 md:flex-none btn-outline py-2.5 text-sm"
-                onClick={() => navigate("/Labtest")}
+                onClick={() => navigate("/Consult")}
               >
-              <button className="flex-1 md:flex-none btn-outline py-2.5 text-sm" onClick={() => navigate("/Consult")}>
                 <Calendar className="w-4 h-4" />
                 Book Appointment
               </button>

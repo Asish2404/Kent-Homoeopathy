@@ -555,26 +555,29 @@ export default function Cart() {
                   </div>
                 )}
 
-                {/* Trust */}
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm divide-y divide-slate-100">
-                  {[
-                    {
-                      icon: (
-                        <path
-                          strokeLinecap="round"
-            {!empty && inStock.length > 0 && (
+              </div>
+
+              {!empty && inStock.length > 0 && (
                 <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-3 shadow-2xl">
-                    <div className="flex items-center justify-between gap-3">
-                        <div>
-                            <p className="text-[11px] text-slate-400 font-medium">Total</p>
-                            <p className="text-xl font-black text-slate-900">₹{grand.toFixed(0)}</p>
-                        </div>
-                        <button className="shine flex-1 max-w-xs py-3.5 text-white font-black rounded-2xl text-sm shadow-lg" style={{ background: "linear-gradient(135deg,#16a34a,#059669)" }}>
-                            Proceed to Checkout →
-                        </button>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-medium">Total</p>
+                      <p className="text-xl font-black text-slate-900">₹{grand.toFixed(0)}</p>
                     </div>
+                    <button
+                      onClick={() => navigate("/Cart")}
+                      className="shine flex-1 max-w-xs py-3.5 text-white font-black rounded-2xl text-sm shadow-lg"
+                      style={{ background: "linear-gradient(135deg,#16a34a,#059669)" }}
+                    >
+                      Proceed to Checkout →
+                    </button>
+                  </div>
                 </div>
-            )}
-        </div>
-    );
+              )}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
 }

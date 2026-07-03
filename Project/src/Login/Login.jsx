@@ -192,8 +192,8 @@ const Login = () => {
                                     onChange={(e) => setPhone(e.target.value)}
                                     className="w-full p-4 rounded-2xl border border-gray-300 outline-none focus:ring-2 focus:ring-green-400 transition"
                                 />
-                                {signup && errors.phone && <p className="-mt-3 text-sm text-red-500">{errors.phone}</p>}
                             }
+                            {signup && errors.phone && <p className="-mt-3 text-sm text-red-500">{errors.phone}</p>}
 
                             {
                                 signup &&
