@@ -172,6 +172,11 @@ function Consult() {
   ];
 
   const specialities = ["all", ...new Set(doctors.map((doc) => doc.speciality))];
+  const featuredHighlights = [
+    { label: "Verified doctors", value: "2,000+" },
+    { label: "Avg. response", value: "< 10 min" },
+    { label: "Secure consults", value: "24x7" },
+  ];
 
   const filteredDoctors = doctors.filter((doc) => {
     const search = query.trim().toLowerCase();
@@ -217,93 +222,130 @@ function Consult() {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="min-h-screen overflow-x-hidden bg-white">
       <section className="relative overflow-hidden" id="consultancy">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-emerald-50" />
-        <div className="absolute -left-20 top-10 h-64 w-64 rounded-full bg-emerald-200/30 blur-3xl" />
-        <div className="absolute -right-20 bottom-0 h-72 w-72 rounded-full bg-green-200/30 blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-green-50" />
+        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-emerald-200/35 blur-3xl" />
+        <div className="absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-green-200/35 blur-3xl" />
 
-        <div className="relative max-w-7xl mx-auto px-6 py-16 md:py-20">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-            <div className="space-y-6">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur border border-emerald-100 px-5 py-2 text-green-700 font-semibold shadow-sm">
+        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20">
+          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-14">
+            <div className="space-y-7 animate-fade-up">
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-white/85 px-5 py-2 text-sm font-semibold text-green-700 shadow-sm backdrop-blur">
                 <Stethoscope size={16} />
-                Trusted online care
+                Premium online consultation
               </span>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-slate-900 leading-[1.05] tracking-tight max-w-xl">
-                Expert medical guidance with a premium consultation experience.
-              </h1>
+              <div className="max-w-2xl space-y-4">
+                <h1 className="text-4xl font-extrabold leading-[1.02] tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
+                  Book trusted doctors with a calmer, more premium healthcare experience.
+                </h1>
+                <p className="max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
+                  Search by doctor, speciality, or location, choose a convenient slot, and connect with specialists through a clean consultation flow built for modern care.
+                </p>
+              </div>
 
-              <p className="text-base sm:text-lg text-slate-600 leading-8 max-w-xl">
-                Find the right specialist, book in a few taps, and connect through a clean, secure consultation flow designed for modern healthcare.
-              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {featuredHighlights.map((item) => (
+                  <div key={item.label} className="rounded-[22px] border border-slate-100 bg-white/90 px-4 py-4 shadow-sm backdrop-blur">
+                    <p className="text-xl font-bold text-slate-900">{item.value}</p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{item.label}</p>
+                  </div>
+                ))}
+              </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="flex items-center gap-3 rounded-2xl bg-white shadow-lg shadow-green-100/50 border border-emerald-100 px-4 py-4">
-                  <Search size={18} className="text-green-600 shrink-0" />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search doctor name"
-                    className="w-full outline-none bg-transparent text-slate-700 placeholder:text-slate-400"
-                  />
-                </div>
-                <div className="flex items-center gap-3 rounded-2xl bg-white shadow-lg shadow-green-100/50 border border-emerald-100 px-4 py-4">
-                  <Filter size={18} className="text-green-600 shrink-0" />
-                  <input
-                    value={locationQuery}
-                    onChange={(e) => setLocationQuery(e.target.value)}
-                    placeholder="Search by location"
-                    className="w-full outline-none bg-transparent text-slate-700 placeholder:text-slate-400"
-                  />
+              <div className="rounded-[28px] border border-emerald-100 bg-white/90 p-4 shadow-[0_18px_50px_rgba(16,185,129,0.10)] backdrop-blur sm:p-5">
+                <div className="grid items-center gap-3 sm:grid-cols-[1.1fr_1fr] lg:grid-cols-[1.2fr_1fr_1fr_auto]">
+                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 transition focus-within:border-green-300 focus-within:bg-white">
+                    <Search size={18} className="shrink-0 text-green-600" />
+                    <input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search doctor name"
+                      className="w-full bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 transition focus-within:border-green-300 focus-within:bg-white">
+                    <Stethoscope size={18} className="shrink-0 text-green-600" />
+                    <select
+                      value={speciality}
+                      onChange={(e) => setSpeciality(e.target.value)}
+                      className="w-full bg-transparent outline-none text-slate-700"
+                    >
+                      <option value="all">Search by speciality</option>
+                      {specialities.filter((item) => item !== "all").map((item) => (
+                        <option key={item} value={item}>{item}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 transition focus-within:border-green-300 focus-within:bg-white">
+                    <Filter size={18} className="shrink-0 text-green-600" />
+                    <input
+                      value={locationQuery}
+                      onChange={(e) => setLocationQuery(e.target.value)}
+                      placeholder="Location"
+                      className="w-full bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
+                    />
+                  </div>
+                  <button className="inline-flex items-center justify-center gap-2 rounded-2xl bg-green-600 px-6 py-4 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700">
+                    Search
+                  </button>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {specialities.slice(0, 6).map((item) => (
+                {specialities.map((item) => (
                   <button
                     key={item}
                     onClick={() => setSpeciality(item)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition shadow-sm ${speciality === item ? "bg-green-600 text-white shadow-green-200" : "bg-white text-slate-600 hover:text-green-700 hover:bg-green-50 border border-slate-200"}`}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${speciality === item ? "bg-green-600 text-white shadow-lg shadow-green-200" : "border border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-green-200 hover:bg-green-50 hover:text-green-700"}`}
                   >
-                    {item === "all" ? "All Specialities" : item}
+                    {item === "all" ? "All specialities" : item}
                   </button>
                 ))}
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <a href="#book-appointment">
-                  <button className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg shadow-green-200 hover:bg-green-700 hover:-translate-y-0.5 transition">
-                    Book Appointment
-                  </button>
+                <a href="#book-appointment" className="inline-flex items-center justify-center rounded-2xl bg-green-600 px-8 py-4 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700">
+                  Book Appointment
                 </a>
                 <button
-                  onClick={() => setQuery("")}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-8 py-4 font-semibold text-slate-700 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition"
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    setLocationQuery("");
+                    setSpeciality("all");
+                  }}
+                  className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-8 py-4 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-green-200 hover:shadow-md"
                 >
-                  Search doctors
+                  Reset search
                 </button>
               </div>
             </div>
 
-            <div className="relative">
-              <div className="absolute -inset-4 rounded-[36px] bg-emerald-200/30 blur-2xl" />
-              <div className="relative rounded-[32px] overflow-hidden shadow-[0_30px_80px_rgba(15,23,42,0.15)] border border-white bg-white">
+            <div className="relative animate-fade-up">
+              <div className="absolute -inset-6 rounded-[40px] bg-emerald-200/35 blur-3xl" />
+              <div className="relative overflow-hidden rounded-[34px] border border-white bg-white shadow-[0_30px_80px_rgba(15,23,42,0.16)]">
                 <img
                   src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=1600&auto=format&fit=crop"
-                  alt="doctor"
+                  alt="doctor consultation"
                   loading="lazy"
-                  className="w-full aspect-[4/3] md:aspect-[5/4] object-cover"
+                  className="aspect-[4/3] w-full object-cover md:aspect-[5/4]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-900/20 via-transparent to-transparent" />
-                <div className="absolute left-4 bottom-4 right-4 rounded-2xl border border-white/40 bg-white/85 backdrop-blur p-4 shadow-xl">
-                  <div className="flex items-center justify-between gap-3">
+                <div className="absolute inset-0 bg-gradient-to-tr from-emerald-950/25 via-transparent to-transparent" />
+
+                <div className="absolute left-4 top-4 rounded-full border border-white/50 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-green-700 shadow-lg backdrop-blur">
+                  Trusted care
+                </div>
+
+                <div className="absolute bottom-4 left-4 right-4 rounded-[24px] border border-white/60 bg-white/88 p-4 shadow-xl backdrop-blur">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold">24x7 Care</p>
-                      <p className="text-lg font-bold text-slate-900">Premium consultation booking</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-500">24x7 Support</p>
+                      <p className="mt-1 text-lg font-bold text-slate-900">Premium consultation booking</p>
+                      <p className="mt-1 text-sm text-slate-600">Modern scheduling, fast access, and secure follow-up support.</p>
                     </div>
-                    <div className="flex -space-x-2">
+                    <div className="flex shrink-0 -space-x-2">
                       <img src="https://i.pravatar.cc/80?img=14" alt="patient" className="h-10 w-10 rounded-full border-2 border-white object-cover" />
                       <img src="https://i.pravatar.cc/80?img=24" alt="patient" className="h-10 w-10 rounded-full border-2 border-white object-cover" />
                       <img src="https://i.pravatar.cc/80?img=34" alt="patient" className="h-10 w-10 rounded-full border-2 border-white object-cover" />
@@ -316,20 +358,20 @@ function Consult() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 -mt-8 relative z-10">
-        <div className="rounded-[28px] bg-white shadow-[0_18px_50px_rgba(16,185,129,0.12)] border border-emerald-100 p-4 md:p-5">
-          <div className="grid gap-4 md:grid-cols-[1.3fr_1fr_1fr_auto] items-center">
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-4 bg-slate-50">
-              <Search size={18} className="text-green-600 shrink-0" />
+      <section className="relative z-10 mx-auto -mt-8 max-w-7xl px-4 sm:px-6">
+        <div className="rounded-[30px] border border-emerald-100 bg-white p-4 shadow-[0_18px_50px_rgba(16,185,129,0.10)] md:p-5">
+          <div className="grid items-center gap-4 md:grid-cols-[1.3fr_1fr_1fr_auto]">
+            <div className="flex items-center gap-3 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 transition focus-within:border-green-300 focus-within:bg-white">
+              <Search size={18} className="shrink-0 text-green-600" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Doctor name"
-                className="w-full bg-transparent outline-none text-slate-700"
+                className="w-full bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
               />
             </div>
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-4 bg-slate-50">
-              <Stethoscope size={18} className="text-green-600 shrink-0" />
+            <div className="flex items-center gap-3 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 transition focus-within:border-green-300 focus-within:bg-white">
+              <Stethoscope size={18} className="shrink-0 text-green-600" />
               <select
                 value={speciality}
                 onChange={(e) => setSpeciality(e.target.value)}
@@ -341,77 +383,84 @@ function Consult() {
                 ))}
               </select>
             </div>
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-4 bg-slate-50">
-              <Filter size={18} className="text-green-600 shrink-0" />
+            <div className="flex items-center gap-3 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 transition focus-within:border-green-300 focus-within:bg-white">
+              <Filter size={18} className="shrink-0 text-green-600" />
               <input
                 value={locationQuery}
                 onChange={(e) => setLocationQuery(e.target.value)}
                 placeholder="Location"
-                className="w-full bg-transparent outline-none text-slate-700"
+                className="w-full bg-transparent outline-none text-slate-700 placeholder:text-slate-400"
               />
             </div>
-            <button className="rounded-2xl bg-green-600 text-white px-6 py-4 font-semibold shadow-lg shadow-green-200 hover:bg-green-700 hover:-translate-y-0.5 transition inline-flex items-center justify-center gap-2">
+            <button className="inline-flex items-center justify-center gap-2 rounded-[20px] bg-green-600 px-6 py-4 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700">
               Search
             </button>
           </div>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="flex items-end justify-between gap-4 mb-8">
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20">
+        <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <p className="text-green-600 font-semibold uppercase tracking-[0.28em] text-xs">Speciality</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Find the right specialist</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-green-600">Specialities</p>
+            <h2 className="mt-2 text-3xl font-bold text-slate-900 md:text-4xl">Find the right specialist</h2>
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {specialityCards.map((item) => (
             <button
               key={item.title}
-              className="group text-left rounded-[24px] bg-white border border-slate-100 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition h-full min-h-[170px]"
+              className="group h-full min-h-[180px] rounded-[24px] border border-slate-100 bg-white p-5 text-left shadow-sm transition card-lift"
             >
-              <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-green-700 flex items-center justify-center mb-4 group-hover:bg-green-600 group-hover:text-white transition">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-green-700 transition group-hover:bg-green-600 group-hover:text-white">
                 {item.icon}
               </div>
               <h3 className="text-lg font-bold text-slate-900">{item.title}</h3>
-              <p className="text-sm text-slate-500 mt-2 leading-6">{item.desc}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-500">{item.desc}</p>
             </button>
           ))}
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 py-4 md:py-10">
-        <div className="flex items-end justify-between gap-4 mb-8">
+      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 md:py-10">
+        <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <p className="text-green-600 font-semibold uppercase tracking-[0.28em] text-xs">Featured doctors</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Trusted specialists, ready today</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-green-600">Featured doctors</p>
+            <h2 className="mt-2 text-3xl font-bold text-slate-900 md:text-4xl">Trusted specialists, ready today</h2>
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
           {filteredDoctors.map((doc) => (
             <div
               key={doc.id}
-              className="group bg-white rounded-[28px] overflow-hidden border border-slate-100 shadow-[0_12px_30px_rgba(15,23,42,0.08)] hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(16,185,129,0.12)] transition h-full flex flex-col"
+              className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-slate-100 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition card-lift"
             >
               <div className="relative">
                 <img
                   src={doc.image}
                   alt={doc.name}
                   loading="lazy"
-                  className="w-full h-72 object-cover"
+                  className="h-72 w-full object-cover sm:h-80"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-transparent" />
-                <div className="absolute top-4 left-4 flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/90 backdrop-blur px-3 py-1 text-xs font-semibold text-green-700 shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
+                <div className="absolute left-4 top-4 flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/92 px-3 py-1 text-xs font-semibold text-green-700 shadow-sm backdrop-blur">
                     Verified
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-600 text-white px-3 py-1 text-xs font-semibold shadow-sm">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
                     <Star size={12} fill="currentColor" /> {doc.rating}
                   </span>
                 </div>
-                <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-white/90 backdrop-blur border border-white/60 px-4 py-3 shadow-lg">
+                <button
+                  type="button"
+                  className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/50 bg-white/90 text-slate-700 shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:text-green-700"
+                  aria-label="Add to wishlist"
+                >
+                  <Star size={18} />
+                </button>
+                <div className="absolute bottom-4 left-4 right-4 rounded-[22px] border border-white/60 bg-white/92 px-4 py-3 shadow-lg backdrop-blur">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs text-slate-500">Consultation fee</p>
@@ -424,46 +473,59 @@ function Consult() {
                 </div>
               </div>
 
-              <div className="p-6 md:p-7 flex-1 flex flex-col">
+              <div className="flex flex-1 flex-col p-6 md:p-7">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-2xl font-bold text-slate-900">{doc.name}</h3>
-                    <p className="text-green-700 font-semibold mt-1">{doc.speciality}</p>
+                    <p className="mt-1 font-semibold text-green-700">{doc.speciality}</p>
                   </div>
                 </div>
 
-                <p className="text-sm text-slate-500 mt-4 leading-7">{doc.qualification}</p>
+                <p className="mt-4 text-sm leading-7 text-slate-500">{doc.qualification}</p>
 
-                <div className="grid grid-cols-2 gap-3 mt-5 text-sm text-slate-600">
+                <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-600">
                   <div className="rounded-2xl bg-slate-50 p-3">
-                    <span className="block text-xs uppercase tracking-[0.24em] text-slate-400 mb-1">Experience</span>
+                    <span className="mb-1 block text-xs uppercase tracking-[0.24em] text-slate-400">Experience</span>
                     {doc.experience}
                   </div>
                   <div className="rounded-2xl bg-slate-50 p-3">
-                    <span className="block text-xs uppercase tracking-[0.24em] text-slate-400 mb-1">Languages</span>
+                    <span className="mb-1 block text-xs uppercase tracking-[0.24em] text-slate-400">Languages</span>
                     {doc.languages}
                   </div>
-                  <div className="rounded-2xl bg-slate-50 p-3 col-span-2">
-                    <span className="block text-xs uppercase tracking-[0.24em] text-slate-400 mb-1">Clinic</span>
+                  <div className="col-span-2 rounded-2xl bg-slate-50 p-3">
+                    <span className="mb-1 block text-xs uppercase tracking-[0.24em] text-slate-400">Hospital / Clinic</span>
                     {doc.clinic}
                   </div>
                 </div>
 
                 <div className="mt-5 flex items-center justify-between text-sm text-slate-600">
-                  <span className="inline-flex items-center gap-1.5"><Clock3 size={16} className="text-green-600" /> Available today</span>
-                  <span className="inline-flex items-center gap-1.5"><Star size={16} className="text-amber-500" fill="currentColor" /> {doc.rating}</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock3 size={16} className="text-green-600" /> Available today
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Star size={16} className="text-amber-500" fill="currentColor" /> {doc.rating}
+                  </span>
                 </div>
 
                 <div className="mt-6 grid grid-cols-2 gap-3">
-                  <a href="#book-appointment" className="w-full">
-                    <button
-                      className="w-full rounded-2xl bg-green-600 text-white py-3.5 font-semibold shadow-lg shadow-green-200 hover:bg-green-700 hover:-translate-y-0.5 transition"
-                      onClick={() => setSelectedDoctor(doc)}
-                    >
-                      Consult Now
-                    </button>
-                  </a>
-                  <button className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 font-semibold text-slate-700 hover:bg-slate-50 hover:-translate-y-0.5 transition">
+                  <button
+                    type="button"
+                    className="w-full rounded-2xl bg-green-600 py-3.5 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700"
+                    onClick={() => {
+                      setSelectedDoctor(doc);
+                      document.getElementById("book-appointment")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                  >
+                    Consult Now
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-green-200 hover:bg-slate-50"
+                    onClick={() => {
+                      setSelectedDoctor(doc);
+                      document.getElementById("book-appointment")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                  >
                     Book Appointment
                   </button>
                 </div>
@@ -473,59 +535,59 @@ function Consult() {
         </div>
 
         {filteredDoctors.length === 0 && (
-          <div className="text-center text-slate-500 mt-10">No doctors match your search.</div>
+          <div className="mt-10 text-center text-slate-500">No doctors match your search.</div>
         )}
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20">
+        <div className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
           {whyCards.map((item) => (
-            <div key={item} className="rounded-[24px] bg-white border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition h-full min-h-[140px] flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-green-700 flex items-center justify-center shrink-0">
+            <div key={item} className="card-lift flex h-full items-center gap-4 rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-green-700">
                 <Stethoscope size={18} />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900">{item}</h3>
-                <p className="text-sm text-slate-500 mt-1">Designed to make every consultation feel secure and professional.</p>
+                <p className="mt-1 text-sm text-slate-500">Designed to make every consultation feel secure and professional.</p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 py-8 md:py-16">
-        <div className="text-center mb-10">
-          <p className="text-green-600 font-semibold uppercase tracking-[0.28em] text-xs">How it works</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">A simple consultation journey</h2>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-16">
+        <div className="mb-10 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-green-600">How it works</p>
+          <h2 className="mt-2 text-3xl font-bold text-slate-900 md:text-4xl">A simple consultation journey</h2>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
           {processSteps.map((item, index) => (
-            <div key={item.step} className="rounded-[24px] bg-white border border-slate-100 p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition text-center h-full">
-              <div className="mx-auto h-14 w-14 rounded-full bg-green-600 text-white flex items-center justify-center text-lg font-bold shadow-lg shadow-green-200">
+            <div key={item.step} className="flex h-full flex-col rounded-[24px] border border-slate-100 bg-white p-6 text-center shadow-sm transition card-lift">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-lg font-bold text-white shadow-lg shadow-green-200">
                 {item.step}
               </div>
               <h3 className="mt-5 text-lg font-bold text-slate-900">{item.title}</h3>
-              <p className="text-sm text-slate-500 mt-2 leading-6">{item.desc}</p>
-              {index < processSteps.length - 1 && <div className="hidden md:block mt-6 text-green-600 text-2xl font-bold">↓</div>}
+              <p className="mt-2 text-sm leading-6 text-slate-500">{item.desc}</p>
+              {index < processSteps.length - 1 && <div className="mt-6 hidden text-2xl font-bold text-green-600 md:block">↓</div>}
             </div>
           ))}
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="flex items-end justify-between gap-4 mb-8">
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20">
+        <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <p className="text-green-600 font-semibold uppercase tracking-[0.28em] text-xs">Patient reviews</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">What patients say</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-green-600">Patient reviews</p>
+            <h2 className="mt-2 text-3xl font-bold text-slate-900 md:text-4xl">What patients say</h2>
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid auto-rows-fr gap-6 md:grid-cols-3">
           {reviews.map((review) => (
-            <article key={review.name} className="rounded-[24px] bg-white border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition h-full flex flex-col">
+            <article key={review.name} className="flex h-full flex-col rounded-[24px] border border-slate-100 bg-white p-6 shadow-sm transition card-lift">
               <div className="flex items-center gap-4">
-                <img src={review.image} alt={review.name} loading="lazy" className="h-14 w-14 rounded-full object-cover border-2 border-emerald-100" />
+                <img src={review.image} alt={review.name} loading="lazy" className="h-14 w-14 rounded-full border-2 border-emerald-100 object-cover" />
                 <div>
                   <h3 className="font-bold text-slate-900">{review.name}</h3>
                   <p className="text-sm text-slate-500">{review.doctor}</p>
@@ -536,130 +598,128 @@ function Consult() {
                   <Star key={idx} size={16} fill={idx < review.rating ? "currentColor" : "none"} />
                 ))}
               </div>
-              <p className="text-slate-600 leading-7 mt-4 flex-1">{review.text}</p>
+              <p className="mt-4 flex-1 leading-7 text-slate-600">{review.text}</p>
               <p className="mt-5 text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">{review.date}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 py-20">
-        <div className="text-center mb-10">
-          <p className="text-green-600 font-semibold uppercase tracking-[0.28em] text-xs">FAQ</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Questions patients ask most</h2>
+      <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 md:py-20">
+        <div className="mb-10 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-green-600">FAQ</p>
+          <h2 className="mt-2 text-3xl font-bold text-slate-900 md:text-4xl">Questions patients ask most</h2>
         </div>
 
         <div className="space-y-4">
           {faqs.map((item, index) => (
-            <div key={item.q} className="rounded-[22px] bg-white border border-slate-100 shadow-sm overflow-hidden">
+            <div key={item.q} className="overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-sm">
               <button
                 onClick={() => setActiveFaq(activeFaq === index ? -1 : index)}
-                className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 hover:bg-slate-50 transition"
+                className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition hover:bg-slate-50"
               >
                 <span className="font-semibold text-slate-900">{item.q}</span>
-                <span className={`transition-transform text-green-600 ${activeFaq === index ? "rotate-180" : ""}`}>↓</span>
+                <span className={`text-green-600 transition-transform ${activeFaq === index ? "rotate-180" : ""}`}>↓</span>
               </button>
               <div className={`grid transition-all duration-300 ${activeFaq === index ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-                <div className="overflow-hidden px-6 pb-5 text-slate-600 leading-7">{item.a}</div>
+                <div className="overflow-hidden px-6 pb-5 leading-7 text-slate-600">{item.a}</div>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="rounded-[32px] bg-gradient-to-r from-green-700 via-emerald-700 to-green-800 p-8 md:p-12 text-white shadow-[0_24px_70px_rgba(16,185,129,0.25)] overflow-hidden relative">
+      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 md:pb-24">
+        <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-r from-green-700 via-emerald-700 to-green-800 p-8 text-white shadow-[0_24px_70px_rgba(16,185,129,0.25)] md:p-12">
           <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
-          <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="relative flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
             <div>
-              <p className="text-white/70 font-semibold uppercase tracking-[0.28em] text-xs">Need medical advice?</p>
-              <h2 className="text-3xl md:text-4xl font-bold mt-3">Book an appointment today.</h2>
-              <p className="text-white/80 mt-3 max-w-2xl leading-7">Get connected to trusted specialists with a premium consultation experience designed to feel fast, reassuring, and easy to use.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">Need medical advice?</p>
+              <h2 className="mt-3 text-3xl font-bold md:text-4xl">Book an appointment today.</h2>
+              <p className="mt-3 max-w-2xl leading-7 text-white/80">Get connected to trusted specialists with a premium consultation experience designed to feel fast, reassuring, and easy to use.</p>
             </div>
-            <a href="#book-appointment">
-              <button className="rounded-2xl bg-white px-8 py-4 text-green-700 font-bold shadow-lg hover:-translate-y-0.5 hover:shadow-xl transition">
-                Book Appointment
-              </button>
+            <a href="#book-appointment" className="rounded-2xl bg-white px-8 py-4 font-bold text-green-700 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl">
+              Book Appointment
             </a>
           </div>
         </div>
       </section>
 
-      <section id="book-appointment" className="max-w-6xl mx-auto px-6 pb-24">
-        <div className="bg-white rounded-[35px] shadow-2xl border border-green-100 p-8 md:p-12">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-green-900 mb-4">Book Appointment</h2>
-            <p className="text-gray-600">Schedule your consultation in minutes</p>
+      <section id="book-appointment" className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
+        <div className="rounded-[35px] border border-green-100 bg-white p-8 shadow-2xl md:p-12">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-4xl font-bold text-green-900 md:text-5xl">Book Appointment</h2>
+            <p className="text-slate-600">Schedule your consultation in minutes</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 mb-10">
+          <div className="mb-10 grid gap-4 md:grid-cols-2">
             <button
               onClick={() => setMode("visit")}
-              className={`py-5 rounded-2xl font-semibold transition cursor-pointer ${mode === "visit" ? "bg-green-700 text-white shadow-xl" : "border border-green-200 text-gray-700"}`}
+              className={`rounded-2xl py-5 font-semibold transition ${mode === "visit" ? "bg-green-700 text-white shadow-xl" : "border border-green-200 text-slate-700 hover:bg-green-50"}`}
             >
-              <UserRound className="inline mr-2" size={18} />
+              <UserRound className="mr-2 inline" size={18} />
               In-Person Visit
             </button>
 
             <button
               onClick={() => setMode("online")}
-              className={`py-5 rounded-2xl font-semibold transition cursor-pointer ${mode === "online" ? "bg-green-700 text-white shadow-xl" : "border border-green-200 text-gray-700"}`}
+              className={`rounded-2xl py-5 font-semibold transition ${mode === "online" ? "bg-green-700 text-white shadow-xl" : "border border-green-200 text-slate-700 hover:bg-green-50"}`}
             >
-              <Video className="inline mr-2" size={18} />
+              <Video className="mr-2 inline" size={18} />
               Online Consultation
             </button>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="mb-8 grid gap-6 md:grid-cols-2">
             <div>
-              <label className="block mb-3 font-medium">Full Name *</label>
+              <label className="mb-3 block font-medium text-slate-700">Full Name *</label>
               <input
                 value={booking.name}
                 onChange={(e) => setBooking({ ...booking, name: e.target.value })}
-                className="w-full border border-green-200 rounded-2xl px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-green-200 px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
                 placeholder="Enter your full name"
               />
             </div>
 
             <div>
-              <label className="block mb-3 font-medium">Email *</label>
+              <label className="mb-3 block font-medium text-slate-700">Email *</label>
               <input
                 value={booking.email}
                 onChange={(e) => setBooking({ ...booking, email: e.target.value })}
-                className="w-full border border-green-200 rounded-2xl px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-green-200 px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
                 placeholder="your@email.com"
               />
             </div>
 
             <div>
-              <label className="block mb-3 font-medium">Phone *</label>
+              <label className="mb-3 block font-medium text-slate-700">Phone *</label>
               <input
                 value={booking.phone}
                 onChange={(e) => setBooking({ ...booking, phone: e.target.value })}
-                className="w-full border border-green-200 rounded-2xl px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-green-200 px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
                 placeholder="+91 9876543210"
               />
             </div>
 
             <div>
-              <label className="block mb-3 font-medium">Preferred Date *</label>
+              <label className="mb-3 block font-medium text-slate-700">Preferred Date *</label>
               <input
                 type="date"
                 value={booking.date}
                 onChange={(e) => setBooking({ ...booking, date: e.target.value })}
-                className="w-full border border-green-200 rounded-2xl px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-green-200 px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
               />
             </div>
           </div>
 
-          <h3 className="text-xl font-semibold mb-5">Select Time Slot</h3>
+          <h3 className="mb-5 text-xl font-semibold text-slate-900">Select Time Slot</h3>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+          <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-5">
             {slots.map((slot) => (
               <button
                 key={slot}
                 onClick={() => setSelectedTime(slot)}
-                className={`py-4 rounded-xl border transition cursor-pointer ${selectedTime === slot ? "bg-green-700 text-white border-green-700" : "border-green-200 hover:bg-green-50"}`}
+                className={`rounded-xl border py-4 transition ${selectedTime === slot ? "border-green-700 bg-green-700 text-white shadow-lg shadow-green-200" : "border-green-200 bg-white text-slate-700 hover:bg-green-50"}`}
               >
                 {slot}
               </button>
@@ -667,19 +727,19 @@ function Consult() {
           </div>
 
           <div className="mb-10">
-            <label className="block mb-3 font-medium">Describe Your Symptoms</label>
+            <label className="mb-3 block font-medium text-slate-700">Describe Your Symptoms</label>
             <textarea
               rows="5"
               placeholder="Brief description of your health concern..."
               value={booking.symptoms}
               onChange={(e) => setBooking({ ...booking, symptoms: e.target.value })}
-              className="w-full border border-green-200 rounded-2xl p-5 outline-none"
+              className="w-full rounded-2xl border border-green-200 p-5 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
             />
           </div>
 
-          {bookingMessage && <p className="text-center text-sm text-green-700 mb-4">{bookingMessage}</p>}
+          {bookingMessage && <p className="mb-4 text-center text-sm text-green-700">{bookingMessage}</p>}
 
-          <button onClick={handleBook} className="w-full bg-green-700 hover:bg-green-800 text-white py-5 rounded-2xl text-xl font-semibold shadow-xl transition cursor-pointer">
+          <button onClick={handleBook} className="w-full rounded-2xl bg-green-700 py-5 text-xl font-semibold text-white shadow-xl transition hover:bg-green-800">
             Confirm Appointment
           </button>
         </div>
