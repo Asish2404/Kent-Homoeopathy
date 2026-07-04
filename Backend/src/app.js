@@ -4,6 +4,7 @@ import authRoutes from "./routes/auth.routes.js";
 import doctorRoutes from "./routes/doctor.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
+import cartRoutes from "./routes/cart.routes.js";
 
 const app = express();
 
@@ -30,4 +31,5 @@ app.use("/api/auth", authRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/category", categoryRoutes);
+app.use("/api/cart", cartRoutes);
 export default app;
