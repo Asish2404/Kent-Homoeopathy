@@ -6,6 +6,7 @@ import KentLogo from "../assets/Kent.png";
 import { BsCart3 } from "react-icons/bs";
 import { FiSearch, FiHeart, FiPhone } from "react-icons/fi";
 import { HiMenuAlt3, HiX } from "react-icons/hi";
+import SearchBox from "./SearchBox";
 import {
   FaUserCircle,
   FaUserMd,
@@ -126,67 +127,9 @@ const Navbar = () => {
           </div>
         </button>
 
-        {/* Mobile right cluster */}
-        <div className="flex lg:hidden items-center gap-2">
-          <div
-            className="flex items-center gap-2 bg-white rounded-full pl-3 pr-2 py-1.5
-                       w-32 sm:w-40
-                       focus-within:ring-2 focus-within:ring-[var(--brand-400)]
-                       transition-all duration-300"
-          >
-            <FiSearch className="text-neutral-500 text-sm" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch(e.currentTarget.value);
-              }}
-              placeholder="Search..."
-              className="outline-none text-neutral-800 text-sm w-full bg-transparent"
-            />
-          </div>
-
-          <NavLink
-            to="/Cart"
-            className="relative w-10 h-10 rounded-full bg-white/10
-                       flex items-center justify-center text-white"
-          >
-            <BsCart3 className="text-xl" />
-            {totalCount > 0 && (
-              <span
-                className="absolute -top-1 -right-1
-                           bg-[var(--brand-500)] text-white text-[10px] font-bold
-                           px-1.5 py-0.5 rounded-full min-w-[18px] text-center
-                           ring-2 ring-[var(--neutral-900)]"
-              >
-                {totalCount > 99 ? "99+" : totalCount}
-              </span>
-            )}
-          </NavLink>
-
-          <button
-            type="button"
-            onClick={handleWishlistOpen}
-            className="relative w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-white"
-            aria-label="Wishlist"
-          >
-            <FiHeart className="text-lg" />
-            {wishlistCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[var(--brand-500)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ring-2 ring-[var(--neutral-900)]">
-                {wishlistCount > 99 ? "99+" : wishlistCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="w-10 h-10 rounded-full bg-[var(--brand-600)] hover:bg-[var(--brand-700)]
-                       flex items-center justify-center text-white transition"
-            aria-label="Toggle menu"
-          >
-            {menuOpen ? <HiX className="text-xl" /> : <HiMenuAlt3 className="text-xl" />}
-          </button>
+        {/* Shared universal search (single DOM input for all viewports) */}
+        <div className="flex-1 max-w-xl mx-4 md:min-w-[220px]">
+          <SearchBox className="flex items-center gap-2 bg-white rounded-full pl-3 pr-2 py-2 shadow-md w-full min-w-0" placeholder="Search medicines, brands..." ariaLabel="Universal Search" />
         </div>
 
         {/* Desktop nav */}
@@ -211,25 +154,8 @@ const Navbar = () => {
             Contact Us
           </NavLink>
 
-          {/* Search */}
-          <div
-            className="flex items-center gap-2 bg-white rounded-full pl-4 pr-2 py-2
-                       shadow-md w-44 xl:w-56
-                       focus-within:ring-2 focus-within:ring-[var(--brand-400)]
-                       focus-within:w-64 transition-all duration-300"
-          >
-            <FiSearch className="text-neutral-500" />
-            <input
-              type="search"
-              placeholder="Search medicines, brands..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch(e.currentTarget.value);
-              }}
-              className="outline-none text-neutral-800 text-sm w-full bg-transparent"
-            />
-          </div>
+          {/* Desktop-only spacer (search is rendered above for large screens) */}
+          <div className="hidden lg:block w-44 xl:w-56" />
 
           {/* Quick action icons */}
           <button
@@ -405,25 +331,6 @@ const Navbar = () => {
 
         {/* Mobile right cluster */}
         <div className="flex lg:hidden items-center gap-2">
-          <div
-            className="flex items-center gap-2 bg-white rounded-full pl-3 pr-2 py-1.5
-                       w-32 sm:w-40
-                       focus-within:ring-2 focus-within:ring-[var(--brand-400)]
-                       transition-all duration-300"
-          >
-            <FiSearch className="text-neutral-500 text-sm" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch(e.currentTarget.value);
-              }}
-              placeholder="Search..."
-              className="outline-none text-neutral-800 text-sm w-full bg-transparent"
-            />
-          </div>
-
           <NavLink
             to="/Cart"
             className="relative w-10 h-10 rounded-full bg-white/10

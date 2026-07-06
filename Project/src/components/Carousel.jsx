@@ -15,7 +15,7 @@ import {
 
 export default function Carousel({ slides, autoplayInterval = 4000 }) {
   const [current, setCurrent] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [touching, setTouching] = useState(false);
 

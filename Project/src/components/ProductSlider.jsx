@@ -61,7 +61,7 @@ const ProductSlider = ({
         <div className="relative">
           <div
             ref={sliderRef}
-            className="flex gap-5 overflow-x-auto scroll-smooth no-scrollbar pb-4 -mx-2 px-2"
+            className="flex gap-5 overflow-x-auto scroll-smooth no-scrollbar pb-4 pl-2 pr-2"
           >
             {products.map((p) => (
               <ProductCard key={p.id} product={p} />

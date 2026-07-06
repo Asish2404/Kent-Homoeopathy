@@ -129,6 +129,7 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
               e.preventDefault();
               e.stopPropagation();
               handleAdd();
+              e.currentTarget.blur();
             }}
             className="flex-1 bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm hover:shadow-md"
           >
@@ -142,6 +143,7 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
               e.preventDefault();
               e.stopPropagation();
               handleBuy();
+              e.currentTarget.blur();
             }}
             className="px-3 border border-[var(--brand-600)] text-[var(--brand-700)] rounded-lg text-sm font-semibold hover:bg-[var(--brand-50)] transition flex items-center gap-1.5"
             aria-label="Buy now"
