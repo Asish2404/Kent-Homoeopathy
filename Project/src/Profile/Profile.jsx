@@ -49,8 +49,8 @@ const ADDRESSES = [
     id: 1,
     type: "Home",
     Icon: Home,
-    line1: "12B, Park Street",
-    line2: "Kolkata, West Bengal",
+    line1: "1st Floor,9, Barasat Rd,Above HDFC Bank,Burmah Shell Colony,Sodepur",
+    line2: "Kolkata, West Bengal 700110",
     isDefault: true,
   },
   {
@@ -116,12 +116,13 @@ function AnimatedCount({ target }) {
 
 export default function Profile() {
 
-  const [tab, setTab] = useState("overview");
-  const [showEdit, setShowEdit] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const cart = useCartContext();
+
+  const [tab, setTab] = useState(() => location.state?.tab || "overview");
+  const [showEdit, setShowEdit] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
 
   const [user, setUser] = useState(() => {
 
@@ -141,11 +142,7 @@ export default function Profile() {
   const orders = readList("profile_orders_v1", ORDERS);
   const appointments = readList("profile_appointments_v1", []);
 
-  useEffect(() => {
-    if (location.state?.tab) {
-      setTab(location.state.tab);
-    }
-  }, [location.state]);
+  // tab initial value derives from location.state to avoid setting state in effect
 
   if (!user) {
 

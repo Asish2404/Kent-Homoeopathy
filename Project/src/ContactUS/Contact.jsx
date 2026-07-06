@@ -105,8 +105,8 @@ const Contact = () => {
     {
       icon: <FaMapMarkerAlt />,
       title: "Office Address",
-      primary: "42 Wellness Lane,",
-      secondary: "Green Park, New Delhi - 110016",
+      primary: "1st Floor,9, Barasat Rd,Above HDFC Bank,Burmah Shell Colony,Sodepur,Kolkata,West Bengal 700110",
+      secondary: "",
       link: "#map",
       tone: "from-teal-500 to-teal-700",
     },

@@ -131,19 +131,21 @@ const Home = () => {
 
           {/* Category chips */}
           <div className="flex flex-wrap justify-center gap-2.5 mt-6 mb-10">
-            {[
-              "All",
-              "Best Solutions",
-              "Diabetic Wellness",
-              "Digestive Wellness",
-              "Pain Relief",
-              "Women's Wellness",
-              "Skin Wellness",
-            ].map((tag, i) => (
+            {([
+              { label: "All", id: "all" },
+              { label: "Best Solutions", id: "vitamins" },
+              { label: "Diabetic Wellness", id: "diabetes" },
+              { label: "Digestive Wellness", id: "digest" },
+              { label: "Pain Relief", id: "pain" },
+              { label: "Women's Wellness", id: "women" },
+              { label: "Skin Wellness", id: "skin" },
+            ]).map((tag, i) => (
               <button
                 key={i}
                 type="button"
-                onClick={() => navigate("/Products")}
+                onClick={() =>
+                  navigate(tag.id === "all" ? "/Products" : `/Products?category=${tag.id}`)
+                }
                 className={`
                   px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer transition
                   ${
@@ -153,7 +155,7 @@ const Home = () => {
                   }
                 `}
               >
-                {tag}
+                {tag.label}
               </button>
             ))}
           </div>
@@ -178,7 +180,8 @@ const Home = () => {
           title={cat.title}
           subtitle={cat.subtitle}
           products={cat.products}
-          onViewAll={() => navigate("/Products")}
+          onViewAll={() => navigate(`/Products?category=${cat.id}`)}
+          viewAllLabel={`View All ${cat.title}`}
           bgClass={idx % 2 === 0 ? "bg-white" : "section-soft"}
         />
       ))}

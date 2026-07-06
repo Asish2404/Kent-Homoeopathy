@@ -124,7 +124,12 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
 
         <div className="flex gap-2">
           <button
-            onClick={handleAdd}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleAdd();
+            }}
             className="flex-1 bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm hover:shadow-md"
           >
             <FaShoppingCart className="text-xs" />
@@ -132,7 +137,12 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
           </button>
 
           <button
-            onClick={handleBuy}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleBuy();
+            }}
             className="px-3 border border-[var(--brand-600)] text-[var(--brand-700)] rounded-lg text-sm font-semibold hover:bg-[var(--brand-50)] transition flex items-center gap-1.5"
             aria-label="Buy now"
           >

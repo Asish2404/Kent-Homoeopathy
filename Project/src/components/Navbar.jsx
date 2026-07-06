@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useCartContext } from "../Cart/CartContext";
+import KentLogo from "../assets/Kent.png";
 
 import { BsCart3 } from "react-icons/bs";
 import { FiSearch, FiHeart, FiPhone } from "react-icons/fi";
@@ -12,6 +13,7 @@ import {
   FaCog,
   FaLeaf,
 } from "react-icons/fa";
+
 
 const Navbar = () => {
   const { totalCount, wishlistCount } = useCartContext();
@@ -65,6 +67,16 @@ const Navbar = () => {
     navigate("/Login");
   };
 
+  const handleWishlistOpen = () => {
+    if (user) {
+      navigate("/Profile", { state: { tab: "wishlist" } });
+      return;
+    }
+    navigate("/Login", {
+      state: { message: "Please login to continue." },
+    });
+  };
+
   const handleSearch = (value) => {
     const next = value.trim();
     setQuery(value);
@@ -94,22 +106,16 @@ const Navbar = () => {
                     }`}
       >
         {/* Logo */}
-        <div
-          className="flex items-center gap-3 cursor-pointer group"
+        <button
+          type="button"
+          className="flex items-center gap-3 cursor-pointer group focus:outline-none"
           onClick={() => navigate("/")}
         >
-          <div className="relative">
-            <div
-              className="w-10 h-10 md:w-11 md:h-11 rounded-full
-                         bg-gradient-to-br from-[var(--brand-400)] to-[var(--brand-700)]
-                         flex items-center justify-center
-                         shadow-lg shadow-[var(--brand-700)]/30
-                         group-hover:scale-105 transition"
-            >
-              <FaLeaf className="text-white text-lg" />
-            </div>
-          </div>
-
+          <img
+            src={KentLogo}
+            alt="Kent Homoeopharmacy"
+            className="w-11 h-11 rounded-2xl border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
+          />
           <div className="hidden md:block leading-tight">
             <p className="text-white text-xl font-bold tracking-tight">
               DR. KENT
@@ -118,6 +124,69 @@ const Navbar = () => {
               HOMOEOPHARMACY
             </p>
           </div>
+        </button>
+
+        {/* Mobile right cluster */}
+        <div className="flex lg:hidden items-center gap-2">
+          <div
+            className="flex items-center gap-2 bg-white rounded-full pl-3 pr-2 py-1.5
+                       w-32 sm:w-40
+                       focus-within:ring-2 focus-within:ring-[var(--brand-400)]
+                       transition-all duration-300"
+          >
+            <FiSearch className="text-neutral-500 text-sm" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch(e.currentTarget.value);
+              }}
+              placeholder="Search..."
+              className="outline-none text-neutral-800 text-sm w-full bg-transparent"
+            />
+          </div>
+
+          <NavLink
+            to="/Cart"
+            className="relative w-10 h-10 rounded-full bg-white/10
+                       flex items-center justify-center text-white"
+          >
+            <BsCart3 className="text-xl" />
+            {totalCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1
+                           bg-[var(--brand-500)] text-white text-[10px] font-bold
+                           px-1.5 py-0.5 rounded-full min-w-[18px] text-center
+                           ring-2 ring-[var(--neutral-900)]"
+              >
+                {totalCount > 99 ? "99+" : totalCount}
+              </span>
+            )}
+          </NavLink>
+
+          <button
+            type="button"
+            onClick={handleWishlistOpen}
+            className="relative w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-white"
+            aria-label="Wishlist"
+          >
+            <FiHeart className="text-lg" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[var(--brand-500)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ring-2 ring-[var(--neutral-900)]">
+                {wishlistCount > 99 ? "99+" : wishlistCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="w-10 h-10 rounded-full bg-[var(--brand-600)] hover:bg-[var(--brand-700)]
+                       flex items-center justify-center text-white transition"
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? <HiX className="text-xl" /> : <HiMenuAlt3 className="text-xl" />}
+          </button>
         </div>
 
         {/* Desktop nav */}
@@ -164,8 +233,9 @@ const Navbar = () => {
 
           {/* Quick action icons */}
           <button
+            type="button"
             aria-label="Wishlist"
-            onClick={() => navigate("/Profile", { state: { tab: "wishlist" } })}
+            onClick={handleWishlistOpen}
             className="relative w-10 h-10 rounded-full bg-white/5 hover:bg-white/10
                        flex items-center justify-center text-white transition
                        hover:scale-105"
@@ -373,7 +443,8 @@ const Navbar = () => {
           </NavLink>
 
           <button
-            onClick={() => navigate("/Profile", { state: { tab: "wishlist" } })}
+            type="button"
+            onClick={handleWishlistOpen}
             className="relative w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-white"
             aria-label="Wishlist"
           >

@@ -114,11 +114,11 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
           </div>
         </div>
 
-        {/* left arrow */}
+        {/* left arrow - moved further out to avoid overlapping hero content */}
         <button
           onClick={prevSlide}
           aria-label="Previous Slide"
-          className="hidden md:flex absolute left-5 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full
+          className="hidden md:flex absolute left-12 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full
                      bg-white/95 backdrop-blur shadow-xl
                      items-center justify-center
                      hover:scale-110 hover:bg-[var(--brand-600)] hover:text-white
@@ -128,11 +128,11 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
           <ChevronLeft />
         </button>
 
-        {/* right arrow */}
+        {/* right arrow - moved further out to avoid overlapping hero content */}
         <button
           onClick={nextSlide}
           aria-label="Next Slide"
-          className="hidden md:flex absolute right-5 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full
+          className="hidden md:flex absolute right-12 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full
                      bg-white/95 backdrop-blur shadow-xl
                      items-center justify-center
                      hover:scale-110 hover:bg-[var(--brand-600)] hover:text-white
@@ -144,11 +144,11 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
 
         {/* controls */}
         <div className="absolute bottom-6 sm:bottom-10 md:bottom-14 left-1/2 -translate-x-1/2 z-20 flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 items-center">
-          {/* Autoplay toggle (desktop) */}
+          {/* Autoplay toggle (desktop only) - hidden on small screens for autoplay-only mobile */}
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             aria-label={isPlaying ? "Pause autoplay" : "Play autoplay"}
-            className="rounded-full px-4 sm:px-5 py-2 bg-white/95 backdrop-blur text-neutral-800
+            className="hidden sm:flex rounded-full px-4 sm:px-5 py-2 bg-white/95 backdrop-blur text-neutral-800
                        flex items-center gap-2 shadow-lg cursor-pointer
                        hover:scale-105 hover:bg-[var(--brand-600)] hover:text-white
                        transition text-sm font-semibold"
@@ -177,24 +177,8 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
           </div>
         </div>
 
-        {/* mobile arrows */}
-        <div className="md:hidden absolute bottom-3 left-0 right-0 flex justify-between items-center px-4 z-20 pointer-events-none">
-          <button
-            onClick={prevSlide}
-            aria-label="Previous"
-            className="pointer-events-auto p-3 rounded-full bg-white/90 backdrop-blur shadow-lg cursor-pointer"
-          >
-            <ChevronLeft size={18} />
-          </button>
-
-          <button
-            onClick={nextSlide}
-            aria-label="Next"
-            className="pointer-events-auto p-3 rounded-full bg-white/90 backdrop-blur shadow-lg cursor-pointer"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
+        {/* mobile controls removed: mobile uses autoplay only (no arrows/play/pause) */}
+        <div className="hidden" />
       </div>
     </section>
   );

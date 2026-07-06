@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
     FaEye,
     FaEyeSlash,
@@ -11,22 +11,26 @@ import login from "./Login.png";
 
 const Login = () => {
 
-    const [signup, setSignup] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const USERS_KEY = "auth_users_v1";
+    const REMEMBERED_EMAIL_KEY = "auth_remembered_email_v1";
+
+    const [signup, setSignup] = useState(false);
     const [user_name, setUserName] = useState("");
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState(() => localStorage.getItem(REMEMBERED_EMAIL_KEY) || "");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
-    const [rememberMe, setRememberMe] = useState(false);
+    const [rememberMe, setRememberMe] = useState(() => Boolean(localStorage.getItem(REMEMBERED_EMAIL_KEY)));
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState({});
-    const [status, setStatus] = useState("");
+    const [status, setStatus] = useState(() => location.state?.message || "");
 
-    const USERS_KEY = "auth_users_v1";
-    const REMEMBERED_EMAIL_KEY = "auth_remembered_email_v1";
+    
 
     const readUsers = () => {
         try {
@@ -43,13 +47,7 @@ const Login = () => {
         localStorage.setItem(USERS_KEY, JSON.stringify(users));
     };
 
-    useEffect(() => {
-        const remembered = localStorage.getItem(REMEMBERED_EMAIL_KEY);
-        if (remembered) {
-            setEmail(remembered);
-            setRememberMe(true);
-        }
-    }, []);
+    // Initial email/remember state and status are derived from localStorage / location.state
 
     const validate = () => {
         const nextErrors = {};
@@ -122,7 +120,13 @@ const Login = () => {
                         />
                     </div>
 
-                    <div className="bg-white rounded-[34px] shadow-2xl p-6 sm:p-8 md:p-10 border border-green-100 w-full max-w-xl mx-auto">
+                        <div className="bg-white rounded-[34px] shadow-2xl p-6 sm:p-8 md:p-10 border border-green-100 w-full max-w-xl mx-auto">
+
+                            {status && (
+                                <div className="mb-4 rounded-lg bg-amber-50 border border-amber-100 text-amber-800 p-3 text-sm">
+                                    {status}
+                                </div>
+                            )}
 
                         <div className="flex justify-center mb-8 bg-green-50 rounded-full p-1 w-full">
 

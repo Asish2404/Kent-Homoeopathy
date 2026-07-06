@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { FaHeart } from "react-icons/fa";
 import { HiOutlineSparkles } from "react-icons/hi2";
@@ -12,6 +12,7 @@ import { useCartContext } from "./Cart/CartContext";
 const ProductsCatalog = () => {
   const navigate = useNavigate();
   const cart = useCartContext();
+  const location = useLocation();
 
   const allProducts = useMemo(() => {
     return allCategories.flatMap((c) => c.products || []).map((p) => ({
@@ -118,6 +119,36 @@ const ProductsCatalog = () => {
     });
     setSortKey("relevance");
   };
+
+  // Read URL params (global search / category) and apply only those filters
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get("query") || "";
+    const cat = params.get("category") || "";
+
+    if (q || cat) {
+      // reset other filters then apply only query + category
+      setAvailability("any");
+      setBrand("any");
+      setMinRating(0);
+      setConsultRequired("any");
+      setDeliveryOption("any");
+      setPriceMax(() => {
+        const max = allProducts.reduce((m, p) => Math.max(m, Number(p.price) || 0), 0);
+        return Math.ceil(max || 0);
+      });
+      setSortKey("relevance");
+
+      setQuery(q);
+      if (cat) {
+        // If provided category id exists, set it; otherwise keep 'all'
+        const exists = allCategories.some((c) => c.id === cat);
+        setActiveCategory(exists ? cat : "all");
+      }
+    }
+  }, [location.search]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleProductClick = (product) => {
     navigate(`/products/${product.id}`, { state: { product } });
@@ -433,10 +464,14 @@ const ProductsCatalog = () => {
                       key={p.id}
                       className="group bg-white border border-neutral-100 shadow-sm hover:shadow-md transition-shadow rounded-xl overflow-hidden"
                     >
-                      <button
-                        type="button"
+                      <div
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleProductClick(p)}
-                        className="w-full text-left"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') handleProductClick(p);
+                        }}
+                        className="w-full text-left cursor-pointer"
                       >
                         <div className="flex flex-col md:flex-row md:items-stretch">
                           {/* Compact Image */}
@@ -589,7 +624,7 @@ const ProductsCatalog = () => {
                             </div>
                           </div>
                         </div>
-                      </button>
+                      </div>
                     </div>
                   );
                 })

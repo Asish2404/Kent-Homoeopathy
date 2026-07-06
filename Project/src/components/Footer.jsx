@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import KentLogo from "../assets/Kent.png";
+import SubscribeCard from "./SubscribeCard";
 import {
   FaLeaf,
   FaFacebookF,
@@ -58,50 +60,10 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Newsletter */}
+      {/* Newsletter (premium card) */}
       <div className="bg-gradient-to-r from-[var(--brand-700)] to-[var(--brand-900)]">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 py-10 md:py-12
-                        flex flex-col md:flex-row items-center gap-6 md:gap-10">
-          <div className="flex-1 text-center md:text-left">
-            <h3 className="text-white text-xl md:text-2xl font-bold mb-1">
-              Get health tips & exclusive offers
-            </h3>
-            <p className="text-[var(--brand-100)] text-sm">
-              Join 25,000+ subscribers. Unsubscribe anytime.
-            </p>
-          </div>
-
-          <form
-            onSubmit={handleSubscribe}
-            className="w-full md:w-auto flex items-center gap-2
-                       bg-white/10 backdrop-blur p-1.5 rounded-full
-                       border border-white/20"
-          >
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="flex-1 md:w-72 bg-transparent outline-none
-                         text-white placeholder-white/60
-                         px-4 py-2 text-sm"
-            />
-            <button
-              type="submit"
-              className="bg-white text-[var(--brand-700)] font-semibold
-                         px-5 py-2.5 rounded-full text-sm
-                         hover:bg-[var(--brand-50)] transition
-                         flex items-center gap-2 whitespace-nowrap"
-            >
-              {subscribed ? "Subscribed ✓" : (
-                <>
-                  Subscribe
-                  <FaArrowRight className="text-xs" />
-                </>
-              )}
-            </button>
-          </form>
+        <div className="max-w-7xl mx-auto px-6 md:px-10 py-10 md:py-12 flex justify-center">
+          <SubscribeCard />
         </div>
       </div>
 
@@ -111,13 +73,7 @@ const Footer = () => {
         {/* Brand */}
         <div className="lg:col-span-2">
           <div className="flex items-center gap-3 mb-5">
-            <div
-              className="w-11 h-11 rounded-full
-                         bg-gradient-to-br from-[var(--brand-400)] to-[var(--brand-700)]
-                         flex items-center justify-center shadow-lg shadow-[var(--brand-700)]/30"
-            >
-              <FaLeaf className="text-white text-lg" />
-            </div>
+            <img src={KentLogo} alt="Kent" className="w-11 h-11 rounded-2xl object-cover shadow-lg" />
             <div>
               <h2 className="text-2xl font-bold text-white">Dr. Kent</h2>
               <p className="tracking-[3px] text-xs text-[var(--brand-300)] font-semibold">
@@ -211,7 +167,7 @@ const Footer = () => {
           <div className="space-y-4 text-sm text-neutral-400">
             <div className="flex gap-3 items-start">
               <FaMapMarkerAlt className="text-[var(--brand-400)] mt-1 shrink-0" />
-              <p>42 Wellness Lane, Green Park, New Delhi - 110016</p>
+              <p>1st Floor,9, Barasat Rd,Above HDFC Bank,Burmah Shell Colony,Sodepur,Kolkata,West Bengal 700110</p>
             </div>
 
             <div className="flex gap-3 items-center">
