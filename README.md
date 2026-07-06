@@ -44,6 +44,7 @@ Kent Web is a full-stack healthcare management platform built using **React**, *
 
 # 🛠️ Tech Stack
 
+
 ## Frontend
 - React.js
 - Vite

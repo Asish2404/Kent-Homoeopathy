@@ -4,7 +4,7 @@ import { useCartContext } from "../Cart/CartContext";
 import KentLogo from "../assets/Kent.png";
 
 import { BsCart3 } from "react-icons/bs";
-import { FiSearch, FiHeart, FiPhone } from "react-icons/fi";
+import { FiHeart, FiPhone } from "react-icons/fi";
 import { HiMenuAlt3, HiX } from "react-icons/hi";
 import SearchBox from "./SearchBox";
 import {
@@ -15,14 +15,16 @@ import {
   FaLeaf,
 } from "react-icons/fa";
 
-
 const Navbar = () => {
   const { totalCount, wishlistCount } = useCartContext();
+
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [query, setQuery] = useState("");
+  void query;
+
   const profileRef = useRef(null);
   const navigate = useNavigate();
 
@@ -47,19 +49,20 @@ const Navbar = () => {
   }, []);
 
   const navStyle = ({ isActive }) =>
-    `relative px-3 py-2 transition duration-200 font-medium
+    `relative px-3 py-2 transition duration-200 font-semibold leading-none
      ${
        isActive
          ? "text-[var(--brand-300)]"
          : "text-neutral-200 hover:text-white"
      }
      after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2
-     after:bottom-0 after:h-0.5 after:rounded-full after:transition-all after:duration-300
+     after:bottom-0 after:h-[3px] after:rounded-full after:transition-all after:duration-300
      ${
        isActive
-         ? "after:w-6 after:bg-[var(--brand-400)]"
+         ? "after:w-6 after:bg-[var(--brand-500)]"
          : "after:w-0 after:bg-white hover:after:w-4"
      }`;
+
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -86,6 +89,9 @@ const Navbar = () => {
     setMenuOpen(false);
   };
 
+  void handleSearch;
+
+
   return (
     <>
       {/* Announcement bar (subtle healthcare accent) */}
@@ -109,31 +115,38 @@ const Navbar = () => {
         {/* Logo */}
         <button
           type="button"
-          className="flex items-center gap-3 cursor-pointer group focus:outline-none"
+          className="flex items-center gap-3 cursor-pointer group focus:outline-none min-w-[190px]"
           onClick={() => navigate("/")}
         >
           <img
             src={KentLogo}
             alt="Kent Homoeopharmacy"
-            className="w-11 h-11 rounded-2xl border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
+            className="w-[56px] h-[56px] rounded-2xl border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
           />
           <div className="hidden md:block leading-tight">
             <p className="text-white text-xl font-bold tracking-tight">
               DR. KENT
             </p>
-            <p className="text-[var(--brand-300)] text-[10px] tracking-[3px] font-semibold">
+            <p className="text-[var(--brand-300)] text-[10px] tracking-[3px] font-semibold mt-1">
               HOMOEOPHARMACY
             </p>
           </div>
         </button>
 
-        {/* Shared universal search (single DOM input for all viewports) */}
-        <div className="flex-1 max-w-xl mx-4 md:min-w-[220px]">
-          <SearchBox className="flex items-center gap-2 bg-white rounded-full pl-3 pr-2 py-2 shadow-md w-full min-w-0" placeholder="Search medicines, brands..." ariaLabel="Universal Search" />
+        {/* Shared universal search */}
+        <div className="flex-1 flex justify-center">
+          <div className="w-full max-w-[500px] min-w-[260px]">
+            <SearchBox
+              className="h-[48px] flex items-center gap-2 bg-white rounded-full px-2 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
+              placeholder="Search medicines, brands..."
+              ariaLabel="Universal Search"
+            />
+          </div>
         </div>
 
         {/* Desktop nav */}
-        <div className="hidden lg:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-3">
+
           <NavLink to="/" className={navStyle} end>
             Home
           </NavLink>
@@ -162,11 +175,12 @@ const Navbar = () => {
             type="button"
             aria-label="Wishlist"
             onClick={handleWishlistOpen}
-            className="relative w-10 h-10 rounded-full bg-white/5 hover:bg-white/10
-                       flex items-center justify-center text-white transition
-                       hover:scale-105"
+            className="relative w-11 h-11 rounded-full bg-white/5 hover:bg-white/10
+                       flex items-center justify-center text-white transition duration-200
+                       hover:scale-105 active:scale-95"
           >
-            <FiHeart className="text-lg" />
+            <FiHeart className="text-base" />
+
             {wishlistCount > 0 && (
               <span
                 className="absolute -top-1 -right-1 bg-[var(--brand-500)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ring-2 ring-[var(--neutral-900)]"
@@ -178,11 +192,12 @@ const Navbar = () => {
 
           <NavLink
             to="/Cart"
-            className="relative w-10 h-10 rounded-full bg-white/5 hover:bg-white/10
-                       flex items-center justify-center text-white transition
-                       hover:scale-105"
+            className="relative w-11 h-11 rounded-full bg-white/5 hover:bg-white/10
+                       flex items-center justify-center text-white transition duration-200
+                       hover:scale-105 active:scale-95"
           >
-            <BsCart3 className="text-xl" />
+            <BsCart3 className="text-base" />
+
             {totalCount > 0 && (
               <span
                 className="absolute -top-1 -right-1
@@ -197,6 +212,7 @@ const Navbar = () => {
 
           {user ? (
             <div className="relative" ref={profileRef}>
+
               <div
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-3 cursor-pointer
@@ -320,17 +336,19 @@ const Navbar = () => {
               )}
             </div>
           ) : (
-            <NavLink
-              to="/Login"
-              className="btn-primary text-sm py-2.5 px-5"
-            >
-              Login / Sign Up
-            </NavLink>
+          <NavLink
+            to="/Login"
+            className="btn-primary h-[48px] px-5 whitespace-nowrap text-sm"
+          >
+            Login / Sign Up
+          </NavLink>
+
           )}
         </div>
 
         {/* Mobile right cluster */}
         <div className="flex lg:hidden items-center gap-2">
+
           <NavLink
             to="/Cart"
             className="relative w-10 h-10 rounded-full bg-white/10
