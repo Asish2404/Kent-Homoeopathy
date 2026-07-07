@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import {
   FaFacebookF,
@@ -67,9 +67,38 @@ const FAQ = [
 ];
 
 const Contact = () => {
+  const subjectRef = useRef(null);
+  const messageRef = useRef(null);
+
+  const quickTopicOptions = [
+    "Book a consultation",
+    "Ask about a medicine",
+    "Help with an order",
+    "Report a quality issue",
+  ];
+
+  const handleQuickTopic = (topic) => {
+    // 1) Replace subject (even if it already has text)
+    setValue("subject", topic, { shouldDirty: true, shouldValidate: true });
+
+    // 3) Smoothly scroll to Subject field (if needed)
+    if (subjectRef.current) {
+      subjectRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      subjectRef.current.focus();
+    }
+
+    // 4) After Subject is filled, move focus to Message textarea
+    // react-hook-form setValue is sync for the input value, but DOM focus timing varies,
+    // so we schedule next tick.
+    setTimeout(() => {
+      if (messageRef.current) messageRef.current.focus();
+    }, 0);
+  };
   const {
     register,
     handleSubmit,
+    setValue,
+    getValues,
     formState: { errors },
     reset,
   } = useForm();
@@ -428,6 +457,7 @@ const Contact = () => {
 
               <Field label="Subject" required error={errors.subject?.message}>
                 <input
+                  ref={subjectRef}
                   type="text"
                   placeholder="How can we help?"
                   className={inputBase}
@@ -438,6 +468,7 @@ const Contact = () => {
               <div className="md:col-span-2">
                 <Field label="Message" required error={errors.message?.message}>
                   <textarea
+                    ref={messageRef}
                     rows={5}
                     placeholder="Tell us a little about your query..."
                     className={`${inputBase} resize-none`}
@@ -483,9 +514,18 @@ const Contact = () => {
                 ].map((it, i) => (
                   <li
                     key={i}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleQuickTopic(it.t)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleQuickTopic(it.t);
+                      }
+                    }}
                     className="flex items-center gap-3 p-3 rounded-xl
                                bg-[var(--brand-50)] hover:bg-[var(--brand-100)]
-                               transition"
+                               transition cursor-pointer"
                   >
                     <span
                       className="w-9 h-9 rounded-lg
