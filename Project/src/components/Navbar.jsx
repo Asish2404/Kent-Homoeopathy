@@ -107,7 +107,7 @@ const Navbar = () => {
               <img
                 src={KentLogo}
                 alt="Kent Homoeopharmacy"
-                className="w-10 h-10 sm:w-[56px] sm:h-[56px] rounded-2xl border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
+                className="bg-white w-10 h-10 sm:w-[56px] sm:h-[56px] rounded-md border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
               />
 
               <div className="hidden sm:block leading-none whitespace-nowrap">

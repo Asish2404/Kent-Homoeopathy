@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaEnvelope, FaArrowRight } from "react-icons/fa";
-import Illustration from "../assets/hero.png";
+import Illustration from "../assets/Kent.png";
 
 export default function SubscribeCard({ onSubscribe }) {
   const [email, setEmail] = useState("");
@@ -20,7 +20,7 @@ export default function SubscribeCard({ onSubscribe }) {
 
   return (
     <div className="w-full md:max-w-xl bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 md:p-6 flex items-center gap-4">
-      <img src={Illustration} alt="health" className="hidden md:block w-20 h-20 rounded-lg object-cover" />
+      <img src={Illustration} alt="health" className="bg-white hidden md:block w-20 h-20 rounded-lg object-cover z-50" />
       <div className="flex-1">
         <h4 className="text-white font-bold text-lg">Join our Wellness Newsletter</h4>
         <p className="text-[var(--brand-100)] text-sm">Premium health tips, early access to offers, and doctor insights.</p>
