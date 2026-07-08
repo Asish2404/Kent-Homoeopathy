@@ -96,21 +96,21 @@ const Navbar = () => {
         className={`w-full bg-[var(--neutral-900)]/95 backdrop-blur-md sticky top-0 z-50 transition-all duration-300
                     ${scrolled ? "shadow-xl py-2" : "shadow-md py-3 md:py-4"}`}
       >
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-3 flex-nowrap">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-2 sm:gap-3 w-full flex-nowrap">
             {/* Logo */}
             <button
               type="button"
-              className="flex items-center gap-3 cursor-pointer group focus:outline-none flex-shrink-0 min-w-[200px]"
+              className="flex items-center gap-2 sm:gap-3 cursor-pointer group focus:outline-none flex-shrink-0 min-w-0 sm:min-w-[200px]"
               onClick={() => navigate("/")}
             >
               <img
                 src={KentLogo}
                 alt="Kent Homoeopharmacy"
-                className="w-[56px] h-[56px] rounded-2xl border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
+                className="w-11 h-11 sm:w-[56px] sm:h-[56px] rounded-2xl border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
               />
 
-              <div className="hidden md:block leading-none whitespace-nowrap">
+              <div className="hidden sm:block leading-none whitespace-nowrap">
                 <p className="text-white text-xl font-bold tracking-tight whitespace-nowrap">
                   DR. KENT
                 </p>
@@ -121,8 +121,8 @@ const Navbar = () => {
             </button>
 
             {/* Shared universal search */}
-            <div className="flex-shrink-0">
-              <div className="w-[340px] h-[48px] lg:w-[360px]">
+            <div className="hidden sm:flex flex-1 justify-center max-w-[320px] md:max-w-[360px]">
+              <div className="w-full h-[48px]">
                 <SearchBox
                   className="h-full w-full flex items-center gap-2 bg-white rounded-full px-2 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
                   placeholder="Search medicines, brands..."
@@ -363,6 +363,14 @@ const Navbar = () => {
                      shadow-2xl z-40 animate-fade-in
                      max-h-[calc(100vh-88px)] overflow-y-auto"
         >
+          <div className="sm:hidden mb-2">
+            <SearchBox
+              className="h-[48px] w-full flex items-center gap-2 bg-white rounded-full px-2 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
+              placeholder="Search medicines, brands..."
+              ariaLabel="Universal Search"
+            />
+          </div>
+
           <NavLink
             to="/"
             onClick={() => setMenuOpen(false)}
