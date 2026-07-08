@@ -114,8 +114,8 @@ const Navbar = () => {
                 <p className="text-white text-xl font-bold tracking-tight whitespace-nowrap">
                   DR. KENT
                 </p>
-                <p className="text-[var(--brand-300)] text-[10px] tracking-[3px] font-semibold mt-1 whitespace-nowrap">
-                  HOMOEOPHARMACY
+                <p className="text-[var(--brand-300)] text-[10px] tracking-[3px] font-semibold mt-1 whitespace-nowrap ">
+                  <pre>HOMOEO PHARMACY</pre>
                 </p>
               </div>
             </button>
