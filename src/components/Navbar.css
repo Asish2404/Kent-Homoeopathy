@@ -1,0 +1,23 @@
+.navbarRoot{position:sticky;top:0;z-index:50}
+.navbarInner{max-width:1400px;margin:0 auto;padding-left:1.5rem;padding-right:1.5rem}
+@media (min-width:768px){.navbarInner{padding-left:2rem;padding-right:2rem}}
+.navbarGrid{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:nowrap;min-width:0}
+.navbarLeft{display:flex;align-items:center;gap:0.75rem;min-width:0;flex-shrink:0}
+.navbarBrandText{display:none}
+@media (min-width:768px){.navbarBrandText{display:block}}
+.navbarSearchWrap{flex-shrink:0}
+.navbarSearch{width:450px;max-width:55vw;height:48px}
+@media (max-width:1024px){.navbarSearch{width:320px;max-width:45vw}}
+@media (max-width:640px){.navbarSearch{display:none}}
+.navbarNavLinks{display:none}
+@media (min-width:1024px){.navbarNavLinks{display:flex;gap:0.75rem;align-items:center;flex-shrink:0}}
+.navbarLink{position:relative;padding-left:0.75rem;padding-right:0.75rem;padding-top:0.5rem;padding-bottom:0.5rem;border-radius:0.75rem;font-weight:600;line-height:1.1;white-space:nowrap;color:rgba(255,255,255,0.92)}
+.navbarLink::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-8px;height:3px;border-radius:9999px;width:0;background:var(--brand-500);transition:width .25s ease}
+.navbarLink:hover{color:#fff}
+.navbarLinkActive{color:var(--brand-300)}
+.navbarLinkActive::after{width:24px}
+.navIconBtn{width:44px;height:44px;border-radius:9999px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;color:#fff;transition:transform .15s ease, background .15s ease}
+.navIconBtn:hover{background:rgba(255,255,255,0.1);transform:scale(1.05)}
+.navLoginBtn{height:48px;padding-left:1.25rem;padding-right:1.25rem;border-radius:1rem}
+@media (max-width:639px){.navbarInner{padding-left:1rem;padding-right:1rem}}
+

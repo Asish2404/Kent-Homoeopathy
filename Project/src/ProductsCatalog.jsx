@@ -125,9 +125,32 @@ const ProductsCatalog = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = params.get("query") || "";
-    const cat = params.get("category") || "";
+    const catParamRaw = params.get("category") || "";
+    const catParam = catParamRaw.trim();
 
-    if (q || cat) {
+    // Always keep category in sync with URL (including refresh)
+    const normalize = (s) => String(s || "").trim().toLowerCase();
+    const catNormalized = normalize(catParam);
+
+    const resolveCategoryId = (value) => {
+      const v = normalize(value);
+      if (!v) return "all";
+
+      // 1) If URL already uses category ids (e.g. pain, women)
+      const byId = allCategories.find((c) => normalize(c.id) === v);
+      if (byId) return byId.id;
+
+      // 2) If URL uses category titles (e.g. "Pain Relief", "Women's Wellness")
+      const byTitle = allCategories.find((c) => normalize(c.title) === v);
+      if (byTitle) return byTitle.id;
+
+      // 3) Fallback invalid => All
+      return "all";
+    };
+
+    const nextActiveCategory = resolveCategoryId(catParam);
+
+    if (q || catParam) {
       // reset other filters then apply only query + category
       setAvailability("any");
       setBrand("any");
@@ -141,13 +164,13 @@ const ProductsCatalog = () => {
       setSortKey("relevance");
 
       setQuery(q);
-      if (cat) {
-        // If provided category id exists, set it; otherwise keep 'all'
-        const exists = allCategories.some((c) => c.id === cat);
-        setActiveCategory(exists ? cat : "all");
-      }
+      setActiveCategory(nextActiveCategory);
+    } else {
+      // No query/category in URL => default to All
+      setQuery("");
+      setActiveCategory("all");
     }
-  }, [location.search]);
+  }, [location.search, allProducts]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleProductClick = (product) => {

@@ -15,6 +15,9 @@ import {
   FaLeaf,
 } from "react-icons/fa";
 
+import "./Navbar.css";
+
+
 const Navbar = () => {
   const { totalCount, wishlistCount } = useCartContext();
 
@@ -48,19 +51,8 @@ const Navbar = () => {
   }, []);
 
   const navStyle = ({ isActive }) =>
-    `relative px-3 py-2 transition duration-200 font-semibold leading-none whitespace-nowrap flex-shrink-0
-     ${
-       isActive
-         ? "text-[var(--brand-300)]"
-         : "text-neutral-200 hover:text-white"
-     }
-     after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2
-     after:bottom-0 after:h-[3px] after:rounded-full after:transition-all after:duration-300
-     ${
-       isActive
-         ? "after:w-6 after:bg-[var(--brand-500)]"
-         : "after:w-0 after:bg-white hover:after:w-4"
-     }`;
+    `navbarLink ${isActive ? "navbarLinkActive" : ""}`;
+
 
   const handleLogout = () => {
     localStorage.removeItem("user");
