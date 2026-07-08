@@ -73,7 +73,7 @@ const Footer = () => {
         {/* Brand */}
         <div className="lg:col-span-2">
           <div className="flex items-center gap-3 mb-5">
-            <img src={KentLogo} alt="Kent" className="w-11 h-11 rounded-2xl object-cover shadow-lg" />
+            <img src={KentLogo} alt="Kent" className="bg-white w-11 h-11 rounded-xl object-cover shadow-lg" />
             <div>
               <h2 className="text-2xl font-bold text-white">Dr. Kent</h2>
               <p className="tracking-[3px] text-xs text-[var(--brand-300)] font-semibold">
