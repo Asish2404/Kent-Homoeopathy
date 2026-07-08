@@ -96,18 +96,18 @@ const Navbar = () => {
         className={`w-full bg-[var(--neutral-900)]/95 backdrop-blur-md sticky top-0 z-50 transition-all duration-300
                     ${scrolled ? "shadow-xl py-2" : "shadow-md py-3 md:py-4"}`}
       >
-        <div className="max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-2 sm:gap-3 w-full flex-nowrap">
+        <div className="max-w-[1400px] mx-auto px-2 xs:px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-3 w-full flex-nowrap">
             {/* Logo */}
             <button
               type="button"
-              className="flex items-center gap-2 sm:gap-3 cursor-pointer group focus:outline-none flex-shrink-0 min-w-0 sm:min-w-[200px]"
+              className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group focus:outline-none flex-shrink-0 min-w-0 sm:min-w-[200px]"
               onClick={() => navigate("/")}
             >
               <img
                 src={KentLogo}
                 alt="Kent Homoeopharmacy"
-                className="w-11 h-11 sm:w-[56px] sm:h-[56px] rounded-2xl border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
+                className="w-10 h-10 sm:w-[56px] sm:h-[56px] rounded-2xl border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
               />
 
               <div className="hidden sm:block leading-none whitespace-nowrap">
@@ -121,11 +121,11 @@ const Navbar = () => {
             </button>
 
             {/* Shared universal search */}
-            <div className="hidden sm:flex flex-1 justify-center max-w-[320px] md:max-w-[360px]">
-              <div className="w-full h-[48px]">
+            <div className="flex-1 flex justify-center min-w-0 max-w-[220px] sm:max-w-[320px] md:max-w-[360px]">
+              <div className="w-full h-[40px] sm:h-[48px]">
                 <SearchBox
                   className="h-full w-full flex items-center gap-2 bg-white rounded-full px-2 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
-                  placeholder="Search medicines, brands..."
+                  placeholder="Search..."
                   ariaLabel="Universal Search"
                 />
               </div>
@@ -310,10 +310,10 @@ const Navbar = () => {
             </div>
 
             {/* Mobile right cluster */}
-            <div className="flex lg:hidden items-center gap-2">
+            <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
               <NavLink
                 to="/Cart"
-                className="relative w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white"
+                className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 flex items-center justify-center text-white"
               >
                 <BsCart3 className="text-xl" />
                 {totalCount > 0 && (
@@ -326,7 +326,7 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={handleWishlistOpen}
-                className="relative w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-white"
+                className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-white"
                 aria-label="Wishlist"
               >
                 <FiHeart className="text-lg" />
@@ -340,7 +340,7 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="w-10 h-10 rounded-full bg-[var(--brand-600)] hover:bg-[var(--brand-700)] flex items-center justify-center text-white transition"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[var(--brand-600)] hover:bg-[var(--brand-700)] flex items-center justify-center text-white transition"
                 aria-label="Toggle menu"
               >
                 {menuOpen ? (
@@ -363,14 +363,6 @@ const Navbar = () => {
                      shadow-2xl z-40 animate-fade-in
                      max-h-[calc(100vh-88px)] overflow-y-auto"
         >
-          <div className="sm:hidden mb-2">
-            <SearchBox
-              className="h-[48px] w-full flex items-center gap-2 bg-white rounded-full px-2 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
-              placeholder="Search medicines, brands..."
-              ariaLabel="Universal Search"
-            />
-          </div>
-
           <NavLink
             to="/"
             onClick={() => setMenuOpen(false)}
