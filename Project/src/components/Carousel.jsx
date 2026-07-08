@@ -6,16 +6,11 @@ import {
   useMemo,
 } from "react";
 import SlideCard from "./SlideCard";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Pause,
-  Play,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Carousel({ slides, autoplayInterval = 4000 }) {
   const [current, setCurrent] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [touching, setTouching] = useState(false);
 
@@ -143,21 +138,7 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
         </button>
 
         {/* controls */}
-        <div className="absolute bottom-6 sm:bottom-10 md:bottom-14 left-1/2 -translate-x-1/2 z-20 flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 items-center">
-          {/* Autoplay toggle (desktop only) - hidden on small screens for autoplay-only mobile */}
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            aria-label={isPlaying ? "Pause autoplay" : "Play autoplay"}
-            className="hidden sm:flex rounded-full px-4 sm:px-5 py-2 bg-white/95 backdrop-blur text-neutral-800
-                       flex items-center gap-2 shadow-lg cursor-pointer
-                       hover:scale-105 hover:bg-[var(--brand-600)] hover:text-white
-                       transition text-sm font-semibold"
-          >
-            {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-            <span className="hidden sm:inline">{isPlaying ? "Pause" : "Play"}</span>
-          </button>
-
-          {/* Indicators */}
+        <div className="absolute bottom-6 sm:bottom-10 md:bottom-14 left-1/2 -translate-x-1/2 z-20 flex justify-center">
           <div className="flex gap-2 items-center bg-white/90 backdrop-blur rounded-full px-3 py-2 shadow-lg">
             {slides.map((_, index) => (
               <button
@@ -177,7 +158,6 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
           </div>
         </div>
 
-        {/* mobile controls removed: mobile uses autoplay only (no arrows/play/pause) */}
         <div className="hidden" />
       </div>
     </section>

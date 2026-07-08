@@ -305,20 +305,20 @@ const Labtest = () => {
   return (
     <>
       {/* HERO */}
-      <section className="lab-hero section-soft">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="lab-hero-columns">
-            <div className="lab-hero-left">
-              <span className="section-eyebrow">Premium Lab Diagnostics</span>
+      {/* <section className="lab-hero section-soft"> */}
+      {/* <div className="max-w-6xl mx-auto px-4 sm:px-6"> */}
+      {/* <div className="lab-hero-columns"> */}
+      {/* <div className="lab-hero-left"> */}
+      {/* <span className="section-eyebrow">Premium Lab Diagnostics</span>
               <h1 className="section-title mt-3">
                 Book Lab Tests with Trusted Home Collection
               </h1>
               <p className="section-subtitle mt-4">
                 Clean, fast and reliable testing—backed by experienced professionals. Search by test, package or category and book in seconds.
-              </p>
+              </p> */}
 
-              {/* HERO SEARCH + CTA */}
-              <div className="mt-7 lab-hero-actions">
+      {/* HERO SEARCH + CTA */}
+      {/* <div className="mt-7 lab-hero-actions">
                 <input
                   type="search"
                   value={searchQuery}
@@ -333,10 +333,10 @@ const Labtest = () => {
                 >
                   Book Test
                 </button>
-              </div>
+              </div> */}
 
-              {/* Secondary quick category selector (tests) */}
-              <div className="mt-4 flex flex-wrap gap-2">
+      {/* Secondary quick category selector (tests) */}
+      {/* <div className="mt-4 flex flex-wrap gap-2">
                 {allCategories.slice(0, 6).map((cat) => (
                   <button
                     key={cat}
@@ -347,10 +347,10 @@ const Labtest = () => {
                     {cat}
                   </button>
                 ))}
-              </div>
+              </div> */}
 
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="lab-mini">
+      {/* <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3"> */}
+      {/* <div className="lab-mini">
                   <div className="lab-mini-icon">✓</div>
                   <div>
                     <p className="lab-mini-title">NABL-style Quality</p>
@@ -371,11 +371,11 @@ const Labtest = () => {
                     <p className="lab-mini-sub">On-time delivery</p>
                   </div>
                 </div>
-              </div>
-            </div>
+              </div> */}
+      {/* </div> */}
 
-            {/* Banner image */}
-            <div className="lab-hero-right">
+      {/* Banner image */}
+      {/* <div className="lab-hero-right">
               <div className="lab-hero-card">
                 <img
                   src={labtest}
@@ -392,7 +392,7 @@ const Labtest = () => {
 
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* SEARCH RESULTS + POPULAR TESTS */}
       <section className="py-10 md:py-14">
@@ -465,7 +465,7 @@ const Labtest = () => {
       </section>
 
       {/* PACKAGES */}
-      <section className="py-10 md:py-14">
+      {/* <section className="py-10 md:py-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-end justify-between gap-4 flex-wrap">
             <div>
@@ -525,8 +525,206 @@ const Labtest = () => {
             ))}
           </div>
         </div>
+      </section> */}
+      <section className="py-10 md:py-14">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <h2 className="section-title">How it Works</h2>
+          <p className="section-subtitle mt-2">
+            A simple 4-step process—designed for convenience.
+          </p>
+
+          <div className="lab-steps mt-10">
+            {[
+              {
+                title: "Select Test",
+                desc: "Choose from popular tests & packages",
+              },
+              {
+                title: "Book Appointment",
+                desc: "Pick a date & time slot",
+              },
+              {
+                title: "Home Sample Collection",
+                desc: "Sample collection at your home",
+              },
+              {
+                title: "Get Reports Online",
+                desc: "Access reports online after processing",
+              },
+            ].map((item, index) => (
+              <div className="lab-step-wrapper" key={item.title}>
+                <div className="lab-step">
+                  <div className="lab-step-icon">{index + 1}</div>
+
+                  <div>
+                    <p className="lab-step-title">{item.title}</p>
+                    <p className="lab-step-sub">{item.desc}</p>
+                  </div>
+                </div>
+
+                {index !== 3 && <div className="lab-arrow"></div>}
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
+      {/* BOOKING (existing functionality preserved) */}
+      <section className="pb-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6" ref={bookingRef}>
+          <div className="flex justify-center">
+            <div className="w-full max-w-2xl">
+              {/* <div className="bg-white rounded-[35px] shadow-2xl p-5 sm:p-7 md:p-8 border border-green-100">
+              <p className="text-2xl md:text-3xl font-bold text-center mb-8">
+                Choose Appointment Date
+              </p>
+
+              <div className="flex justify-center overflow-x-auto">
+                <Calendar onChange={setDate} value={date} className="react-calendar" />
+              </div>
+
+              <div className="mt-6 md:mt-8 bg-green-50 rounded-3xl p-4 md:p-6 text-center">
+                <p className="text-lg md:text-xl font-semibold mb-2">Selected Date</p>
+                <p className="text-green-700 text-base md:text-lg font-bold">
+                  {date.toDateString()}
+                </p>
+              </div>
+            </div> */}
+              <div className="w-full bg-white shadow-[0_20px_60px_-20px_rgba(16,185,129,0.35)] rounded-[32px] p-5 sm:p-7 md:p-8 lg:p-10 border border-green-100">
+                <div className="text-center mb-6 md:mb-8">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-700 text-xl mb-3">
+                    🧪
+                  </div>
+                  <p className="text-2xl md:text-3xl font-bold text-gray-900">
+                    Book Appointment
+                  </p>
+                  <p className="text-sm md:text-base text-gray-600 mt-2">
+                    Quick booking for trusted lab tests at home.
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Select Lab Test
+                      </label>
+                      <select
+                        {...register("labtest")}
+                        className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
+                      >
+                        <option value="">Select Lab Test</option>
+                        <option value="CBC">Complete Blood Count (CBC)</option>
+                        <option value="Blood Sugar">Blood Sugar Test</option>
+                        <option value="Thyroid">Thyroid Profile</option>
+                        <option value="Lipid">Lipid Profile</option>
+                        <option value="Full Body Checkup">Full Body Checkup</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Enter your name"
+                        {...register("name")}
+                        className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Age
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="Enter your age"
+                        {...register("age")}
+                        className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Contact No
+                      </label>
+                      <input
+                        type="tel"
+                        placeholder="Enter your contact no"
+                        {...register("phone")}
+                        className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="Enter your email"
+                        {...register("email")}
+                        className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Preferred Date
+                      </label>
+                      <input
+                        type="date"
+                        {...register("date")}
+                        className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Preferred Time
+                      </label>
+                      <select
+                        {...register("time")}
+                        className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
+                      >
+                        <option value="">Select Time Slot</option>
+                        <option value="08:00 AM">08:00 AM</option>
+                        <option value="09:00 AM">09:00 AM</option>
+                        <option value="10:00 AM">10:00 AM</option>
+                        <option value="11:00 AM">11:00 AM</option>
+                        <option value="12:00 PM">12:00 PM</option>
+                        <option value="02:00 PM">02:00 PM</option>
+                        <option value="04:00 PM">04:00 PM</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Upload Prescription / Report
+                    </label>
+                    <input
+                      type="file"
+                      className="w-full rounded-2xl border border-dashed border-gray-300 bg-green-50 p-3 text-sm text-gray-600 file:mr-4 file:rounded-full file:border-0 file:bg-green-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-green-700"
+                    />
+                  </div>
+
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="submit"
+                      className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white rounded-2xl px-8 md:px-10 py-3 md:py-4 font-semibold shadow-lg hover:scale-[1.02] transition duration-300"
+                    >
+                      Book Test
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* WHY CHOOSE US */}
       <section className="py-10 md:py-14 section-mint">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -571,48 +769,6 @@ const Labtest = () => {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="py-10 md:py-14">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <h2 className="section-title">How it Works</h2>
-          <p className="section-subtitle mt-2">
-            A simple 4-step process—designed for convenience.
-          </p>
-
-          <div className="lab-steps mt-10">
-            {[
-              {
-                title: "Select Test",
-                desc: "Choose from popular tests & packages",
-              },
-              {
-                title: "Book Appointment",
-                desc: "Pick a date & time slot",
-              },
-              {
-                title: "Home Sample Collection",
-                desc: "Sample collection at your home",
-              },
-              {
-                title: "Get Reports Online",
-                desc: "Access reports online after processing",
-              },
-            ].map((item, index) => (
-              <div className="lab-step-wrapper" key={item.title}>
-                <div className="lab-step">
-                  <div className="lab-step-icon">{index + 1}</div>
-
-                  <div>
-                    <p className="lab-step-title">{item.title}</p>
-                    <p className="lab-step-sub">{item.desc}</p>
-                  </div>
-                </div>
-
-                {index !== 3 && <div className="lab-arrow"></div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* SPECIAL OFFERS */}
       <section className="py-10 md:py-14">
@@ -652,8 +808,6 @@ const Labtest = () => {
           </div>
         </div>
       </section>
-
-      {/* REVIEWS */}
       <section className="py-10 md:py-14 section-soft">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="section-title">Patient Reviews</h2>
@@ -693,8 +847,6 @@ const Labtest = () => {
           </div>
         </div>
       </section>
-
-      {/* FAQ */}
       <section className="py-10 md:py-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="section-title">FAQ</h2>
@@ -719,101 +871,6 @@ const Labtest = () => {
                 </div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* BOOKING (existing functionality preserved) */}
-      <section className="pb-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6" ref={bookingRef}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start">
-            <div className="bg-white shadow-2xl rounded-[35px] p-5 sm:p-7 md:p-10 border border-green-100">
-              <p className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-center">
-                Book Appointment
-              </p>
-
-              <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-                <select
-                  {...register("labtest")}
-                  className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 outline-none focus:border-green-500 shadow-sm"
-                >
-                  <option value="">Select Lab Test</option>
-                  <option value="CBC">Complete Blood Count (CBC)</option>
-                  <option value="Blood Sugar">Blood Sugar Test</option>
-                  <option value="Thyroid">Thyroid Profile</option>
-                  <option value="Lipid">Lipid Profile</option>
-                  <option value="Full Body Checkup">Full Body Checkup</option>
-                </select>
-
-                <input
-                  type="text"
-                  placeholder="Enter your name"
-                  {...register("name")}
-                  className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 outline-none focus:border-green-500 shadow-sm"
-                />
-
-                <input
-                  type="number"
-                  placeholder="Enter your age"
-                  {...register("age")}
-                  className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 outline-none focus:border-green-500 shadow-sm"
-                />
-
-                <input
-                  type="tel"
-                  placeholder="Enter your contact no"
-                  {...register("phone")}
-                  className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 outline-none focus:border-green-500 shadow-sm"
-                />
-
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  {...register("email")}
-                  className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 outline-none focus:border-green-500 shadow-sm"
-                />
-
-                <select
-                  {...register("time")}
-                  className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 outline-none focus:border-green-500 shadow-sm"
-                >
-                  <option value="">Select Time Slot</option>
-                  <option value="08:00 AM">08:00 AM</option>
-                  <option value="09:00 AM">09:00 AM</option>
-                  <option value="10:00 AM">10:00 AM</option>
-                  <option value="11:00 AM">11:00 AM</option>
-                  <option value="12:00 PM">12:00 PM</option>
-                  <option value="02:00 PM">02:00 PM</option>
-                  <option value="04:00 PM">04:00 PM</option>
-                </select>
-
-                <div className="flex justify-center pt-4">
-                  <button
-                    type="submit"
-                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white rounded-2xl px-8 md:px-10 py-3 md:py-4 font-semibold shadow-lg hover:scale-105 transition duration-300"
-                  >
-                    Book Test
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <div className="bg-white rounded-[35px] shadow-2xl p-5 sm:p-7 md:p-8 border border-green-100">
-              <p className="text-2xl md:text-3xl font-bold text-center mb-8">
-                Choose Appointment Date
-              </p>
-
-              <div className="flex justify-center overflow-x-auto">
-                <Calendar onChange={setDate} value={date} className="react-calendar" />
-              </div>
-
-              <div className="mt-6 md:mt-8 bg-green-50 rounded-3xl p-4 md:p-6 text-center">
-                <p className="text-lg md:text-xl font-semibold mb-2">Selected Date</p>
-                <p className="text-green-700 text-base md:text-lg font-bold">
-                  {date.toDateString()}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
