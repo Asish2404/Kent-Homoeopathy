@@ -15,8 +15,13 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
   const [touching, setTouching] = useState(false);
 
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
   const touchEndX = useRef(0);
+  const touchEndY = useRef(0);
   const autoplayRef = useRef(null);
+
+  // Prevent vertical scroll only when user intent is clearly horizontal
+  const shouldBlockVerticalScrollRef = useRef(false);
 
   const total = slides.length;
 
@@ -54,34 +59,74 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [nextSlide, prevSlide]);
 
-  // swipe logic
+  // swipe logic (mobile-friendly)
   const minSwipeDistance = 50;
+  const minIntentDistance = 12; // how much movement to consider intent
 
   const onTouchStart = (e) => {
+    const t = e.targetTouches[0];
+    touchStartX.current = t.clientX;
+    touchStartY.current = t.clientY;
+    touchEndX.current = t.clientX;
+    touchEndY.current = t.clientY;
+
+    shouldBlockVerticalScrollRef.current = false;
     setTouching(true);
-    touchEndX.current = 0;
-    touchStartX.current = e.targetTouches[0].clientX;
   };
 
   const onTouchMove = (e) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
+    const t = e.targetTouches[0];
+    touchEndX.current = t.clientX;
+    touchEndY.current = t.clientY;
 
-  const onTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) {
-      setTouching(false);
+    const dx = touchEndX.current - touchStartX.current;
+    const dy = touchEndY.current - touchStartY.current;
+
+    // Determine if this gesture is predominantly horizontal.
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    if (absDx < minIntentDistance) {
+      shouldBlockVerticalScrollRef.current = false;
       return;
     }
 
-    const distance = touchStartX.current - touchEndX.current;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+    // Horizontal intent dominates vertical intent.
+    const isHorizontalIntent = absDx > absDy;
+    shouldBlockVerticalScrollRef.current = isHorizontalIntent;
 
-    if (isLeftSwipe) nextSlide();
-    if (isRightSwipe) prevSlide();
+    if (shouldBlockVerticalScrollRef.current) {
+      // When horizontal swipe is intended, prevent vertical scroll-jank.
+      // `passive: false` is required for preventDefault to work; React attaches listeners non-passively on touch.
+      e.preventDefault();
+    }
+
+  };
+
+  const onTouchEnd = () => {
+    const startX = touchStartX.current;
+    const startY = touchStartY.current;
+    const endX = touchEndX.current;
+    const endY = touchEndY.current;
 
     setTouching(false);
+
+    const dx = endX - startX;
+    const dy = endY - startY;
+
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    // If it's mostly vertical, do not change slides.
+    const isHorizontalIntent = absDx > absDy;
+    if (!isHorizontalIntent) return;
+
+    if (absDx < minSwipeDistance) return;
+
+    if (dx < 0) nextSlide(); // swipe left
+    if (dx > 0) prevSlide(); // swipe right
   };
+
 
   const translateValue = useMemo(
     () => `translateX(-${current * 100}%)`,
