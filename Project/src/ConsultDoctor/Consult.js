@@ -1,0 +1,88 @@
+const doctors = [
+  {
+    id: 1,
+    name: "Dr. Ananya Sen",
+    speciality: "Homoeopathy Specialist",
+    experience: "12 Years",
+    rating: "4.9",
+    qualification: "BHMS, MD (Hom.)",
+    languages: "English, Hindi, Bengali",
+    clinic: "Dr. Kent Wellness Clinic",
+    fee: "₹499",
+    availableToday: true,
+    image:
+      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 2,
+    name: "Dr. Raj Mehta",
+    speciality: "Chronic Care Expert",
+    experience: "10 Years",
+    rating: "4.8",
+    qualification: "BHMS, FCCA",
+    languages: "English, Hindi",
+    clinic: "City Care Centre",
+    fee: "₹399",
+    availableToday: true,
+    image:
+      "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 3,
+    name: "Dr. Priya Roy",
+    speciality: "Women Wellness",
+    experience: "8 Years",
+    rating: "4.9",
+    qualification: "BHMS, Women Health Specialist",
+    languages: "English, Hindi",
+    clinic: "CarePlus Women Clinic",
+    fee: "₹449",
+    availableToday: true,
+    image:
+      "https://images.unsplash.com/photo-1594824476967-48c8b964273f?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 4,
+    name: "Dr. Suman Ghosh",
+    speciality: "General Physician",
+    experience: "14 Years",
+    rating: "4.7",
+    qualification: "MBBS, Family Medicine",
+    languages: "English, Hindi, Bengali",
+    clinic: "Central Health Hub",
+    fee: "₹349",
+    availableToday: false,
+    image:
+      "https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 5,
+    name: "Dr. Nisha Kapoor",
+    speciality: "Dermatologist",
+    experience: "9 Years",
+    rating: "4.8",
+    qualification: "MD, Skin and Aesthetic Care",
+    languages: "English, Hindi",
+    clinic: "SkinCare Studio",
+    fee: "₹599",
+    availableToday: true,
+    image:
+      "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: 6,
+    name: "Dr. Arjun Verma",
+    speciality: "Cardiologist",
+    experience: "16 Years",
+    rating: "4.9",
+    qualification: "DM, Cardiac Care",
+    languages: "English, Hindi",
+    clinic: "Heartline Hospital",
+    fee: "₹699",
+    availableToday: true,
+    image:
+      "https://images.unsplash.com/photo-1579684453423-f84349ef60b0?q=80&w=1200&auto=format&fit=crop",
+  },
+];
+
+export default doctors;

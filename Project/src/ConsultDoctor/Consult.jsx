@@ -9,109 +9,8 @@ import {
   Stethoscope,
 } from "lucide-react";
 
-const doctors = [
-  {
-    id: 1,
-    name: "Dr. Ananya Sen",
-    speciality: "Homoeopathy Specialist",
-    experience: "12 Years",
-    rating: "4.9",
-    qualification: "BHMS, MD (Hom.)",
-    languages: "English, Hindi, Bengali",
-    clinic: "Dr. Kent Wellness Clinic",
-    fee: "₹499",
-    availableToday: true,
-    image:
-      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 2,
-    name: "Dr. Raj Mehta",
-    speciality: "Chronic Care Expert",
-    experience: "10 Years",
-    rating: "4.8",
-    qualification: "BHMS, FCCA",
-    languages: "English, Hindi",
-    clinic: "City Care Centre",
-    fee: "₹399",
-    availableToday: true,
-    image:
-      "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 3,
-    name: "Dr. Priya Roy",
-    speciality: "Women Wellness",
-    experience: "8 Years",
-    rating: "4.9",
-    qualification: "BHMS, Women Health Specialist",
-    languages: "English, Hindi",
-    clinic: "CarePlus Women Clinic",
-    fee: "₹449",
-    availableToday: true,
-    image:
-      "https://images.unsplash.com/photo-1594824476967-48c8b964273f?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 4,
-    name: "Dr. Suman Ghosh",
-    speciality: "General Physician",
-    experience: "14 Years",
-    rating: "4.7",
-    qualification: "MBBS, Family Medicine",
-    languages: "English, Hindi, Bengali",
-    clinic: "Central Health Hub",
-    fee: "₹349",
-    availableToday: false,
-    image:
-      "https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 5,
-    name: "Dr. Nisha Kapoor",
-    speciality: "Dermatologist",
-    experience: "9 Years",
-    rating: "4.8",
-    qualification: "MD, Skin and Aesthetic Care",
-    languages: "English, Hindi",
-    clinic: "SkinCare Studio",
-    fee: "₹599",
-    availableToday: true,
-    image:
-      "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 6,
-    name: "Dr. Arjun Verma",
-    speciality: "Cardiologist",
-    experience: "16 Years",
-    rating: "4.9",
-    qualification: "DM, Cardiac Care",
-    languages: "English, Hindi",
-    clinic: "Heartline Hospital",
-    fee: "₹699",
-    availableToday: true,
-    image:
-      "https://images.unsplash.com/photo-1579684453423-f84349ef60b0?q=80&w=1200&auto=format&fit=crop",
-  },
-];
-
-const slots = [
-  "09:00 AM",
-  "09:30 AM",
-  "10:00 AM",
-  "10:30 AM",
-  "11:00 AM",
-  "11:30 AM",
-  "02:00 PM",
-  "02:30 PM",
-  "03:00 PM",
-  "03:30 PM",
-  "04:00 PM",
-  "04:30 PM",
-  "05:00 PM",
-  "05:30 PM",
-];
+import doctors from "../ConsultDoctor/Consult.js"
+import slots from "../ConsultDoctor/TimingSlots.js"
 
 function Consult() {
   const [mode, setMode] = useState("visit");
@@ -130,18 +29,18 @@ function Consult() {
   const [bookingMessage, setBookingMessage] = useState("");
   const [activeFaq, setActiveFaq] = useState(0);
 
-  const specialityCards = [
-    { title: "General Physician", desc: "Primary care and everyday consultation", icon: <Stethoscope size={20} /> },
-    { title: "Cardiologist", desc: "Heart health and cardiovascular care", icon: <Star size={20} /> },
-    { title: "Dermatologist", desc: "Skin, hair, and allergy support", icon: <Filter size={20} /> },
-    { title: "Neurologist", desc: "Nervous system and headache care", icon: <UserRound size={20} /> },
-    { title: "Dentist", desc: "Oral care and hygiene consultation", icon: <Clock3 size={20} /> },
-    { title: "Orthopedic", desc: "Bone, joint, and mobility support", icon: <UserRound size={20} /> },
-    { title: "ENT", desc: "Ear, nose, and throat consultations", icon: <Video size={20} /> },
-    { title: "Gynecologist", desc: "Women’s health and wellness", icon: <Stethoscope size={20} /> },
-    { title: "Pediatrician", desc: "Care for children and newborns", icon: <UserRound size={20} /> },
-    { title: "Psychiatrist", desc: "Emotional health and support", icon: <Star size={20} /> },
-  ];
+  // const specialityCards = [
+  //   { title: "General Physician", desc: "Primary care and everyday consultation", icon: <Stethoscope size={20} /> },
+  //   { title: "Cardiologist", desc: "Heart health and cardiovascular care", icon: <Star size={20} /> },
+  //   { title: "Dermatologist", desc: "Skin, hair, and allergy support", icon: <Filter size={20} /> },
+  //   { title: "Neurologist", desc: "Nervous system and headache care", icon: <UserRound size={20} /> },
+  //   { title: "Dentist", desc: "Oral care and hygiene consultation", icon: <Clock3 size={20} /> },
+  //   { title: "Orthopedic", desc: "Bone, joint, and mobility support", icon: <UserRound size={20} /> },
+  //   { title: "ENT", desc: "Ear, nose, and throat consultations", icon: <Video size={20} /> },
+  //   { title: "Gynecologist", desc: "Women’s health and wellness", icon: <Stethoscope size={20} /> },
+  //   { title: "Pediatrician", desc: "Care for children and newborns", icon: <UserRound size={20} /> },
+  //   { title: "Psychiatrist", desc: "Emotional health and support", icon: <Star size={20} /> },
+  // ];
 
   const whyCards = [
     "Verified Doctors",
@@ -254,7 +153,7 @@ function Consult() {
                 ))}
               </div>
 
-              <div className="rounded-[28px] border border-emerald-100 bg-white/90 p-4 shadow-[0_18px_50px_rgba(16,185,129,0.10)] backdrop-blur sm:p-5">
+              {/* <div className="rounded-[28px] border border-emerald-100 bg-white/90 p-4 shadow-[0_18px_50px_rgba(16,185,129,0.10)] backdrop-blur sm:p-5">
                 <div className="grid items-center gap-3 sm:grid-cols-[1.1fr_1fr] lg:grid-cols-[1.2fr_1fr_1fr_auto]">
                   <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 transition focus-within:border-green-300 focus-within:bg-white">
                     <Search size={18} className="shrink-0 text-green-600" />
@@ -291,21 +190,11 @@ function Consult() {
                     Search
                   </button>
                 </div>
-              </div>
+              </div> */}
 
-              <div className="flex flex-wrap gap-2">
-                {specialities.map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => setSpeciality(item)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${speciality === item ? "bg-green-600 text-white shadow-lg shadow-green-200" : "border border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-green-200 hover:bg-green-50 hover:text-green-700"}`}
-                  >
-                    {item === "all" ? "All specialities" : item}
-                  </button>
-                ))}
-              </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+
+              {/* <div className="flex flex-wrap items-center gap-3">
                 <a href="#book-appointment" className="inline-flex items-center justify-center rounded-2xl bg-green-600 px-8 py-4 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700">
                   Book Appointment
                 </a>
@@ -320,7 +209,7 @@ function Consult() {
                 >
                   Reset search
                 </button>
-              </div>
+              </div> */}
             </div>
 
             <div className="relative animate-fade-up">
@@ -359,7 +248,18 @@ function Consult() {
       </section>
 
       <section className="relative z-10 mx-auto -mt-8 max-w-7xl px-4 sm:px-6">
-        <div className="rounded-[30px] border border-emerald-100 bg-white p-4 shadow-[0_18px_50px_rgba(16,185,129,0.10)] md:p-5">
+        <div className=" rounded-[30px] border border-emerald-100 bg-white p-4 shadow-[0_18px_50px_rgba(16,185,129,0.10)] md:p-5">
+          <div className="flex flex-wrap gap-2 pb-5 justify-center">
+            {specialities.map((item) => (
+              <button
+                key={item}
+                onClick={() => setSpeciality(item)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${speciality === item ? "bg-green-600 text-white shadow-lg shadow-green-200" : "border border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-green-200 hover:bg-green-50 hover:text-green-700"}`}
+              >
+                {item === "all" ? "All specialities" : item}
+              </button>
+            ))}
+          </div>
           <div className="grid items-center gap-4 md:grid-cols-[1.3fr_1fr_1fr_auto]">
             <div className="flex items-center gap-3 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 transition focus-within:border-green-300 focus-within:bg-white">
               <Search size={18} className="shrink-0 text-green-600" />
@@ -399,7 +299,7 @@ function Consult() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20">
+      {/* <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-green-600">Specialities</p>
@@ -421,7 +321,7 @@ function Consult() {
             </button>
           ))}
         </div>
-      </section>
+      </section> */}
 
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 md:py-10">
         <div className="mb-8 flex items-end justify-between gap-4">
@@ -616,13 +516,13 @@ function Consult() {
             <div key={item.q} className="overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-sm">
               <button
                 onClick={() => setActiveFaq(activeFaq === index ? -1 : index)}
-                className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition hover:bg-slate-50"
+                className="flex w-full items-center justify-between gap-4 px-7 py-5 text-left transition hover:bg-slate-50"
               >
                 <span className="font-semibold text-slate-900">{item.q}</span>
                 <span className={`text-green-600 transition-transform ${activeFaq === index ? "rotate-180" : ""}`}>↓</span>
               </button>
               <div className={`grid transition-all duration-300 ${activeFaq === index ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-                <div className="overflow-hidden px-6 pb-5 leading-7 text-slate-600">{item.a}</div>
+                <div className="overflow-hidden px-6 pb-10 leading-7 text-slate-600">{item.a}</div>
               </div>
             </div>
           ))}
@@ -735,6 +635,15 @@ function Consult() {
               onChange={(e) => setBooking({ ...booking, symptoms: e.target.value })}
               className="w-full rounded-2xl border border-green-200 p-5 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
             />
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Upload picture
+              </label>
+              <input
+                type="file"
+                className="w-full rounded-2xl border border-dashed border-gray-300 bg-green-50 p-3 text-sm text-gray-600 file:mr-4 file:rounded-full file:border-0 file:bg-green-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-green-700"
+              />
+            </div>
           </div>
 
           {bookingMessage && <p className="mb-4 text-center text-sm text-green-700">{bookingMessage}</p>}
