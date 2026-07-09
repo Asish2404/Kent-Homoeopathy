@@ -393,7 +393,7 @@ const Contact = () => {
               <Field label="Phone Number" required error={errors.phone?.message}>
                 <input
                   type="tel"
-                  placeholder="08910863893"
+                  placeholder="+91 91234 56789"
                   className={inputBase}
                   {...register("phone", { required: "Phone is required" })}
                 />
