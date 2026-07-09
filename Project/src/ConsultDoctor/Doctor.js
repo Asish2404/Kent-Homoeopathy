@@ -9,6 +9,7 @@ const doctors = [
     languages: "English, Hindi, Bengali",
     clinic: "Dr. Kent Wellness Clinic",
     fee: "₹499",
+    OfferFee:"₹0",
     availableToday: true,
     image:
       "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=1200&auto=format&fit=crop",
@@ -23,6 +24,7 @@ const doctors = [
     languages: "English, Hindi",
     clinic: "City Care Centre",
     fee: "₹399",
+    OfferFee:"₹0",
     availableToday: true,
     image:
       "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=1200&auto=format&fit=crop",
@@ -37,6 +39,7 @@ const doctors = [
     languages: "English, Hindi",
     clinic: "CarePlus Women Clinic",
     fee: "₹449",
+    OfferFee:"₹0",
     availableToday: true,
     image:
       "https://images.unsplash.com/photo-1594824476967-48c8b964273f?q=80&w=1200&auto=format&fit=crop",
@@ -51,6 +54,7 @@ const doctors = [
     languages: "English, Hindi, Bengali",
     clinic: "Central Health Hub",
     fee: "₹349",
+    OfferFee:"₹0",
     availableToday: false,
     image:
       "https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?q=80&w=1200&auto=format&fit=crop",
@@ -65,6 +69,7 @@ const doctors = [
     languages: "English, Hindi",
     clinic: "SkinCare Studio",
     fee: "₹599",
+    OfferFee:"₹0",
     availableToday: true,
     image:
       "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=1200&auto=format&fit=crop",
@@ -79,6 +84,7 @@ const doctors = [
     languages: "English, Hindi",
     clinic: "Heartline Hospital",
     fee: "₹699",
+    OfferFee:"₹0",
     availableToday: true,
     image:
       "https://images.unsplash.com/photo-1579684453423-f84349ef60b0?q=80&w=1200&auto=format&fit=crop",

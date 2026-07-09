@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import {
   FaFacebookF,
@@ -7,9 +7,6 @@ import {
   FaWhatsapp,
   FaInstagram,
   FaMapMarkerAlt,
-  FaPhoneAlt,
-  FaEnvelope,
-  FaClock,
   FaPaperPlane,
   FaCommentDots,
   FaCheckCircle,
@@ -24,7 +21,8 @@ import {
 import { FaXTwitter } from "react-icons/fa6";
 import { FiArrowRight, FiPhone, FiMail, FiMessageSquare } from "react-icons/fi";
 import { HiOutlineMailOpen, HiOutlineLocationMarker } from "react-icons/hi";
-
+import FAQ from "./FAQ";
+import contactCards from "./ContactCards";
 /* -------- Inline reusable bits (kept local to the component) -------- */
 
 const Field = ({ label, error, children, required }) => (
@@ -43,28 +41,7 @@ const inputBase =
   "transition focus:bg-white focus:border-[var(--brand-400)] " +
   "focus:ring-2 focus:ring-[var(--brand-100)]";
 
-const FAQ = [
-  {
-    q: "How long does delivery take?",
-    a: "Standard delivery takes 24–48 hours for most metro cities. Remote pin-codes may take 3–5 business days. Free delivery on orders above ₹499.",
-  },
-  {
-    q: "Are the medicines genuine?",
-    a: "Yes. Every product is sourced from certified manufacturers, stored in GMP-compliant facilities, and verified by our in-house pharmacists before dispatch.",
-  },
-  {
-    q: "Do you offer online doctor consultation?",
-    a: "Absolutely. You can book a video, audio, or chat consultation with our certified homeopathy practitioners from the Consult Doctor page.",
-  },
-  {
-    q: "What is your return and refund policy?",
-    a: "We offer 7-day easy returns on unopened products. Refunds are processed within 5–7 business days to the original payment method.",
-  },
-  {
-    q: "Can I track my order?",
-    a: "Yes. Once dispatched, you'll receive a tracking link via SMS and email. You can also track live from the Cart page or your Profile.",
-  },
-];
+
 
 const Contact = () => {
   const subjectRef = useRef(null);
@@ -114,40 +91,7 @@ const Contact = () => {
     setTimeout(() => setSubmitted(false), 4500);
   };
 
-  const contactCards = [
-    {
-      icon: <FaPhoneAlt />,
-      title: "Phone",
-      primary: "+91 98765 43210",
-      secondary: "+91 11 4567 8900",
-      link: "tel:+919876543210",
-      tone: "from-[var(--brand-500)] to-[var(--brand-700)]",
-    },
-    {
-      icon: <FaEnvelope />,
-      title: "Email",
-      primary: "care@drkenthomoeo.com",
-      secondary: "support@drkenthomoeo.com",
-      link: "mailto:care@drkenthomoeo.com",
-      tone: "from-emerald-500 to-emerald-700",
-    },
-    {
-      icon: <FaMapMarkerAlt />,
-      title: "Office Address",
-      primary: "1st Floor,9, Barasat Rd,Above HDFC Bank,Burmah Shell Colony,Sodepur,Kolkata,West Bengal 700110",
-      secondary: "",
-      link: "#map",
-      tone: "from-teal-500 to-teal-700",
-    },
-    {
-      icon: <FaClock />,
-      title: "Business Hours",
-      primary: "Mon - Sat: 9 AM - 8 PM",
-      secondary: "Sunday: Closed",
-      link: null,
-      tone: "from-[var(--brand-600)] to-emerald-700",
-    },
-  ];
+
 
   const socials = [
     { Icon: FaFacebookF, color: "hover:bg-[#1877F2]", label: "Facebook" },
@@ -208,7 +152,7 @@ const Contact = () => {
               {/* Quick action chips */}
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
-                  href="tel:+919876543210"
+                  href="tel:08910863893"
                   className="btn-primary text-sm"
                 >
                   <FiPhone />
@@ -222,7 +166,7 @@ const Contact = () => {
                   Email Us
                 </a>
                 <a
-                  href="https://wa.me/919876543210"
+                  href="https://wa.me/08910863893"
                   className="btn-outline text-sm"
                   style={{ borderColor: "#bbf7d0", color: "#15803d" }}
                 >
@@ -322,9 +266,9 @@ const Contact = () => {
       </section>
 
       {/* ============== CONTACT INFO CARDS ============== */}
-      <section className="relative -mt-8 md:-mt-12 z-10 px-4">
+      <section className="relative -mt-8 md:-mt-12 z-10 px-4 hidden md:block">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             {contactCards.map((c, i) => {
               const Inner = (
                 <div
@@ -345,7 +289,7 @@ const Contact = () => {
                     {c.title}
                   </p>
                   <p className="mt-1.5 text-base font-semibold leading-snug">
-                    {c.primary}
+                    Primary : {c.primary}
                   </p>
                   <p className="text-sm opacity-90">{c.secondary}</p>
                 </div>
@@ -449,7 +393,7 @@ const Contact = () => {
               <Field label="Phone Number" required error={errors.phone?.message}>
                 <input
                   type="tel"
-                  placeholder="+91 9876543210"
+                  placeholder="08910863893"
                   className={inputBase}
                   {...register("phone", { required: "Phone is required" })}
                 />
@@ -555,13 +499,13 @@ const Contact = () => {
                 Our 24/7 helpline connects you to a care specialist in seconds.
               </p>
               <a
-                href="tel:+919876543210"
+                href="tel:08910863893"
                 className="mt-5 inline-flex items-center gap-2
                            bg-white text-[var(--brand-700)] font-semibold
                            px-5 py-2.5 rounded-xl
                            hover:bg-[var(--brand-50)] transition"
               >
-                <FiPhone /> +91 98765 43210
+                <FiPhone /> 08910863893 
                 <FiArrowRight />
               </a>
             </div>
@@ -624,7 +568,7 @@ const Contact = () => {
           >
             <iframe
               title="Dr. Kent Location"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3502.5!2d77.21!3d28.61!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd37b741d057%3A0xcdee88e47393c3f1!2sGreen%20Park%2C%20New%20Delhi%2C%20Delhi!5e0!3m2!1sen!2sin!4v1700000000000"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3680.789621021495!2d88.38324487534814!3d22.69887427940197!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f89df16c9a6e15%3A0x7069433119c1932a!2sDr.%20Kent%20Homoeo%20Pharmacy!5e0!3m2!1sen!2sin!4v1783595660031!5m2!1sen!2sin"
               width="100%"
               height="100%"
               style={{ border: 0 }}
@@ -652,9 +596,9 @@ const Contact = () => {
                 <div>
                   <p className="font-bold text-neutral-900">Dr. Kent HQ</p>
                   <p className="text-sm text-neutral-500 leading-snug mt-0.5">
-                    42 Wellness Lane, Green Park,
+                    1st floor, 9, Barasat Rd, above hdfc bank, Burmah Shell Colony, Sodepur, Kolkata
                     <br />
-                    New Delhi - 110016
+                    West Bengal 700110
                   </p>
                 </div>
               </div>
@@ -684,11 +628,10 @@ const Contact = () => {
                   key={i}
                   className={`bg-white border rounded-2xl overflow-hidden
                               transition shadow-sm
-                              ${
-                                open
-                                  ? "border-[var(--brand-200)] shadow-md"
-                                  : "border-neutral-100 hover:border-[var(--brand-100)]"
-                              }`}
+                              ${open
+                      ? "border-[var(--brand-200)] shadow-md"
+                      : "border-neutral-100 hover:border-[var(--brand-100)]"
+                    }`}
                 >
                   <button
                     type="button"
@@ -700,11 +643,10 @@ const Contact = () => {
                     <span className="flex items-center gap-3">
                       <span
                         className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0
-                                    ${
-                                      open
-                                        ? "bg-[var(--brand-600)] text-white"
-                                        : "bg-[var(--brand-50)] text-[var(--brand-700)]"
-                                    } transition`}
+                                    ${open
+                            ? "bg-[var(--brand-600)] text-white"
+                            : "bg-[var(--brand-50)] text-[var(--brand-700)]"
+                          } transition`}
                       >
                         <FaQuestionCircle />
                       </span>
@@ -713,9 +655,8 @@ const Contact = () => {
                       </span>
                     </span>
                     <FaChevronDown
-                      className={`text-neutral-500 transition-transform ${
-                        open ? "rotate-180 text-[var(--brand-700)]" : ""
-                      }`}
+                      className={`text-neutral-500 transition-transform ${open ? "rotate-180 text-[var(--brand-700)]" : ""
+                        }`}
                     />
                   </button>
                   <div

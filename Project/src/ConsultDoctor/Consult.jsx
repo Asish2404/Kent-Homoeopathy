@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import {
   Search,
   UserRound,
@@ -360,9 +360,14 @@ function Consult() {
                 </button>
                 <div className="absolute bottom-4 left-4 right-4 rounded-[22px] border border-white/60 bg-white/92 px-4 py-3 shadow-lg backdrop-blur">
                   <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs text-slate-500">Consultation fee</p>
-                      <p className="text-lg font-bold text-slate-900">{doc.fee}</p>
+                    <div className="flex items-center gap-3">
+                      {/* <span className="text-lg font-semibold text-slate-500 line-through">
+                        {doc.fee}
+                      </span> */}
+
+                      <span className="text-2xl font-bold text-green-700">
+                        {doc.OfferFee}
+                      </span>
                     </div>
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${doc.availableToday ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
                       {doc.availableToday ? "Available today" : "Limited slots"}
@@ -595,7 +600,7 @@ function Consult() {
                 value={booking.phone}
                 onChange={(e) => setBooking({ ...booking, phone: e.target.value })}
                 className="w-full rounded-2xl border border-green-200 px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                placeholder="+91 9876543210"
+                placeholder="08910863893"
               />
             </div>
 

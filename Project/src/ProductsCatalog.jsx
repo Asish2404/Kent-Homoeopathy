@@ -39,11 +39,32 @@ const ProductsCatalog = () => {
   const [minRating, setMinRating] = useState(0);
   const [consultRequired, setConsultRequired] = useState("any");
   const [deliveryOption, setDeliveryOption] = useState("any");
-  const [priceMax, setPriceMax] = useState(() => {
-    const max = allProducts.reduce((m, p) => Math.max(m, Number(p.price) || 0), 0);
-    return Math.ceil(max || 0);
-  });
+  const prices = useMemo(() => {
+    return allProducts
+      .map((p) => Number(p.price) || 0)
+      .filter((n) => Number.isFinite(n) && n >= 0);
+  }, [allProducts]);
+
+  const priceMin = prices.length ? Math.floor(Math.min(...prices)) : 0;
+  const priceMaxOverall = prices.length ? Math.ceil(Math.max(...prices)) : 0;
+
+  // Price slider state (selected max)
+  const [selectedPriceMax, setSelectedPriceMax] = useState(priceMaxOverall);
+
+
+
+
+  const safeSelectedPriceMax = Math.min(
+    Math.max(selectedPriceMax, priceMin),
+    priceMaxOverall
+  );
+
   const [sortKey, setSortKey] = useState("relevance");
+
+
+
+
+
 
   const categoriesForSidebar = useMemo(() => {
     return allCategories.map((c) => ({ id: c.id, title: c.title }));
@@ -89,9 +110,11 @@ const ProductsCatalog = () => {
     }
 
     // price range (simple max)
-    list = list.filter((p) => Number(p.price || 0) <= priceMax);
+    list = list.filter((p) => Number(p.price || 0) <= safeSelectedPriceMax);
 
     // sorting
+
+
     list.sort((a, b) => {
       if (sortKey === "price_low") return Number(a.price) - Number(b.price);
       if (sortKey === "price_high") return Number(b.price) - Number(a.price);
@@ -103,7 +126,8 @@ const ProductsCatalog = () => {
     });
 
     return list;
-  }, [activeCategory, availability, allProducts, brand, consultRequired, deliveryOption, minRating, priceMax, query, sortKey]);
+  }, [activeCategory, availability, allProducts, brand, consultRequired, deliveryOption, minRating, safeSelectedPriceMax, query, sortKey]);
+
 
   const resetFilters = () => {
     setQuery("");
@@ -113,12 +137,10 @@ const ProductsCatalog = () => {
     setMinRating(0);
     setConsultRequired("any");
     setDeliveryOption("any");
-    setPriceMax(() => {
-      const max = allProducts.reduce((m, p) => Math.max(m, Number(p.price) || 0), 0);
-      return Math.ceil(max || 0);
-    });
+    setSelectedPriceMax(priceMaxOverall);
     setSortKey("relevance");
   };
+
 
   // Read URL params (global search / category) and apply only those filters
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -130,8 +152,6 @@ const ProductsCatalog = () => {
 
     // Always keep category in sync with URL (including refresh)
     const normalize = (s) => String(s || "").trim().toLowerCase();
-    const catNormalized = normalize(catParam);
-
     const resolveCategoryId = (value) => {
       const v = normalize(value);
       if (!v) return "all";
@@ -157,11 +177,9 @@ const ProductsCatalog = () => {
       setMinRating(0);
       setConsultRequired("any");
       setDeliveryOption("any");
-      setPriceMax(() => {
-        const max = allProducts.reduce((m, p) => Math.max(m, Number(p.price) || 0), 0);
-        return Math.ceil(max || 0);
-      });
+      setSelectedPriceMax(priceMaxOverall);
       setSortKey("relevance");
+
 
       setQuery(q);
       setActiveCategory(nextActiveCategory);
@@ -196,23 +214,23 @@ const ProductsCatalog = () => {
     <div className="min-h-screen bg-neutral-50">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-neutral-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-            <div className="flex items-center gap-2 text-sm text-neutral-500 flex-wrap">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+          <div className="flex items-center gap-2 text-sm text-neutral-500 flex-wrap">
             <a href="/" className="hover:text-[var(--brand-700)]">Home</a>
-            <span>›</span>
+            <span className="text-neutral-300">›</span>
             <span className="text-neutral-900 font-medium">Products</span>
           </div>
         </div>
       </div>
 
       {/* Title bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-7">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-neutral-900 tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-neutral-900 tracking-tight leading-tight">
               Products
             </h1>
-            <p className="text-neutral-500 mt-2">
+            <p className="text-neutral-500 mt-1">
               {results.length} results
             </p>
           </div>
@@ -252,7 +270,7 @@ const ProductsCatalog = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
           {/* Sidebar */}
           <aside className="lg:sticky lg:top-24 self-start hidden md:block">
-            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm">
+            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
               <div className="p-5 border-b border-neutral-100">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="font-bold text-neutral-900">Filters</h2>
@@ -303,19 +321,46 @@ const ProductsCatalog = () => {
                 {/* Price Range */}
                 <div>
                   <div className="font-semibold text-neutral-900 mb-3">Price</div>
-                  <div className="text-sm text-neutral-500 mb-2">Up to ₹{priceMax}</div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={priceMax}
-                    value={priceMax}
-                    onChange={(e) => setPriceMax(Number(e.target.value))}
-                    className="w-full accent-[var(--brand-600)]"
-                  />
-                  <div className="flex justify-between text-xs text-neutral-500 mt-2">
-                    <span>₹0</span>
-                    <span>₹{priceMax}</span>
+                  <div className="text-sm text-neutral-500 mb-2">
+                    Up to ₹{safeSelectedPriceMax}
                   </div>
+
+
+                  <div className="relative">
+                    <div
+                      className="h-2 rounded-full bg-neutral-200"
+                      style={{
+                        background: `linear-gradient(to right, var(--brand-600) 0%, var(--brand-600) ${
+                          priceMaxOverall === priceMin
+                            ? 100
+                            : ((safeSelectedPriceMax - priceMin) / (priceMaxOverall - priceMin)) * 100
+                        }%, #e5e7eb ${
+                          priceMaxOverall === priceMin
+                            ? 100
+                            : ((safeSelectedPriceMax - priceMin) / (priceMaxOverall - priceMin)) * 100
+                        }%)`,
+                      }}
+                    />
+
+                    <input
+                      type="range"
+                      min={priceMin}
+                      max={priceMaxOverall}
+                      value={safeSelectedPriceMax}
+                      onChange={(e) => setSelectedPriceMax(Number(e.target.value))}
+                      className="w-full absolute left-0 top-0 h-2 bg-transparent appearance-none outline-none cursor-pointer"
+                      style={{
+                        background: "transparent",
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex justify-between text-xs text-neutral-500 mt-2">
+                    <span>₹{priceMin}</span>
+                    <span>₹{priceMaxOverall}</span>
+                  </div>
+
+
                 </div>
 
                 {/* Availability */}
@@ -468,7 +513,7 @@ const ProductsCatalog = () => {
 
             <div className="space-y-3">
               {results.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-8 text-center">
+                <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-10 text-center">
                   <div className="mx-auto w-12 h-12 rounded-2xl bg-[var(--brand-50)] text-[var(--brand-700)] flex items-center justify-center mb-3">
                     <HiOutlineSparkles className="text-xl" />
                   </div>
@@ -485,7 +530,7 @@ const ProductsCatalog = () => {
                   return (
                     <div
                       key={p.id}
-                      className="group bg-white border border-neutral-100 shadow-sm hover:shadow-md transition-shadow rounded-xl overflow-hidden"
+                      className="group bg-white border border-neutral-100 shadow-sm hover:shadow-md transition-shadow rounded-xl overflow-hidden card-lift"
                     >
                       <div
                         role="button"
@@ -543,7 +588,7 @@ const ProductsCatalog = () => {
                                 </div>
 
                                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-100">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-100 whitespace-nowrap">
                                     Delivery {p.deliveryETA}
                                   </span>
 

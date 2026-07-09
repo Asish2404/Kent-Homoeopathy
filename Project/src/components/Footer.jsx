@@ -172,8 +172,8 @@ const Footer = () => {
 
             <div className="flex gap-3 items-center">
               <FaPhoneAlt className="text-[var(--brand-400)] shrink-0" />
-              <a href="tel:+919876543210" className="hover:text-[var(--brand-300)]">
-                +91 98765 43210
+              <a href="tel:08910863893" className="hover:text-[var(--brand-300)]">
+                08910863893
               </a>
             </div>
 

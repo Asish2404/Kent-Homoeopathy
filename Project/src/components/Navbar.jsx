@@ -121,15 +121,18 @@ const Navbar = () => {
             </button>
 
             {/* Shared universal search */}
-            <div className="flex-1 flex justify-center min-w-0 max-w-[220px] sm:max-w-[320px] md:max-w-[360px]">
-              <div className="w-full h-[40px] sm:h-[48px]">
-                <SearchBox
-                  className="h-full w-full flex items-center gap-2 bg-white rounded-full px-2 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
-                  placeholder="Search..."
-                  ariaLabel="Universal Search"
-                />
+            <div className="flex-1 flex justify-center min-w-0">
+              <div className="w-full max-w-[480px] lg:max-w-[420px] xl:max-w-[470px] md:max-w-[360px] sm:max-w-[280px] min-w-[180px]">
+                <div className="w-full h-[48px]">
+                  <SearchBox
+                    className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
+                    placeholder="Search..."
+                    ariaLabel="Universal Search"
+                  />
+                </div>
               </div>
             </div>
+
 
             {/* Desktop nav */}
             <div className="hidden lg:flex items-center gap-3 flex-nowrap">
@@ -363,6 +366,17 @@ const Navbar = () => {
                      shadow-2xl z-40 animate-fade-in
                      max-h-[calc(100vh-88px)] overflow-y-auto"
         >
+          {/* Mobile search (full width) */}
+          <div className="w-full">
+            <div className="h-[48px]">
+              <SearchBox
+                className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
+                placeholder="Search..."
+                ariaLabel="Universal Search"
+              />
+            </div>
+          </div>
+
           <NavLink
             to="/"
             onClick={() => setMenuOpen(false)}
@@ -370,6 +384,7 @@ const Navbar = () => {
           >
             Home
           </NavLink>
+
 
           <NavLink
             to="/Labtest"
@@ -404,7 +419,7 @@ const Navbar = () => {
           </NavLink>
 
           <a
-            href="tel:+919876543210"
+            href="tel:08910863893"
             className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white py-3 rounded-xl font-semibold transition"
           >
             <FiPhone />

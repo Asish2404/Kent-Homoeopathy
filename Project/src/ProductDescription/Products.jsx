@@ -23,7 +23,8 @@ import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import ProductCard from "../components/ProductCard";
 import { useCartContext } from "../Cart/CartContext";
 import { vitaminsSupplements, heartCare } from "../data/products";
-
+import comboOffers from "./ComboOffer";
+import reviews from "./Review";
 const Products = () => {
   const location = useLocation();
   const { productId } = useParams();
@@ -139,78 +140,14 @@ const Products = () => {
   const [activeTab, setActiveTab] = useState("description");
   const relatedRef = useRef(null);
 
-  const comboOffers = [
-    {
-      id: 1,
-      name: "Pain Relief Combo",
-      medicines: ["Arnica Montana", "Rhus Tox", "Bryonia Alba"],
-      image:
-        "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=600&auto=format&fit=crop",
-      price: 34.99,
-      originalPrice: 45.99,
-      rating: 4.8,
-      discount: "Save ₹11",
-    },
-    {
-      id: 2,
-      name: "Immunity Booster",
-      medicines: ["Echinacea", "Arsenicum", "Gelsemium"],
-      image:
-        "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=600&auto=format&fit=crop",
-      price: 39.99,
-      originalPrice: 52.99,
-      rating: 4.7,
-      discount: "Save ₹13",
-    },
-    {
-      id: 3,
-      name: "Digestive Health",
-      medicines: ["Nux Vomica", "Carbo Veg", "Pulsatilla"],
-      image:
-        "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&auto=format&fit=crop",
-      price: 36.99,
-      originalPrice: 48.99,
-      rating: 4.6,
-      discount: "Save ₹12",
-    },
-  ];
+  
 
   const relatedProducts = [
     ...vitaminsSupplements.slice(0, 4),
     ...heartCare.slice(0, 2),
   ].map((p, i) => ({ ...p, id: p.id + i }));
 
-  const reviews = [
-    {
-      id: 1,
-      author: "Dr. Priya Sharma",
-      rating: 5,
-      date: "Jan 15, 2026",
-      comment: "Excellent quality. Highly effective for my patients.",
-      isDoctor: true,
-      helpful: 42,
-    },
-    {
-      id: 2,
-      author: "Rajesh Kumar",
-      rating: 5,
-      date: "Jan 10, 2026",
-      comment: "Great relief from muscle soreness. Will buy again.",
-      isDoctor: false,
-      helpful: 28,
-    },
-    {
-      id: 3,
-      author: "Dr. Meena Patel",
-      rating: 4,
-      date: "Jan 05, 2026",
-      comment: "Good potency and results. Authentic product.",
-      isDoctor: true,
-      helpful: 19,
-    },
-  ];
-
-  const ratingBreakdown = [
+   const ratingBreakdown = [
     { stars: 5, count: 168, pct: 66 },
     { stars: 4, count: 58, pct: 23 },
     { stars: 3, count: 20, pct: 8 },
@@ -617,7 +554,7 @@ const Products = () => {
                   <p className="text-xs text-neutral-500">Talk to our homeopathic specialist</p>
                 </div>
                 <a
-                  href="tel:+919876543210"
+                  href="tel:+08910863893"
                   className="flex items-center gap-2 bg-white text-[var(--brand-700)] font-semibold text-sm px-4 py-2 rounded-lg hover:bg-[var(--brand-100)] transition"
                 >
                   <Phone className="w-4 h-4" />
