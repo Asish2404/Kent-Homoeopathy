@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import {
   Search,
   UserRound,
@@ -8,10 +8,8 @@ import {
   Filter,
   Stethoscope,
 } from "lucide-react";
-
-import doctors from "../ConsultDoctor/Consult.js"
-import slots from "../ConsultDoctor/TimingSlots.js"
-
+import doctors from "./Consult";
+import slots from "./TimingSlots.js";
 function Consult() {
   const [mode, setMode] = useState("visit");
   const [selectedTime, setSelectedTime] = useState("");
