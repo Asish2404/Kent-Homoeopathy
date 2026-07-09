@@ -8,7 +8,7 @@ import {
   Filter,
   Stethoscope,
 } from "lucide-react";
-import doctors from "./Consult";
+import doctors from "./Doctor.js";
 import slots from "./TimingSlots.js";
 function Consult() {
   const [mode, setMode] = useState("visit");
