@@ -19,7 +19,9 @@ import Profile from "./Profile/Profile";
 
 
 import CartProvider from "./Cart/CartProvider";
-
+import Checkout from "./pages/Checkout";
+import Payment from "./pages/Payment";
+import OrderSuccess from "./pages/OrderSuccess";
 
 function App() {
 
@@ -35,8 +37,12 @@ function App() {
         <Route path="products/:productId" element={<ProductsDetails />} />
         <Route path="Contact" element={<Contact />} />
         <Route path="Cart" element={<Cart />} />
+        <Route path="cart" element={<Cart />} />
         <Route path="Login" element={<Login />} />
         <Route path="Profile" element={<Profile />} />
+        <Route path="checkout" element={<Checkout />} />
+        <Route path="payment" element={<Payment />} />
+        <Route path="order-success" element={<OrderSuccess />} />
       </Route>
     )
   );

@@ -16,7 +16,7 @@ function Consult() {
   const [query, setQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [speciality, setSpeciality] = useState("all");
-  const [selectedDoctor, setSelectedDoctor] = useState(doctors[0]);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [booking, setBooking] = useState({
     name: "",
     email: "",
@@ -442,6 +442,208 @@ function Consult() {
         )}
       </section>
 
+      <section id="book-appointment" className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
+        <div className="relative overflow-hidden rounded-[40px] border border-emerald-100 bg-white shadow-[0_30px_90px_rgba(16,185,129,0.12)]">
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/60 via-white to-white" />
+          <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-emerald-200/35 blur-3xl" />
+          <div className="pointer-events-none absolute -right-28 bottom-0 h-80 w-80 rounded-full bg-green-200/35 blur-3xl" />
+
+          <div className="relative p-8 md:p-12">
+            <div className="mb-10 text-center">
+              <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-white/80 px-5 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-emerald-700 shadow-sm">
+                <Stethoscope size={14} /> Book now
+              </div>
+              <h2 className="mb-3 text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">Book Appointment</h2>
+              <p className="text-slate-600">Schedule your consultation in minutes</p>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-[1.35fr_0.95fr] md:items-start">
+              {/* FORM */}
+              <div>
+                <div className="mb-8 grid gap-4 md:grid-cols-2">
+                  <button
+                    onClick={() => setMode("visit")}
+                    className={`group flex items-center justify-center gap-2 rounded-2xl border py-5 font-semibold transition ${
+                      mode === "visit"
+                        ? "border-green-700 bg-green-700 text-white shadow-xl shadow-green-200"
+                        : "border-green-200 bg-white text-slate-700 hover:bg-green-50"
+                    }`}
+                  >
+                    <UserRound className="transition-transform group-hover:scale-110" size={18} />
+                    In-Person Visit
+                  </button>
+
+                  <button
+                    onClick={() => setMode("online")}
+                    className={`group flex items-center justify-center gap-2 rounded-2xl border py-5 font-semibold transition ${
+                      mode === "online"
+                        ? "border-green-700 bg-green-700 text-white shadow-xl shadow-green-200"
+                        : "border-green-200 bg-white text-slate-700 hover:bg-green-50"
+                    }`}
+                  >
+                    <Video className="transition-transform group-hover:scale-110" size={18} />
+                    Online Consultation
+                  </button>
+                </div>
+
+                <div className="mb-7 grid gap-6 md:grid-cols-2">
+                  <div>
+                    <label className="mb-3 block font-medium text-slate-700">Full Name <span className="text-rose-500">*</span></label>
+                    <input
+                      value={booking.name}
+                      onChange={(e) => setBooking({ ...booking, name: e.target.value })}
+                      className="w-full rounded-2xl border border-green-200 bg-white px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-3 block font-medium text-slate-700">Email <span className="text-rose-500">*</span></label>
+                    <input
+                      value={booking.email}
+                      onChange={(e) => setBooking({ ...booking, email: e.target.value })}
+                      className="w-full rounded-2xl border border-green-200 bg-white px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-3 block font-medium text-slate-700">Phone <span className="text-rose-500">*</span></label>
+                    <input
+                      value={booking.phone}
+                      onChange={(e) => setBooking({ ...booking, phone: e.target.value })}
+                      className="w-full rounded-2xl border border-green-200 bg-white px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
+                      placeholder="+91 12345 67890"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-3 block font-medium text-slate-700">Preferred Date <span className="text-rose-500">*</span></label>
+                    <input
+                      type="date"
+                      value={booking.date}
+                      onChange={(e) => setBooking({ ...booking, date: e.target.value })}
+                      className="w-full rounded-2xl border border-green-200 bg-white px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-4 flex items-center gap-3">
+                  <h3 className="text-lg font-bold text-slate-900">Select Time Slot</h3>
+                  {selectedTime && (
+                    <span className="rounded-full border border-green-100 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Selected: {selectedTime}</span>
+                  )}
+                </div>
+
+                <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
+                  {slots.map((slot) => (
+                    <button
+                      key={slot}
+                      onClick={() => setSelectedTime(slot)}
+                      className={`rounded-xl border px-3 py-3 text-sm font-semibold transition focus:outline-none focus:ring-4 focus:ring-green-100 ${
+                        selectedTime === slot
+                          ? "border-green-700 bg-gradient-to-r from-green-700 to-emerald-700 text-white shadow-lg shadow-green-200"
+                          : "border-green-200 bg-white text-slate-700 hover:bg-green-50 hover:border-green-300"
+                      }`}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mb-8">
+                  <label className="mb-3 block font-medium text-slate-700">Describe Your Symptoms</label>
+                  <textarea
+                    rows="5"
+                    placeholder="Brief description of your health concern..."
+                    value={booking.symptoms}
+                    onChange={(e) => setBooking({ ...booking, symptoms: e.target.value })}
+                    className="w-full rounded-2xl border border-green-200 bg-white p-5 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
+                  />
+
+                  <div className="mt-5">
+                    <label className="mb-2 block text-sm font-semibold text-slate-700">Upload picture</label>
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-green-50 p-4">
+                      <input
+                        type="file"
+                        className="w-full cursor-pointer rounded-xl bg-transparent text-sm text-gray-600 file:cursor-pointer file:mr-4 file:rounded-full file:border-0 file:bg-green-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-green-700"
+                      />
+                      <p className="mt-2 text-xs font-semibold text-slate-500">Optional — images help the doctor understand faster.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {bookingMessage && (
+                  <p className="mb-4 rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-center text-sm font-semibold text-green-700">{bookingMessage}</p>
+                )}
+
+                <button
+                  onClick={handleBook}
+                  className="w-full rounded-2xl bg-green-700 py-5 text-xl font-bold text-white shadow-xl transition hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-100"
+                >
+                  Confirm Appointment
+                </button>
+              </div>
+
+              {/* SUMMARY */}
+              <aside className="rounded-[28px] border border-emerald-100 bg-white/70 p-6 shadow-sm backdrop-blur">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-700">Booking summary</p>
+                    <h3 className="mt-2 text-xl font-bold text-slate-900">Your details at a glance</h3>
+                  </div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                    <Clock3 size={18} />
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Doctor</p>
+                    <p className="mt-1 text-sm font-bold text-slate-900">{selectedDoctor?.name || "-"}</p>
+                    <p className="mt-1 text-xs font-semibold text-emerald-700">{selectedDoctor?.speciality || "-"}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Mode</p>
+                      <p className="mt-1 text-sm font-bold text-slate-900">{mode === "visit" ? "In-Person" : "Online"}</p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Fee</p>
+                      <p className="mt-1 text-sm font-bold text-slate-900">{selectedDoctor?.OfferFee || "₹0"}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Date</p>
+                      <p className="mt-1 text-sm font-bold text-slate-900">{booking.date || "—"}</p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Time</p>
+                      <p className="mt-1 text-sm font-bold text-slate-900">{selectedTime || "—"}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Ready check</p>
+                    <p className="mt-1 text-sm font-bold text-slate-900">
+                      {(!booking.name || !booking.email || !booking.phone || !booking.date || !selectedTime)
+                        ? "Complete required fields to confirm"
+                        : "All set — confirm appointment"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <p className="text-xs font-semibold text-slate-500">You can edit your details anytime before confirming.</p>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20">
         <div className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
           {whyCards.map((item) => (
@@ -548,114 +750,7 @@ function Consult() {
         </div>
       </section>
 
-      <section id="book-appointment" className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
-        <div className="rounded-[35px] border border-green-100 bg-white p-8 shadow-2xl md:p-12">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 text-4xl font-bold text-green-900 md:text-5xl">Book Appointment</h2>
-            <p className="text-slate-600">Schedule your consultation in minutes</p>
-          </div>
 
-          <div className="mb-10 grid gap-4 md:grid-cols-2">
-            <button
-              onClick={() => setMode("visit")}
-              className={`rounded-2xl py-5 font-semibold transition ${mode === "visit" ? "bg-green-700 text-white shadow-xl" : "border border-green-200 text-slate-700 hover:bg-green-50"}`}
-            >
-              <UserRound className="mr-2 inline" size={18} />
-              In-Person Visit
-            </button>
-
-            <button
-              onClick={() => setMode("online")}
-              className={`rounded-2xl py-5 font-semibold transition ${mode === "online" ? "bg-green-700 text-white shadow-xl" : "border border-green-200 text-slate-700 hover:bg-green-50"}`}
-            >
-              <Video className="mr-2 inline" size={18} />
-              Online Consultation
-            </button>
-          </div>
-
-          <div className="mb-8 grid gap-6 md:grid-cols-2">
-            <div>
-              <label className="mb-3 block font-medium text-slate-700">Full Name *</label>
-              <input
-                value={booking.name}
-                onChange={(e) => setBooking({ ...booking, name: e.target.value })}
-                className="w-full rounded-2xl border border-green-200 px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                placeholder="Enter your full name"
-              />
-            </div>
-
-            <div>
-              <label className="mb-3 block font-medium text-slate-700">Email *</label>
-              <input
-                value={booking.email}
-                onChange={(e) => setBooking({ ...booking, email: e.target.value })}
-                className="w-full rounded-2xl border border-green-200 px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                placeholder="your@email.com"
-              />
-            </div>
-
-            <div>
-              <label className="mb-3 block font-medium text-slate-700">Phone *</label>
-              <input
-                value={booking.phone}
-                onChange={(e) => setBooking({ ...booking, phone: e.target.value })}
-                className="w-full rounded-2xl border border-green-200 px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                placeholder="08910863893"
-              />
-            </div>
-
-            <div>
-              <label className="mb-3 block font-medium text-slate-700">Preferred Date *</label>
-              <input
-                type="date"
-                value={booking.date}
-                onChange={(e) => setBooking({ ...booking, date: e.target.value })}
-                className="w-full rounded-2xl border border-green-200 px-5 py-4 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
-              />
-            </div>
-          </div>
-
-          <h3 className="mb-5 text-xl font-semibold text-slate-900">Select Time Slot</h3>
-
-          <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-5">
-            {slots.map((slot) => (
-              <button
-                key={slot}
-                onClick={() => setSelectedTime(slot)}
-                className={`rounded-xl border py-4 transition ${selectedTime === slot ? "border-green-700 bg-green-700 text-white shadow-lg shadow-green-200" : "border-green-200 bg-white text-slate-700 hover:bg-green-50"}`}
-              >
-                {slot}
-              </button>
-            ))}
-          </div>
-
-          <div className="mb-10">
-            <label className="mb-3 block font-medium text-slate-700">Describe Your Symptoms</label>
-            <textarea
-              rows="5"
-              placeholder="Brief description of your health concern..."
-              value={booking.symptoms}
-              onChange={(e) => setBooking({ ...booking, symptoms: e.target.value })}
-              className="w-full rounded-2xl border border-green-200 p-5 outline-none transition focus:border-green-400 focus:ring-4 focus:ring-green-100"
-            />
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Upload picture
-              </label>
-              <input
-                type="file"
-                className="w-full rounded-2xl border border-dashed border-gray-300 bg-green-50 p-3 text-sm text-gray-600 file:mr-4 file:rounded-full file:border-0 file:bg-green-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-green-700"
-              />
-            </div>
-          </div>
-
-          {bookingMessage && <p className="mb-4 text-center text-sm text-green-700">{bookingMessage}</p>}
-
-          <button onClick={handleBook} className="w-full rounded-2xl bg-green-700 py-5 text-xl font-semibold text-white shadow-xl transition hover:bg-green-800">
-            Confirm Appointment
-          </button>
-        </div>
-      </section>
     </div>
   );
 }

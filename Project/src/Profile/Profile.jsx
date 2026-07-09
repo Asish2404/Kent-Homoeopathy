@@ -1,29 +1,21 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  ShoppingBag,
-  Heart,
-  ShoppingCart,
-  LogOut,
-  Trash2,
   CheckCircle,
-  Edit3,
-  Package,
   Camera,
-  Lock,
   Home,
   Briefcase,
   Award,
-  ChevronRight,
   X,
-  FlaskConical,
-  Calendar,
 } from "lucide-react";
 import { useCartContext } from "../Cart/CartContext";
+
+import Overview from "./Overview";
+import Orders from "./Orders";
+import Appointments from "./Appointments";
+import Wishlist from "./Wishlist";
+import Settings from "./Settings";
+
  
 const ORDERS = [
   {
@@ -44,8 +36,11 @@ const ORDERS = [
   },
 ];
 
-const ADDRESSES = [
+// const ADDRESSES = [
+const _ADDRESSES_PLACEHOLDER = [
+
   {
+
     id: 1,
     type: "Home",
     Icon: Home,
@@ -142,7 +137,6 @@ export default function Profile() {
   const orders = readList("profile_orders_v1", ORDERS);
   const appointments = readList("profile_appointments_v1", []);
 
-  // tab initial value derives from location.state to avoid setting state in effect
 
   if (!user) {
 
@@ -188,69 +182,7 @@ export default function Profile() {
 
   const wishlistItems = cart.wishlistItems || [];
 
-  const STATS = [
-    {
-      label: "Total Orders",
-      value: orders.length,
-      Icon: ShoppingBag,
-      iconBg: "bg-emerald-100",
-      iconColor: "text-emerald-600",
-    },
-    {
-      label: "Cart Items",
-      value: cart.totalCount,
-      Icon: ShoppingCart,
-      iconBg: "bg-teal-100",
-      iconColor: "text-teal-600",
-    },
-    {
-      label: "Wishlist",
-      value: wishlistItems.length,
-      Icon: Heart,
-      iconBg: "bg-rose-100",
-      iconColor: "text-rose-500",
-    },
-    {
-      label: "Lab Tests",
-      value: appointments.length,
-      Icon: FlaskConical,
-      iconBg: "bg-violet-100",
-      iconColor: "text-violet-500",
-    },
-  ];
-
-  const INFO_ROWS = [
-    {
-      Icon: User,
-      label: "Full Name",
-      val: user.user_name,
-    },
-    {
-      Icon: Mail,
-      label: "Email Address",
-      val: user.email,
-    },
-    {
-      Icon: Phone,
-      label: "Phone Number",
-      val: user.phone,
-    },
-    {
-      Icon: MapPin,
-      label: "Address",
-      val: user.address,
-    },
-    {
-      Icon: Calendar,
-      label: "Member Since",
-      val: "2025",
-    },
-    {
-      Icon: Award,
-      label: "Membership",
-      val: "Gold Member",
-    },
-  ];
+  
 
   const TABS = [
     {
@@ -384,89 +316,37 @@ export default function Profile() {
           </aside>
 
           <main className="flex-1">
+            {tab === "overview" && (
+              <Overview
+                user={user}
+                orders={orders}
+                appointments={appointments}
+                wishlistItems={wishlistItems}
+                cartTotalCount={cart.totalCount}
+                AnimatedCountComponent={AnimatedCount}
+              />
+            )}
 
-            {
-              tab === "overview" &&
-              <div className="space-y-6">
+            {tab === "orders" && <Orders orders={orders} />}
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {tab === "appointments" && <Appointments appointments={appointments} />}
 
-                  {
-                    STATS.map((item, index) => (
+            {tab === "wishlist" && (
+              <Wishlist
+                items={wishlistItems}
+                onMoveToCart={(item) => {
+                  // Support existing cart context API; wishlist item objects match cart normalize shape.
+                  if (!item) return;
+                  cart.moveSavedToCart?.(item.id);
+                  cart.removeFromWishlist?.(item.id);
+                }}
+                onRemove={(id) => cart.removeFromWishlist?.(id)}
+              />
+            )}
 
-                      <div
-                        key={index}
-                        className="bg-white rounded-3xl shadow-md p-5 hover:-translate-y-1 transition"
-                      >
-
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${item.iconBg}`}>
-
-                          <item.Icon className={item.iconColor} size={22} />
-
-                        </div>
-
-                        <h2 className="text-3xl font-bold mt-4 text-gray-800">
-                          <AnimatedCount target={item.value} />
-                        </h2>
-
-                        <p className="text-gray-500 text-sm mt-1">
-                          {item.label}
-                        </p>
-
-                      </div>
-
-                    ))
-                  }
-
-                </div>
-
-                <div className="bg-white rounded-3xl shadow-md p-6">
-
-                  <h2 className="text-lg font-bold text-gray-800 mb-6">
-                    Account Information
-                  </h2>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-
-                    {
-                      INFO_ROWS.map((item, index) => (
-
-                        <div
-                          key={index}
-                          className="bg-gray-50 rounded-2xl p-4 flex gap-3"
-                        >
-
-                          <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-
-                            <item.Icon size={18} />
-
-                          </div>
-
-                          <div>
-
-                            <p className="text-xs text-gray-400 uppercase font-semibold">
-                              {item.label}
-                            </p>
-
-                            <p className="text-gray-800 font-semibold mt-1">
-                              {item.val}
-                            </p>
-
-                          </div>
-
-                        </div>
-
-                      ))
-                    }
-
-                  </div>
-
-                </div>
-
-              </div>
-            }
-
+            {tab === "settings" && <Settings user={user} onLogout={handleLogout} />}
           </main>
+
 
         </div>
 

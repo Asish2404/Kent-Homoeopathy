@@ -218,12 +218,12 @@ export default function Cart() {
             {/* LEFT */}
             <div className="lg:col-span-8 space-y-4">
               {/* Delivery address bar */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+              {/* <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                 <button
                   onClick={() => setAddrOpen(!addrOpen)}
                   className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors text-left"
-                >
-                  <div className="flex items-center gap-3">
+                > */}
+                  {/* <div className="flex items-center gap-3">
                     <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
                       <svg
                         className="w-4.5 h-4.5 text-emerald-600"
@@ -244,8 +244,8 @@ export default function Cart() {
                           d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                    </div>
-                    <div>
+                    </div> */}
+                    {/* <div>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-semibold text-slate-800">Delivering to Mumbai — {pincode}</p>
                         <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
@@ -253,9 +253,9 @@ export default function Cart() {
                         </span>
                       </div>
                       <p className="text-xs text-slate-400 mt-0.5">Raj Narayan, 12 Marine Drive, Mumbai, Maharashtra</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
+                    </div> */}
+                  {/* </div> */}
+                  {/* <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-emerald-600">Change</span>
                     <svg
                       className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${addrOpen ? "rotate-180" : ""}`}
@@ -265,9 +265,9 @@ export default function Cart() {
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
-                  </div>
-                </button>
-                {addrOpen && (
+                  </div> */}
+                {/* </button> */}
+                {/* {addrOpen && (
                   <div className="px-5 pb-5 border-t border-slate-100 pt-4 fin">
                     <div className="flex gap-2">
                       <input
@@ -281,8 +281,8 @@ export default function Cart() {
                       </button>
                     </div>
                   </div>
-                )}
-              </div>
+                )} */}
+              {/* </div> */}
 
               {/* In-stock items */}
               {inStock.length > 0 && (
@@ -532,7 +532,7 @@ export default function Cart() {
 
                     <div className="px-5 pb-5 space-y-3">
                       <button
-                        onClick={() => navigate("/Cart")}
+                        onClick={() => navigate("/checkout")}
                         disabled={empty}
                         className="shine w-full py-4 text-white font-black rounded-2xl text-[15px] shadow-lg hover:shadow-xl active:scale-[0.98] transition-all duration-200 tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
                         style={{ background: "linear-gradient(135deg,#16a34a 0%,#059669 60%,#047857 100%)" }}

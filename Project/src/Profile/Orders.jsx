@@ -1,0 +1,116 @@
+import { useMemo } from "react";
+import { Package, CheckCircle, Truck, MapPin, ArrowRight } from "lucide-react";
+
+const STATUS_PROGRESS = {
+  Delivered: "100%",
+  Shipped: "65%",
+  Processing: "30%",
+};
+
+const STATUS_STYLE = {
+  Delivered: "bg-emerald-100 text-emerald-700",
+  Shipped: "bg-blue-100 text-blue-700",
+  Processing: "bg-amber-100 text-amber-700",
+};
+
+function EmptyState() {
+  return (
+    <div className="bg-white rounded-3xl shadow-md p-8">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+          <Package size={20} />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-gray-800">No orders yet</h2>
+          <p className="text-gray-500 mt-1">Browse our products and place your first order.</p>
+          <div className="mt-5">
+            <button
+              type="button"
+              onClick={() => (window.location.href = "/Products")}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-5 py-2.5 rounded-2xl font-semibold transition"
+            >
+              Continue Shopping <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Orders({ orders = [] }) {
+  const list = useMemo(() => Array.isArray(orders) ? orders : [], [orders]);
+
+  if (!list.length) return <EmptyState />;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-800">Order Status</h2>
+      </div>
+
+      <div className="space-y-4">
+        {list.map((o) => (
+          <div key={o.id} className="bg-white rounded-3xl shadow-md p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gray-50 border flex items-center justify-center">
+                  <CheckCircle size={20} className="text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 uppercase font-semibold">Order</p>
+                  <p className="text-gray-800 font-bold">{o.id}</p>
+                  <p className="text-gray-500 text-sm mt-1">{o.name}</p>
+                  <p className="text-gray-500 text-sm">{o.brand}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div>
+                  <p className="text-xs text-gray-400 uppercase font-semibold">Status</p>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${STATUS_STYLE[o.status] || "bg-gray-100 text-gray-700"}`}>
+                    <Truck size={14} className="mr-2" />
+                    {o.status}
+                  </span>
+                </div>
+
+                <div className="min-w-[160px]">
+                  <p className="text-xs text-gray-400 uppercase font-semibold">Progress</p>
+                  <div className="mt-2">
+                    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500"
+                        style={{ width: STATUS_PROGRESS[o.status] ? STATUS_PROGRESS[o.status] : "30%" }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{STATUS_PROGRESS[o.status] || "30%"}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-400 uppercase font-semibold">Order Date</p>
+                  <p className="text-gray-800 font-semibold mt-1">{o.date}</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-400 uppercase font-semibold">Amount</p>
+                  <p className="text-gray-800 font-semibold mt-1">{o.price}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center justify-end">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-2xl font-semibold transition"
+              >
+                Track Order <MapPin size={16} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
