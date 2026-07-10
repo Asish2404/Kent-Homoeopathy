@@ -212,16 +212,7 @@ const ProductsCatalog = () => {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Breadcrumb */}
-      <div className="bg-white border-b border-neutral-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-          <div className="flex items-center gap-2 text-sm text-neutral-500 flex-wrap">
-            <a href="/" className="hover:text-[var(--brand-700)]">Home</a>
-            <span className="text-neutral-300">›</span>
-            <span className="text-neutral-900 font-medium">Products</span>
-          </div>
-        </div>
-      </div>
+
 
       {/* Title bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-7">
@@ -271,7 +262,16 @@ const ProductsCatalog = () => {
           {/* Sidebar */}
           <aside className="lg:sticky lg:top-24 self-start hidden md:block">
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
+              <style>{`
+                .products-filter-scrollbar{max-height:calc(100vh - 180px);overflow:auto;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;}
+                .products-filter-scrollbar::-webkit-scrollbar{width:6px;}
+                .products-filter-scrollbar::-webkit-scrollbar-track{background:#e5e7eb;border-radius:9999px;}
+                .products-filter-scrollbar::-webkit-scrollbar-thumb{background:var(--brand-600);border-radius:9999px;}
+                .products-filter-scrollbar::-webkit-scrollbar-thumb:hover{background:var(--brand-700);}
+              `}</style>
+
               <div className="p-5 border-b border-neutral-100">
+
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="font-bold text-neutral-900">Filters</h2>
                   <button
@@ -285,7 +285,8 @@ const ProductsCatalog = () => {
                 <p className="text-xs text-neutral-500 mt-1">Refine your search</p>
               </div>
 
-              <div className="p-5 space-y-7">
+              <div className="products-filter-scrollbar p-5 space-y-7">
+
                 {/* Category */}
                 <div>
                   <div className="font-semibold text-neutral-900 mb-3">Category</div>
