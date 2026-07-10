@@ -8,7 +8,8 @@ const AppointmentBookingSchema = new mongoose.Schema(
         address: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         doctor_name: { type: String },
         appointment_date: { type: Date, required: true },
-        appointment_time: { type: String, required: true },
+        appointment_time: { type: String },
+
         status: { type: String, enum: ["pending", "confirmed", "cancelled"], default: "pending" },
         mode: { type: String, enum: ["in-person", "online"], required: true },
         cause_visit: { type: String, required: true },

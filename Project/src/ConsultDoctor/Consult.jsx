@@ -9,10 +9,8 @@ import {
   Stethoscope,
 } from "lucide-react";
 import doctors from "./Doctor.js";
-import slots from "./TimingSlots.js";
 function Consult() {
   const [mode, setMode] = useState("visit");
-  const [selectedTime, setSelectedTime] = useState("");
   const [query, setQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [speciality, setSpeciality] = useState("all");
@@ -51,7 +49,7 @@ function Consult() {
 
   const processSteps = [
     { step: "1", title: "Choose Doctor", desc: "Pick a specialist that matches your concern." },
-    { step: "2", title: "Book Appointment", desc: "Select a slot that fits your schedule." },
+    { step: "2", title: "Book Appointment", desc: "Schedule your preferred date to get started." },
     { step: "3", title: "Video Consultation", desc: "Connect securely from any device." },
     { step: "4", title: "Receive Prescription", desc: "Get a clear digital prescription instantly." },
   ];
@@ -91,8 +89,8 @@ function Consult() {
   });
 
   const handleBook = () => {
-    if (!booking.name || !booking.email || !booking.phone || !booking.date || !selectedTime) {
-      setBookingMessage("Please complete the required fields and select a time slot.");
+    if (!booking.name || !booking.email || !booking.phone || !booking.date) {
+      setBookingMessage("Please complete the required fields.");
       return;
     }
 
@@ -104,7 +102,6 @@ function Consult() {
         doctor: selectedDoctor?.name || "Specialist Consultation",
         speciality: selectedDoctor?.speciality || "Consultation",
         date: booking.date,
-        time: selectedTime,
         mode,
         status: "Upcoming",
         name: booking.name,
@@ -369,8 +366,8 @@ function Consult() {
                         {doc.OfferFee}
                       </span>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${doc.availableToday ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
-                      {doc.availableToday ? "Available today" : "Limited slots"}
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${doc.availableToday ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                      {doc.availableToday ? "🟢 Available Today" : "🔴 Not Available"}
                     </span>
                   </div>
                 </div>
@@ -403,7 +400,8 @@ function Consult() {
 
                 <div className="mt-5 flex items-center justify-between text-sm text-slate-600">
                   <span className="inline-flex items-center gap-1.5">
-                    <Clock3 size={16} className="text-green-600" /> Available today
+                    <Clock3 size={16} className="text-green-600" />
+                    {doc.availableToday ? "Available Today 09:00 AM – 05:00 PM" : "Available Tomorrow 10:00 AM – 04:00 PM"}
                   </span>
                   <span className="inline-flex items-center gap-1.5">
                     <Star size={16} className="text-amber-500" fill="currentColor" /> {doc.rating}
@@ -528,29 +526,6 @@ function Consult() {
                   </div>
                 </div>
 
-                <div className="mb-4 flex items-center gap-3">
-                  <h3 className="text-lg font-bold text-slate-900">Select Time Slot</h3>
-                  {selectedTime && (
-                    <span className="rounded-full border border-green-100 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Selected: {selectedTime}</span>
-                  )}
-                </div>
-
-                <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
-                  {slots.map((slot) => (
-                    <button
-                      key={slot}
-                      onClick={() => setSelectedTime(slot)}
-                      className={`rounded-xl border px-3 py-3 text-sm font-semibold transition focus:outline-none focus:ring-4 focus:ring-green-100 ${
-                        selectedTime === slot
-                          ? "border-green-700 bg-gradient-to-r from-green-700 to-emerald-700 text-white shadow-lg shadow-green-200"
-                          : "border-green-200 bg-white text-slate-700 hover:bg-green-50 hover:border-green-300"
-                      }`}
-                    >
-                      {slot}
-                    </button>
-                  ))}
-                </div>
-
                 <div className="mb-8">
                   <label className="mb-3 block font-medium text-slate-700">Describe Your Symptoms</label>
                   <textarea
@@ -615,21 +590,17 @@ function Consult() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Date</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Preferred Date</p>
                       <p className="mt-1 text-sm font-bold text-slate-900">{booking.date || "—"}</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Time</p>
-                      <p className="mt-1 text-sm font-bold text-slate-900">{selectedTime || "—"}</p>
                     </div>
                   </div>
 
                   <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Ready check</p>
                     <p className="mt-1 text-sm font-bold text-slate-900">
-                      {(!booking.name || !booking.email || !booking.phone || !booking.date || !selectedTime)
+                      {(!booking.name || !booking.email || !booking.phone || !booking.date)
                         ? "Complete required fields to confirm"
                         : "All set — confirm appointment"}
                     </p>
