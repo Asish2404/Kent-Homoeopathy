@@ -1,0 +1,86 @@
+export const ordersData = {
+  orders: [
+    {
+      id: "ORD-10241",
+      customerId: "C-2001",
+      customerName: "Ayesha Khan",
+      date: "2026-07-10",
+      total: 1890.5,
+      status: "Delivered",
+      items: [
+        { productName: "Kent Eczema Lotion", qty: 2, price: 450 },
+        { productName: "Homeo Immunity Drops", qty: 1, price: 520 },
+      ],
+      shipping: {
+        address1: "221B Green Street",
+        city: "Colombo",
+        state: "Western",
+        zip: "10115",
+      },
+    },
+    {
+      id: "ORD-10218",
+      customerId: "C-2002",
+      customerName: "Rahul Verma",
+      date: "2026-07-09",
+      total: 1245.0,
+      status: "Pending",
+      items: [{ productName: "Digestion Support Syrup", qty: 3, price: 380 }],
+      shipping: {
+        address1: "12 Park Avenue",
+        city: "Mumbai",
+        state: "Maharashtra",
+        zip: "400001",
+      },
+    },
+    {
+      id: "ORD-10205",
+      customerId: "C-2003",
+      customerName: "Meera Nair",
+      date: "2026-07-08",
+      total: 2580.75,
+      status: "Delivered",
+      items: [
+        { productName: "Wellness Stress Relief Tablets", qty: 2, price: 610 },
+        { productName: "Kent Eczema Lotion", qty: 1, price: 450 },
+      ],
+      shipping: {
+        address1: "7 Lake View",
+        city: "Bengaluru",
+        state: "Karnataka",
+        zip: "560001",
+      },
+    },
+    {
+      id: "ORD-10192",
+      customerId: "C-2004",
+      customerName: "Imran Siddiqui",
+      date: "2026-07-07",
+      total: 920.25,
+      status: "Delivered",
+      items: [{ productName: "Homeo Immunity Drops", qty: 2, price: 520 }],
+      shipping: {
+        address1: "55 Sunrise Road",
+        city: "Lucknow",
+        state: "Uttar Pradesh",
+        zip: "226001",
+      },
+    },
+    {
+      id: "ORD-10174",
+      customerId: "C-2005",
+      customerName: "Sana Ahmed",
+      date: "2026-07-06",
+      total: 3050.0,
+      status: "Pending",
+      items: [{ productName: "Wellness Stress Relief Tablets", qty: 5, price: 610 }],
+      shipping: {
+        address1: "9 Riverbend",
+        city: "Chennai",
+        state: "Tamil Nadu",
+        zip: "600001",
+      },
+    },
+  ],
+};
+

@@ -1,0 +1,45 @@
+export const productsData = {
+  products: [
+    {
+      id: "P-1001",
+      image: "/src/assets/Product_image.png",
+      name: "Kent Eczema Lotion",
+      category: "Skincare",
+      price: 450,
+      discount: 10,
+      stock: 32,
+      status: "In Stock",
+    },
+    {
+      id: "P-1002",
+      image: "/src/assets/Product_image.png",
+      name: "Homeo Immunity Drops",
+      category: "Immunity",
+      price: 520,
+      discount: 0,
+      stock: 12,
+      status: "Low Stock",
+    },
+    {
+      id: "P-1003",
+      image: "/src/assets/Product_image.png",
+      name: "Digestion Support Syrup",
+      category: "Digestive",
+      price: 380,
+      discount: 5,
+      stock: 6,
+      status: "Low Stock",
+    },
+    {
+      id: "P-1004",
+      image: "/src/assets/Product_image.png",
+      name: "Wellness Stress Relief Tablets",
+      category: "Wellness",
+      price: 610,
+      discount: 15,
+      stock: 0,
+      status: "Out of Stock",
+    },
+  ],
+};
+
