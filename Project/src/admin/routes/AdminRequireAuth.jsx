@@ -1,17 +1,19 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { adminStorage } from "../utils/storage";
 
 const AdminRequireAuth = () => {
   const location = useLocation();
-  const authed = adminStorage.isAdmin();
+
+  const role = window.localStorage.getItem("role");
+  const authed = role === "admin";
 
   if (!authed) {
-    return <Navigate to="/admin/login" replace state={{ from: location }} />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   return <Outlet />;
 };
 
 export default AdminRequireAuth;
+
 

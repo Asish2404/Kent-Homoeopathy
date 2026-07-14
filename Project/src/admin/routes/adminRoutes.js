@@ -1,5 +1,7 @@
+
+
 import Dashboard from "../pages/Dashboard";
-import AdminLogin from "../pages/AdminLogin";
+
 import AdminLayout from "../layout/AdminLayout";
 import AdminRequireAuth from "./AdminRequireAuth";
 
@@ -12,13 +14,11 @@ import Reports from "../pages/Reports";
 import Categories from "../pages/Categories";
 import Coupons from "../pages/Coupons";
 import Reviews from "../pages/Reviews";
-import Settings from "../pages/Settings";
+import Settings from "../pages/SettingsPlaceholder";
+
 
 const adminRoutes = [
-  {
-    path: "/admin/login",
-    element: <AdminLogin />,
-  },
+
   {
     path: "/admin",
     element: <AdminRequireAuth />,
@@ -44,4 +44,5 @@ const adminRoutes = [
 ];
 
 export default adminRoutes;
+
 

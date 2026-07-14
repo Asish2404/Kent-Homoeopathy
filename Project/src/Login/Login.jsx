@@ -14,6 +14,13 @@ const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    // If an admin is already logged in and they visit /login, redirect to /admin
+    if (window.localStorage.getItem("role") === "admin") {
+        // Keep customer login behavior unchanged; only redirect admins.
+        navigate("/admin", { replace: true });
+    }
+
+
     const USERS_KEY = "auth_users_v1";
     const REMEMBERED_EMAIL_KEY = "auth_remembered_email_v1";
 
@@ -64,12 +71,38 @@ const Login = () => {
     };
 
     const handleAuth = () => {
+
         setStatus("");
         if (!validate()) return;
+
+        // Frontend-only role-based login (Admin uses hardcoded temporary credentials)
+        if (!signup) {
+            const adminEmail = "admin@drkent.com";
+            const adminPassword = "Admin@123";
+
+            if (email.trim().toLowerCase() === adminEmail && password === adminPassword) {
+                localStorage.setItem("isLoggedIn", "true");
+                localStorage.setItem("role", "admin");
+                localStorage.setItem("userName", "Administrator");
+
+                // Keep Navbar/customer logic stable by also setting the shared user payload.
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify({
+                        user_name: "Administrator",
+                        email: adminEmail,
+                    })
+                );
+
+                navigate("/admin", { replace: true });
+                return;
+            }
+        }
 
         const users = readUsers();
 
         if (signup) {
+
             const existing = users.find((item) => item.email.toLowerCase() === email.trim().toLowerCase());
             if (existing) {
                 setErrors({ email: "An account already exists with this email" });

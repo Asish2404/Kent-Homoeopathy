@@ -19,6 +19,9 @@ import "./Navbar.css";
 
 
 const Navbar = () => {
+
+
+
   const { totalCount, wishlistCount } = useCartContext();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,7 +33,23 @@ const Navbar = () => {
   const profileRef = useRef(null);
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  // Centralized auth state (admin + customer) backed by localStorage.
+const readUser = () => {
+    try {
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const user = readUser();
+  const role = window.localStorage.getItem("role");
+  const isAdmin = role === "admin";
+
+
+
+
 
   // Subtle shadow on scroll
   useEffect(() => {
@@ -56,12 +75,17 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userName");
     setProfileOpen(false);
     setMenuOpen(false);
-    navigate("/Login");
+    navigate("/");
   };
 
+
   const handleWishlistOpen = () => {
+
     if (user) {
       navigate("/Profile", { state: { tab: "wishlist" } });
       return;
@@ -122,7 +146,7 @@ const Navbar = () => {
 
             {/* Shared universal search */}
             <div className="flex-1 flex justify-center min-w-0">
-              <div className="w-full max-w-[480px] lg:max-w-[420px] xl:max-w-[470px] md:max-w-[360px] sm:max-w-[280px] min-w-[180px]">
+              <div className="flex-1 min-w-[160px] max-w-[470px] w-full px-1">
                 <div className="w-full h-[48px]">
                   <SearchBox
                     className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
@@ -155,6 +179,16 @@ const Navbar = () => {
               <NavLink to="/Contact" className={navStyle}>
                 Contact Us
               </NavLink>
+
+              {/* Admin Dashboard must appear immediately before Wishlist */}
+              {isAdmin ? (
+                <NavLink
+                  to="/admin"
+                  className={navStyle}
+                >
+                  Admin Dashboard
+                </NavLink>
+              ) : null}
 
               {/* Quick action icons */}
               <button
@@ -303,13 +337,16 @@ const Navbar = () => {
                   )}
                 </div>
               ) : (
-                <NavLink
-                  to="/Login"
-                  className="btn-primary h-[48px] px-5 whitespace-nowrap text-sm rounded-xl flex items-center justify-center"
-                >
-                  Login / Sign Up
-                </NavLink>
+                !isAdmin ? (
+                  <NavLink
+                    to="/Login"
+                    className="btn-primary h-[48px] px-5 whitespace-nowrap text-sm rounded-xl flex items-center justify-center"
+                  >
+                    Login / Sign Up
+                  </NavLink>
+                ) : null
               )}
+
             </div>
 
             {/* Mobile right cluster */}
@@ -418,6 +455,17 @@ const Navbar = () => {
             Contact Us
           </NavLink>
 
+          {/* Admin Dashboard inside hamburger only for admins */}
+          {isAdmin ? (
+            <NavLink
+              to="/admin"
+              onClick={() => setMenuOpen(false)}
+              className={navStyle}
+            >
+              Admin Dashboard
+            </NavLink>
+          ) : null}
+
           <a
             href="tel:08910863893"
             className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white py-3 rounded-xl font-semibold transition"
@@ -428,6 +476,7 @@ const Navbar = () => {
 
           {user ? (
             <div className="flex flex-col items-center gap-3 mt-2 pt-4 border-t border-white/10">
+              {/* Keep Wishlist/Cart as icons (outside), so no extra links here */}
               <img
                 src={`https://ui-avatars.com/api/?name=${user.user_name}&background=22c55e&color=fff&bold=true`}
                 alt="avatar"
@@ -436,11 +485,11 @@ const Navbar = () => {
               <p className="text-white font-semibold">{user.user_name}</p>
 
               <NavLink
-                to="/Profile"
+                to={isAdmin ? "/admin" : "/Profile"}
                 onClick={() => setMenuOpen(false)}
                 className="w-full text-center btn-primary py-2.5"
               >
-                My Profile
+                {isAdmin ? "My Account" : "My Profile"}
               </NavLink>
 
               <button
@@ -451,13 +500,15 @@ const Navbar = () => {
               </button>
             </div>
           ) : (
-            <NavLink
-              to="/Login"
-              onClick={() => setMenuOpen(false)}
-              className="btn-primary py-3 mt-2 justify-center"
-            >
-              Login / Sign Up
-            </NavLink>
+            !isAdmin ? (
+              <NavLink
+                to="/Login"
+                onClick={() => setMenuOpen(false)}
+                className="btn-primary py-3 mt-2 justify-center"
+              >
+                Login / Sign Up
+              </NavLink>
+            ) : null
           )}
         </div>
       )}

@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -9,7 +10,6 @@ import {
   Menu,
   User,
 } from "lucide-react";
-import { adminStorage } from "../utils/storage";
 
 const navItems = [
   { to: "/admin", label: "Dashboard" },
@@ -38,7 +38,10 @@ const SidebarLink = ({ to, label, onClick }) => (
       ].join(" ")
     }
   >
-    <span className="w-2 h-2 rounded-full bg-brand-500 opacity-80" aria-hidden />
+    <span
+      className="w-2 h-2 rounded-full bg-brand-500 opacity-80"
+      aria-hidden
+    />
     <span className="text-sm font-semibold">{label}</span>
   </NavLink>
 );
@@ -46,10 +49,11 @@ const SidebarLink = ({ to, label, onClick }) => (
 const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const adminName = adminStorage.getAdminName();
+  const adminName = window.localStorage.getItem("userName") || "Administrator";
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+
   const sidebar = useMemo(
     () => (
       <div className="h-full flex flex-col gap-4">
@@ -80,8 +84,10 @@ const AdminLayout = () => {
           <button
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 transition"
             onClick={() => {
-              adminStorage.logout();
-              navigate("/admin/login");
+              window.localStorage.removeItem("isLoggedIn");
+              window.localStorage.removeItem("role");
+              window.localStorage.removeItem("userName");
+              navigate("/login");
             }}
           >
             <LogOut size={16} className="text-neutral-700" />
@@ -125,8 +131,9 @@ const AdminLayout = () => {
                   <h1 className="text-xl font-extrabold text-neutral-900">
                     {location.pathname === "/admin"
                       ? "Dashboard"
-                      : location.pathname.replace("/admin/", "").replace(/-/g, " ")
-                      }
+                      : location.pathname
+                          .replace("/admin/", "")
+                          .replace(/-/g, " ")}
                   </h1>
                 </div>
 
@@ -163,9 +170,7 @@ const AdminLayout = () => {
                       <User size={18} className="text-brand-700" />
                     </div>
                     <div className="hidden sm:block">
-                      <div className="text-sm font-bold text-neutral-900 leading-4">
-                        {adminName}
-                      </div>
+                      <div className="text-sm font-bold text-neutral-900 leading-4">{adminName}</div>
                       <div className="text-xs text-neutral-500 leading-4">Admin</div>
                     </div>
                   </div>
@@ -196,7 +201,9 @@ const AdminLayout = () => {
                 <div className="text-lg font-extrabold text-neutral-900 truncate">
                   {location.pathname === "/admin"
                     ? "Dashboard"
-                    : location.pathname.replace("/admin/", "").replace(/-/g, " ")}
+                    : location.pathname
+                        .replace("/admin/", "")
+                        .replace(/-/g, " ")}
                 </div>
               </div>
 

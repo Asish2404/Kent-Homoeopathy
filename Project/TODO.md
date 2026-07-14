@@ -1,0 +1,9 @@
+- [ ] Update App.jsx to remove /admin/login and ensure /login is the single login route
+- [ ] Update Login.jsx with admin credentials support + role-based redirect
+- [ ] Update AdminRequireAuth.jsx to protect all /admin/* using localStorage role
+- [ ] Update AdminLayout.jsx logout to clear localStorage and redirect to /login
+- [ ] Delete src/admin/pages/AdminLogin.jsx and src/admin/routes/AdminRequireAuth.jsx (old admin login files) if no longer used
+- [ ] Remove unused adminRoutes/adminRoutes.js imports if unused and ensure no broken imports
+- [ ] Clean up unused/broken files created during previous attempts
+- [ ] Run npm run build
+- [ ] Verify: admin redirect, customer login unchanged, protected routes, sidebar navigation, logout
