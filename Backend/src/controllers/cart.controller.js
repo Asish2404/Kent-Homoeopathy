@@ -296,6 +296,124 @@ export const updateCartQuantity = async (req, res) => {
     }
 };
 
+// ====================== REMOVE CART ITEM ======================
+// DELETE /api/cart/remove/:productId
+export const removeCartItem = async (req, res) => {
+    try {
+        // Logged-in user identification (do NOT use body/params userId)
+        const userId = req.user._id;
+
+        const { productId } = req.params;
+
+        // ---------------------- VALIDATION ----------------------
+        if (!productId) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Product Id"
+            });
+        }
+
+        // ---------------------- EXISTING DATA ----------------------
+        const cart = await Cart.findOne({ user: userId });
+        if (!cart) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart Not Found"
+            });
+        }
+
+        // Product must exist in DB
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product Not Found"
+            });
+        }
+
+        // Product must already exist inside user's cart
+        const itemIndex = cart.items.findIndex(
+            (item) => item.product.toString() === productId
+        );
+
+        if (itemIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: "Product Not Found In Cart"
+            });
+        }
+
+        // ---------------------- UPDATE CART ----------------------
+        // Remove only the item, do not delete entire cart document
+        cart.items.splice(itemIndex, 1);
+
+        await cart.save();
+
+        // ---------------------- POPULATE + TOTALS ----------------------
+        // Populate remaining products for response
+        const populatedCart = await Cart.findById(cart._id).populate({
+            path: "items.product",
+            select: "product_name product_image price stock category"
+        });
+
+        const populatedItems = populatedCart?.items || [];
+
+        const { totalItems, subtotal } = calculateCartTotals(populatedItems);
+
+        // If cart has no items after removing, return empty cart successfully
+        if (populatedItems.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "Cart is now empty",
+                cart: {
+                    items: []
+                },
+                totalItems: 0,
+                subtotal: 0
+            });
+        }
+
+        const cartResponse = {
+            items: populatedItems.map((item) => ({
+                product: item.product
+                    ? {
+                          name: item.product.product_name,
+                          image: item.product.product_image,
+                          price: item.product.price,
+                          stock: item.product.stock,
+                          category: item.product.category
+                      }
+                    : null,
+                quantity: item.quantity
+            })),
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Item removed from cart successfully",
+            cart: cartResponse,
+            totalItems,
+            subtotal
+        });
+    } catch (error) {
+        if (
+            error?.name === "CastError" ||
+            error?.name === "MongoServerError"
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Product Id"
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Database Error"
+        });
+    }
+};
+
+
 
 
 
