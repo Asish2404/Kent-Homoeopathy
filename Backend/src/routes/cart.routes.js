@@ -3,7 +3,8 @@ import {
     addToCart,
     getCart,
     updateCartQuantity,
-    removeCartItem
+    removeCartItem,
+    clearCart
 } from "../controllers/cart.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -21,7 +22,11 @@ router.patch("/update", verifyJWT, updateCartQuantity);
 // Remove a single product from cart
 router.delete("/remove/:productId", verifyJWT, removeCartItem);
 
+// Clear all items from cart
+router.delete("/clear", verifyJWT, clearCart);
+
 export default router;
+
 
 
 

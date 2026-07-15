@@ -413,6 +413,58 @@ export const removeCartItem = async (req, res) => {
     }
 };
 
+// ====================== CLEAR CART ======================
+// DELETE /api/cart/clear
+export const clearCart = async (req, res) => {
+    try {
+        // Logged-in user identification (do NOT use body/params userId)
+        const userId = req.user._id;
+
+        // ---------------------- EXISTING DATA ----------------------
+        const cart = await Cart.findOne({ user: userId });
+        if (!cart) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart Not Found"
+            });
+        }
+
+        // If cart is already empty, return success (no error)
+        if (!cart.items || cart.items.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "Cart is already empty",
+                cart: {
+                    items: []
+                },
+                totalItems: 0,
+                subtotal: 0
+            });
+        }
+
+        // ---------------------- CLEAR CART ITEMS ----------------------
+        cart.items = [];
+        await cart.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Cart cleared successfully",
+            cart: {
+                items: []
+            },
+            totalItems: 0,
+            subtotal: 0
+        });
+    } catch (error) {
+        // Database errors
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Database Error"
+        });
+    }
+};
+
+
 
 
 
