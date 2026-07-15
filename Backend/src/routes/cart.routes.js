@@ -1,5 +1,5 @@
 import express from "express";
-import { addToCart, getCart } from "../controllers/cart.controller.js";
+import { addToCart, getCart, updateCartQuantity } from "../controllers/cart.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
@@ -10,5 +10,9 @@ router.post("/", verifyJWT, addToCart);
 // Get cart for logged-in user
 router.get("/", verifyJWT, getCart);
 
+// Update cart quantity for a product
+router.patch("/update", verifyJWT, updateCartQuantity);
+
 export default router;
+
 
