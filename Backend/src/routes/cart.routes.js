@@ -1,6 +1,12 @@
 import express from "express";
-import { addToCart, checkout, getCart, updateCartQuantity } from "../controllers/cart.controller.js";
-
+import {
+    addToCart,
+    getCart,
+    updateCartQuantity,
+    removeCartItem,
+    clearCart,
+    checkout
+} from "../controllers/cart.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
@@ -11,10 +17,16 @@ router.post("/", verifyJWT, addToCart);
 // Get current cart
 router.get("/", verifyJWT, getCart);
 
-// Update cart item quantity
+// Update cart quantity
 router.patch("/quantity", verifyJWT, updateCartQuantity);
 
-// Checkout - prepares checkout details (does NOT create an order)
+// Remove one item from cart
+router.delete("/:productId", verifyJWT, removeCartItem);
+
+// Clear entire cart
+router.delete("/", verifyJWT, clearCart);
+
+// Checkout summary
 router.get("/checkout", verifyJWT, checkout);
 
 export default router;
