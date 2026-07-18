@@ -9,10 +9,13 @@ import orderRoutes from "./routes/order.routes.js";
 import addressRoutes from "./routes/address.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import prescriptionRoutes from "./routes/prescription.routes.js";
+import medicalReportRoutes from "./routes/medicalReport.routes.js";
+
 
 
 
 const app = express();
+
 
 app.use(
     cors({
@@ -42,5 +45,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
+app.use("/api/medical-reports", medicalReportRoutes);
 export default app;
+
 
