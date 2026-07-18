@@ -64,9 +64,267 @@ const validateCartItem = (item) => {
     return null;
 };
 
+const getPagination = (query) => {
+    const page = Number(query.page) > 0 ? Number(query.page) : 1;
+    const limit = Number(query.limit) > 0 ? Number(query.limit) : 10;
+    const skip = (page - 1) * limit;
+
+    return { page, limit, skip };
+};
+
+const ensureValidShippingAddress = (shippingAddress) => {
+    if (!shippingAddress || typeof shippingAddress !== "object") return false;
+
+    const required = ["fullName", "phone", "email", "house", "street", "city", "state", "pincode"];
+
+    return required.every((k) => {
+        const v = shippingAddress[k];
+        return typeof v === "string" ? v.trim().length > 0 : v !== undefined && v !== null;
+    });
+};
+
+const getMyOrders = async (req, res) => {
+    try {
+        const userId = req.user?._id;
+        const { page, limit } = getPagination(req.query);
+
+        const query = { user: userId };
+
+        const [orders, totalCount] = await Promise.all([
+            Order.find(query)
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit),
+            Order.countDocuments(query),
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            orders,
+            pagination: {
+                page,
+                limit,
+                totalPages: Math.ceil(totalCount / limit),
+                totalCount,
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Database error",
+        });
+    }
+};
+
+const getOrderById = async (req, res) => {
+    try {
+        const userId = req.user?._id;
+        const { orderId } = req.params;
+
+        const order = await Order.findOne({ _id: orderId, user: userId })
+            .populate("user")
+            .populate("customer")
+            .populate("orderItems.productId")
+            .populate("products.productId");
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            order,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Database error",
+        });
+    }
+};
+
+const cancelOrder = async (req, res) => {
+    try {
+        const userId = req.user?._id;
+        const { orderId } = req.params;
+
+        const order = await Order.findOne({ _id: orderId, user: userId });
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found",
+            });
+        }
+
+        if (order.status === "cancelled" || order.orderStatus === "cancelled") {
+            return res.status(409).json({
+                success: false,
+                message: "Duplicate cancellation",
+            });
+        }
+
+        const currentStatus = order.status || order.orderStatus;
+        const cancellableStatuses = ["pending", "confirmed"];
+
+        if (!cancellableStatuses.includes(currentStatus)) {
+            return res.status(400).json({
+                success: false,
+                message: "Order cannot be cancelled",
+            });
+        }
+
+        const restoreItems = order.orderItems?.length ? order.orderItems : order.products;
+        if (!Array.isArray(restoreItems) || restoreItems.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Order items missing",
+            });
+        }
+
+        // Restore stock
+        for (const item of restoreItems) {
+            const qty = Number(item.quantity) || 0;
+            if (!qty || !item.productId) continue;
+            await Product.updateOne(
+                { _id: item.productId },
+                { $inc: { stock: qty } }
+            );
+        }
+
+        order.status = "cancelled";
+        order.orderStatus = "cancelled";
+        await order.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Order cancelled successfully",
+            order,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Database error",
+        });
+    }
+};
+
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { orderStatus } = req.body;
+
+        const allowed = [
+            "pending",
+            "confirmed",
+            "processing",
+            "packed",
+            "shipped",
+            "delivered",
+            "cancelled",
+        ];
+
+        if (!allowed.includes(orderStatus)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid order status",
+            });
+        }
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found",
+            });
+        }
+
+        order.orderStatus = orderStatus;
+        order.status = orderStatus === "pending" ? "pending" : orderStatus;
+
+        if (orderStatus === "cancelled") {
+            order.status = "cancelled";
+        }
+
+        await order.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Order status updated",
+            order,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Database error",
+        });
+    }
+};
+
+const getAdminOrders = async (req, res) => {
+    try {
+        const { page, limit, skip } = (() => {
+            const { page, limit, skip } = getPagination(req.query);
+            return { page, limit, skip };
+        })();
+
+        const q = (req.query.q || "").toString().trim();
+        const status = (req.query.status || "").toString().trim();
+
+        const sortBy = (req.query.sortBy || "createdAt").toString();
+        const sortOrder = (req.query.sortOrder || "desc").toString().toLowerCase() === "asc" ? 1 : -1;
+
+        const filter = {};
+        if (q) {
+            filter.$or = [
+                { orderNumber: new RegExp(q, "i") },
+                { "shippingAddress.fullName": new RegExp(q, "i") },
+            ];
+        }
+        if (status) {
+            filter.status = status;
+        }
+
+        const [orders, totalCount] = await Promise.all([
+            Order.find(filter)
+                .sort({ [sortBy]: sortOrder })
+                .skip(skip)
+                .limit(limit)
+                .populate("user")
+                .populate("customer"),
+            Order.countDocuments(filter),
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            orders,
+            pagination: {
+                page,
+                limit,
+                totalPages: Math.ceil(totalCount / limit),
+                totalCount,
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Database error",
+        });
+    }
+};
+
+export { getMyOrders, getOrderById, cancelOrder, updateOrderStatus, getAdminOrders };
+
 export const placeOrder = async (req, res) => {
     try {
         const userId = req.user?._id;
+
+
+
+
 
         if (!userId) {
             return res.status(401).json({
@@ -109,9 +367,18 @@ export const placeOrder = async (req, res) => {
         const orderNumber = await generateOrderNumber();
         const orderedDate = new Date();
         const shippingAddress = resolveShippingAddress(req.body);
+
+        if (!ensureValidShippingAddress(shippingAddress)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid address",
+            });
+        }
+
         const paymentMethod = req.body.paymentMethod || "Cash On Delivery";
         const paymentStatus = req.body.paymentStatus || "Pending";
         const orderStatus = req.body.orderStatus || "Pending";
+
 
         const stockResult = await updateProductStock(cart.items);
 

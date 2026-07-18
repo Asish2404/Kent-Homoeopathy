@@ -6,6 +6,11 @@ import productRoutes from "./routes/product.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import orderRoutes from "./routes/order.routes.js";
+import addressRoutes from "./routes/address.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
+import prescriptionRoutes from "./routes/prescription.routes.js";
+
+
 
 const app = express();
 
@@ -34,4 +39,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/address", addressRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/prescriptions", prescriptionRoutes);
 export default app;
+

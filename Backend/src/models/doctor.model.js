@@ -293,4 +293,5 @@ doctorSchema.index({ city: 1 });
 doctorSchema.index({ status: 1 });
 doctorSchema.index({ consultationFee: 1 });
 
-export const Doctor = mongoose.model("Doctor", doctorSchema);
+export const Doctor = mongoose.models.Doctor || mongoose.model("Doctor", doctorSchema);
+

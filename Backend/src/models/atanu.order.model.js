@@ -2,23 +2,70 @@ import mongoose from "mongoose";
 
 const orderItemSchema = new mongoose.Schema(
     {
-        productId:{type:mongoose.Schema.Types.ObjectId,ref:"Product",required:true},
-        quantity:{type:Number,required:true},
-    }
+        productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+        quantity: { type: Number, required: true },
+        productName: { type: String },
+        productImage: { type: String },
+        mrpPrice: { type: Number },
+        discountPrice: { type: Number },
+        unitPrice: { type: Number },
+        subtotal: { type: Number },
+    },
+    { _id: false }
 );
+
 
 const orderSchema = new mongoose.Schema(
     {
-        orderPrice:{type:Number,required:true},
-        customer:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:true},
-        orderItems:{
-            type:[orderItemSchema]
+        orderNumber: { type: String, index: true },
+
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        customer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+
+        products: { type: [orderItemSchema], default: undefined },
+        orderItems: { type: [orderItemSchema], default: undefined },
+
+        orderPrice: { type: Number, required: true },
+
+        // Shipping
+        shippingAddress: {
+            fullName: { type: String },
+            phone: { type: String },
+            email: { type: String },
+            house: { type: String },
+            street: { type: String },
+            landmark: { type: String },
+            city: { type: String },
+            state: { type: String },
+            pincode: { type: String },
+            slot: { type: String },
         },
-        address:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:true},
-        status:{type:String,enum:["pending","shipped","delivered","cancelled"],default:"pending"},
-        
+
+        address: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
+        // Payment
+        paymentMethod: { type: String },
+        paymentStatus: { type: String, default: "Pending" },
+
+        // Pricing
+        subtotal: { type: Number, default: 0 },
+        discount: { type: Number, default: 0 },
+        deliveryCharge: { type: Number, default: 0 },
+        tax: { type: Number, default: 0 },
+        grandTotal: { type: Number, default: 0 },
+
+        // Order lifecycle
+        status: {
+            type: String,
+            enum: ["pending", "confirmed", "processing", "packed", "shipped", "delivered", "cancelled"],
+            default: "pending",
+        },
+        orderStatus: { type: String },
+
+        estimatedDelivery: { type: Date },
     },
-    {timestamps:true}
+    { timestamps: true }
 );
+
 
 export const Order = mongoose.model("Order",orderSchema)
