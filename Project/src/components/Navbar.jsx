@@ -118,137 +118,134 @@ const readUser = () => {
       {/* Navbar */}
       <div
         className={`w-full bg-[var(--neutral-900)]/95 backdrop-blur-md sticky top-0 z-50 transition-all duration-300
-                    ${scrolled ? "shadow-xl py-2" : "shadow-md py-3 md:py-4"}`}
+                    ${scrolled ? "shadow-xl py-2" : "shadow-md py-2"}`}
       >
         <div className="max-w-[1400px] mx-auto px-2 xs:px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-1.5 sm:gap-3 w-full flex-nowrap">
             {/* Logo + Branding */}
             <button
               type="button"
-              className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group focus:outline-none flex-shrink-0 min-w-0 sm:min-w-[220px]"
+              className="flex items-center gap-2 cursor-pointer group focus:outline-none flex-shrink-0 min-w-0"
               onClick={() => navigate("/")}
             >
               <img
                 src={KentLogo}
                 alt="Kent Homoeopharmacy"
-                className="bg-white w-10 h-10 sm:w-[56px] sm:h-[56px] rounded-md border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
+                className="bg-white w-12 h-12 sm:w-14 sm:h-14 rounded-md border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
               />
 
-              <div className="hidden sm:block leading-none whitespace-nowrap">
-                <p className="text-white text-xl font-bold tracking-tight whitespace-nowrap">
+              <div className="hidden sm:flex flex-col leading-none">
+                <p className="text-white text-base sm:text-lg font-bold tracking-tight whitespace-nowrap">
                   DR. KENT
                 </p>
-                <div className="mt-1">
-                  <p className="text-[var(--brand-300)] text-[10px] tracking-[3px] font-semibold whitespace-nowrap">
-                    HOMOEO PHARMACY
-                  </p>
-                  <p className="text-white/90 text-[9px] tracking-[2px] font-semibold whitespace-nowrap mt-0.5">
-                    Unit of Kent Pharmaceuticals
-                  </p>
-                </div>
+                <p className="text-[var(--brand-300)] text-[11px] tracking-[3px] font-semibold whitespace-nowrap">
+                  HOMOEO PHARMACY
+                </p>
               </div>
             </button>
 
             {/* Shared universal search */}
             <div className="flex-1 flex justify-center min-w-0">
-              <div className="w-full max-w-[380px] min-w-[340px] px-1">
-                <div className="w-full h-[48px]">
+              <div className="w-full max-w-[500px] min-w-[420px] px-1">
+                <div className="w-full h-[48px] rounded-full">
                   <SearchBox
-                    className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
-                    placeholder="Search..."
+                    className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 transition-[transform,border-color,box-shadow] duration-300 hover:border-[var(--brand-300)] focus-within:ring-4 focus-within:ring-[var(--brand-200)]"
+                    placeholder="Search medicines, brands..."
                     ariaLabel="Universal Search"
                   />
                 </div>
               </div>
+              <div className="hidden md:block flex-1" />
             </div>
 
 
             {/* Desktop nav */}
-            <div className="hidden lg:flex items-center gap-3 flex-nowrap justify-center">
-              <NavLink to="/" className={navStyle} end>
-                Home
-              </NavLink>
-
-              <NavLink to="/Labtest" className={navStyle}>
-                Lab Test
-              </NavLink>
-
-              <NavLink to="/Consult" className={navStyle}>
-                Book Appointment
-              </NavLink>
-
-              <NavLink to="/Products" className={navStyle}>
-                Products
-              </NavLink>
-
-              <NavLink to="/Contact" className={navStyle}>
-                Contact Us
-              </NavLink>
-
-              {/* Admin Dashboard must appear immediately before Wishlist */}
-              {isAdmin ? (
-                <NavLink
-                  to="/admin"
-                  className={navStyle}
-                >
-                  Admin Dashboard
+            <div className="hidden lg:flex items-center flex-nowrap justify-center gap-7">
+              <div className="flex items-center gap-7">
+                <NavLink to="/" className={navStyle} end>
+                  Home
                 </NavLink>
-              ) : null}
 
-              {/* Quick action icons */}
-              <button
-                type="button"
-                aria-label="Wishlist"
-                onClick={handleWishlistOpen}
-                className="relative w-11 h-11 rounded-full bg-white/5 hover:bg-white/10 flex-shrink-0
+                <NavLink to="/Labtest" className={navStyle}>
+                  Lab Test
+                </NavLink>
+
+                <NavLink to="/Consult" className={navStyle}>
+                  Consult Doctor
+                </NavLink>
+
+                <NavLink to="/Products" className={navStyle}>
+                  Products
+                </NavLink>
+
+                <NavLink to="/Contact" className={navStyle}>
+                  Contact Us
+                </NavLink>
+
+                {/* Admin Dashboard must appear immediately before wishlist */}
+                {isAdmin ? (
+                  <NavLink to="/admin" className={navStyle}>
+                    Admin Dashboard
+                  </NavLink>
+                ) : null}
+              </div>
+
+              <div className="flex items-center gap-3 ml-2">
+                {/* Quick action icons */}
+                <button
+                  type="button"
+                  aria-label="Wishlist"
+                  onClick={handleWishlistOpen}
+                  className="relative w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex-shrink-0
                            flex items-center justify-center text-white transition duration-200
                            hover:scale-105 active:scale-95"
-              >
-                <FiHeart className="text-base" />
+                >
+                  <FiHeart className="text-base" />
 
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[var(--brand-500)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ring-2 ring-[var(--neutral-900)]">
-                    {wishlistCount > 99 ? "99+" : wishlistCount}
-                  </span>
-                )}
-              </button>
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[var(--brand-500)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ring-2 ring-[var(--neutral-900)]">
+                      {wishlistCount > 99 ? "99+" : wishlistCount}
+                    </span>
+                  )}
+                </button>
 
-              <NavLink
-                to="/Cart"
-                className="relative w-11 h-11 rounded-full bg-white/5 hover:bg-white/10 flex-shrink-0
+                <NavLink
+                  to="/Cart"
+                  className="relative w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex-shrink-0
                            flex items-center justify-center text-white transition duration-200
                            hover:scale-105 active:scale-95"
-              >
-                <BsCart3 className="text-base" />
+                >
+                  <BsCart3 className="text-base" />
 
-                {totalCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[var(--brand-500)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ring-2 ring-[var(--neutral-900)]">
-                    {totalCount > 99 ? "99+" : totalCount}
-                  </span>
-                )}
-              </NavLink>
+                  {totalCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[var(--brand-500)] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ring-2 ring-[var(--neutral-900)]">
+                      {totalCount > 99 ? "99+" : totalCount}
+                    </span>
+                  )}
+                </NavLink>
 
-              {user ? (
-                <div className="relative flex-shrink-0" ref={profileRef}>
-                  <div
-                    onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center gap-3 cursor-pointer bg-white/10 hover:bg-white/15 pl-1 pr-3 py-1 rounded-full transition border border-white/10 whitespace-nowrap"
-                  >
-                    <img
-                      src={`https://ui-avatars.com/api/?name=${user.user_name}&background=22c55e&color=fff&bold=true`}
-                      alt="avatar"
-                      className="w-9 h-9 rounded-full ring-2 ring-[var(--brand-400)]"
-                    />
+                {user ? (
+                  <div className="relative flex-shrink-0" ref={profileRef}>
+                    <div
+                      onClick={() => setProfileOpen(!profileOpen)}
+                      className="flex items-center gap-2 cursor-pointer bg-white/10 hover:bg-white/15 pl-2 pr-2.5 py-1 rounded-full transition border border-white/10 whitespace-nowrap max-w-[220px]"
+                    >
+                      <img
+                        src={`https://ui-avatars.com/api/?name=${user.user_name}&background=22c55e&color=fff&bold=true`}
+                        alt="avatar"
+                        className="w-9 h-9 rounded-full ring-2 ring-[var(--brand-400)]"
+                      />
 
-                    <div className="hidden xl:block leading-tight">
-                      <p className="text-white font-semibold text-sm leading-tight whitespace-nowrap">
-                        {user.user_name}
-                      </p>
-                      <p className="text-[var(--brand-300)] text-[10px] tracking-wider whitespace-nowrap">
-                        MY ACCOUNT
-                      </p>
+                      <div className="hidden sm:flex flex-col leading-tight">
+                        <p className="text-white font-semibold text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">
+                          {user.user_name}
+                        </p>
+                        <p className="text-[var(--brand-300)] text-[10px] tracking-wider whitespace-nowrap">
+                          My Account
+                        </p>
+                      </div>
                     </div>
-                  </div>
+
 
                   {profileOpen && (
                     <div
@@ -405,7 +402,7 @@ const readUser = () => {
           className="lg:hidden fixed top-[88px] left-0 w-full
                      bg-[var(--neutral-900)]/98 backdrop-blur-lg
                      flex flex-col items-stretch gap-2 py-6 px-4
-                     shadow-2xl z-40 animate-fade-in
+                     shadow-2xl z-40 transition-all duration-200
                      max-h-[calc(100vh-88px)] overflow-y-auto"
         >
           {/* Mobile search (full width) */}
