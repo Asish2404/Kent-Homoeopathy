@@ -14,6 +14,11 @@ import inventoryRoutes from "./routes/inventory.routes.js";
 import couponRoutes from "./routes/coupon.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
+
+
+
 
 
 
@@ -22,6 +27,7 @@ import reviewRoutes from "./routes/review.routes.js";
 
 
 const app = express();
+
 
 
 
@@ -58,7 +64,26 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 export default app;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
