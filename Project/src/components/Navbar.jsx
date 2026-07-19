@@ -122,10 +122,10 @@ const readUser = () => {
       >
         <div className="max-w-[1400px] mx-auto px-2 xs:px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-1.5 sm:gap-3 w-full flex-nowrap">
-            {/* Logo */}
+            {/* Logo + Branding */}
             <button
               type="button"
-              className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group focus:outline-none flex-shrink-0 min-w-0 sm:min-w-[200px]"
+              className="flex items-center gap-1.5 sm:gap-3 cursor-pointer group focus:outline-none flex-shrink-0 min-w-0 sm:min-w-[220px]"
               onClick={() => navigate("/")}
             >
               <img
@@ -138,15 +138,20 @@ const readUser = () => {
                 <p className="text-white text-xl font-bold tracking-tight whitespace-nowrap">
                   DR. KENT
                 </p>
-                <p className="text-[var(--brand-300)] text-[10px] tracking-[3px] font-semibold mt-1 whitespace-nowrap ">
-                  <pre>HOMOEO PHARMACY</pre>
-                </p>
+                <div className="mt-1">
+                  <p className="text-[var(--brand-300)] text-[10px] tracking-[3px] font-semibold whitespace-nowrap">
+                    HOMOEO PHARMACY
+                  </p>
+                  <p className="text-white/90 text-[9px] tracking-[2px] font-semibold whitespace-nowrap mt-0.5">
+                    Unit of Kent Pharmaceuticals
+                  </p>
+                </div>
               </div>
             </button>
 
             {/* Shared universal search */}
             <div className="flex-1 flex justify-center min-w-0">
-              <div className="flex-1 min-w-[160px] max-w-[470px] w-full px-1">
+              <div className="w-full max-w-[380px] min-w-[340px] px-1">
                 <div className="w-full h-[48px]">
                   <SearchBox
                     className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
@@ -159,7 +164,7 @@ const readUser = () => {
 
 
             {/* Desktop nav */}
-            <div className="hidden lg:flex items-center gap-3 flex-nowrap">
+            <div className="hidden lg:flex items-center gap-3 flex-nowrap justify-center">
               <NavLink to="/" className={navStyle} end>
                 Home
               </NavLink>
@@ -169,7 +174,7 @@ const readUser = () => {
               </NavLink>
 
               <NavLink to="/Consult" className={navStyle}>
-                Consult Doctor
+                Book Appointment
               </NavLink>
 
               <NavLink to="/Products" className={navStyle}>
@@ -431,13 +436,13 @@ const readUser = () => {
             Lab Test
           </NavLink>
 
-          <NavLink
-            to="/Consult"
-            onClick={() => setMenuOpen(false)}
-            className={navStyle}
-          >
-            Consult Doctor
-          </NavLink>
+              <NavLink
+                to="/Consult"
+                onClick={() => setMenuOpen(false)}
+                className={navStyle}
+              >
+                Book Appointment
+              </NavLink>
 
           <NavLink
             to="/Products"
