@@ -199,11 +199,26 @@ const inventorySchema = new mongoose.Schema(
 
         stockStatus: {
             type: String,
-            enum: ["In Stock", "Low Stock", "Out Of Stock", "Discontinued", "Expired"],
+            enum: ["In Stock", "Low Stock", "Out Of Stock", "Discontinued", "Expired", "Blocked"],
             default: "In Stock",
             required: true,
             trim: true,
             index: true,
+        },
+
+        isDeleted: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+        deletedAt: {
+            type: Date,
+            default: null,
+        },
+        deletedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
         },
 
         stockMovements: {

@@ -18,6 +18,7 @@ const reviewSchema = new mongoose.Schema(
             ref: "User",
             required: true,
             index: true,
+            alias: "createdBy",
         },
 
         product: {
@@ -51,11 +52,13 @@ const reviewSchema = new mongoose.Schema(
         reviewTitle: {
             type: String,
             trim: true,
+            alias: "title",
         },
 
         reviewDescription: {
             type: String,
             trim: true,
+            alias: "comment",
         },
 
         rating: {
@@ -69,18 +72,10 @@ const reviewSchema = new mongoose.Schema(
         reviewImages: {
             type: [reviewMediaSchema],
             default: [],
+            alias: "images",
             validate: {
                 validator: (values) => Array.isArray(values),
                 message: "Review images must be an array",
-            },
-        },
-
-        reviewVideos: {
-            type: [reviewMediaSchema],
-            default: [],
-            validate: {
-                validator: (values) => Array.isArray(values),
-                message: "Review videos must be an array",
             },
         },
 
@@ -92,15 +87,6 @@ const reviewSchema = new mongoose.Schema(
         verifiedConsultation: {
             type: Boolean,
             default: false,
-        },
-
-        status: {
-            type: String,
-            enum: ["Pending", "Approved", "Rejected", "Hidden", "Reported"],
-            default: "Pending",
-            required: true,
-            trim: true,
-            index: true,
         },
 
         helpfulCount: {
@@ -115,6 +101,21 @@ const reviewSchema = new mongoose.Schema(
             min: [0, "Report count cannot be negative"],
         },
 
+        helpfulVotes: {
+            type: [mongoose.Schema.Types.ObjectId],
+            ref: "User",
+            default: [],
+        },
+
+        status: {
+            type: String,
+            enum: ["Pending", "Approved", "Rejected", "Hidden"],
+            default: "Pending",
+            required: true,
+            trim: true,
+            index: true,
+        },
+
         moderatedBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
@@ -123,11 +124,17 @@ const reviewSchema = new mongoose.Schema(
 
         moderatedDate: {
             type: Date,
+            default: null,
         },
 
         moderationNotes: {
             type: String,
             trim: true,
+        },
+
+        deletedAt: {
+            type: Date,
+            default: null,
         },
     },
     {
@@ -135,13 +142,11 @@ const reviewSchema = new mongoose.Schema(
     }
 );
 
-// Search-friendly indexes for review analytics, moderation queues, and entity-specific listings.
-reviewSchema.index({ user: 1 });
-reviewSchema.index({ product: 1 });
-reviewSchema.index({ doctor: 1 });
-reviewSchema.index({ order: 1 });
-reviewSchema.index({ appointment: 1 });
-reviewSchema.index({ rating: 1 });
-reviewSchema.index({ status: 1 });
+reviewSchema.index({ user: 1, product: 1 }, { unique: true, partialFilterExpression: { product: { $exists: true, $ne: null } } });
+reviewSchema.index({ user: 1, appointment: 1 }, { unique: true, partialFilterExpression: { appointment: { $exists: true, $ne: null } } });
+reviewSchema.index({ product: 1, status: 1, createdAt: -1 });
+reviewSchema.index({ doctor: 1, status: 1, createdAt: -1 });
+reviewSchema.index({ rating: 1, status: 1 });
+reviewSchema.index({ helpfulCount: -1, createdAt: -1 });
 
-export const Review = mongoose.model("Review", reviewSchema);
+export const Review = mongoose.models.Review || mongoose.model("Review", reviewSchema);

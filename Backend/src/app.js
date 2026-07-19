@@ -10,11 +10,19 @@ import addressRoutes from "./routes/address.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import prescriptionRoutes from "./routes/prescription.routes.js";
 import medicalReportRoutes from "./routes/medicalReport.routes.js";
+import inventoryRoutes from "./routes/inventory.routes.js";
+import couponRoutes from "./routes/coupon.routes.js";
+import wishlistRoutes from "./routes/wishlist.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
+
+
+
 
 
 
 
 const app = express();
+
 
 
 app.use(
@@ -46,6 +54,11 @@ app.use("/api/address", addressRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
 app.use("/api/medical-reports", medicalReportRoutes);
+app.use("/api/inventory", inventoryRoutes);
+app.use("/api/coupons", couponRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/reviews", reviewRoutes);
 export default app;
+
 
 
