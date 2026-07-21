@@ -119,10 +119,5 @@ const addressSchema = new mongoose.Schema(
     }
 );
 
-// Lookup-friendly indexes for profile, checkout, and admin filters.
-addressSchema.index({ user: 1 });
-addressSchema.index({ postalCode: 1 });
-addressSchema.index({ city: 1 });
-addressSchema.index({ isDefault: 1 });
 
 export const Address = mongoose.model("Address", addressSchema);

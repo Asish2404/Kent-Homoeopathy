@@ -153,8 +153,6 @@ const couponSchema = new mongoose.Schema(
 );
 
 // Search-friendly indexes for promotion management, checkout evaluation, and admin reporting.
-couponSchema.index({ couponCode: 1 });
-couponSchema.index({ status: 1 });
 couponSchema.index({ startDate: 1 });
 couponSchema.index({ expiryDate: 1 });
 

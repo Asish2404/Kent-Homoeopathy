@@ -1,16 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useCartContext } from "../Cart/CartContext";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 const PAYMENT_METHODS = [
-  "UPI",
-  "Google Pay",
-  "PhonePe",
-  "Paytm",
-  "Credit Card",
-  "Debit Card",
-  "Net Banking",
-  "Cash on Delivery",
+  "Razorpay", "UPI", "Google Pay", "PhonePe", "Paytm",
+  "Credit Card", "Debit Card", "Net Banking", "Cash on Delivery",
 ];
 
 function onlyDigits(s) {
@@ -19,7 +14,6 @@ function onlyDigits(s) {
 
 function normalizeCardNumber(v) {
   const digits = onlyDigits(v).slice(0, 19);
-  // group 4 digits for readability
   return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
 }
 
@@ -30,8 +24,18 @@ function formatExpiry(v) {
 }
 
 function validateCardNumber(v) {
-  const digits = onlyDigits(v);
-  return digits.length >= 12;
+  return onlyDigits(v).length >= 12;
+}
+
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) { resolve(true); return; }
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => resolve(true);
+    s.onerror = () => { console.error("Failed to load Razorpay SDK"); resolve(false); };
+    document.body.appendChild(s);
+  });
 }
 
 export default function Payment() {
@@ -43,42 +47,27 @@ export default function Payment() {
   const empty = inStock.length === 0;
 
   const mrpTotal = inStock.reduce((s, it) => s + Number(it.mrp || 0) * Number(it.qty || 1), 0);
-  const discTotal = inStock.reduce(
-    (s, it) => s + (Number(it.mrp || 0) - Number(it.price || 0)) * Number(it.qty || 1),
-    0
-  );
+  const discTotal = inStock.reduce((s, it) => s + (Number(it.mrp || 0) - Number(it.price || 0)) * Number(it.qty || 1), 0);
   const sub = mrpTotal - discTotal;
 
   const [appliedPayload] = useState(() => {
-    try {
-      const raw = localStorage.getItem("kent_checkout");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+    try { const r = localStorage.getItem("kent_checkout"); return r ? JSON.parse(r) : null; } catch { return null; }
   });
 
   const [couponApplied] = useState(() => {
-    try {
-      const raw = localStorage.getItem("kent_coupon");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+    try { const r = localStorage.getItem("kent_coupon"); return r ? JSON.parse(r) : null; } catch { return null; }
   });
 
-  const couponSave = couponApplied && couponApplied.pct ? Math.round((sub * couponApplied.pct) / 100) : 0;
+  const couponSave = couponApplied ? Number(couponApplied.discountAmount) : 0;
   const delivery = sub > 499 ? 0 : 49;
   const platform = 5;
   const grand = sub - couponSave + delivery + platform;
 
-  const [method, setMethod] = useState("UPI");
+  const [method, setMethod] = useState("Razorpay");
   const [busy, setBusy] = useState(false);
+  const [orderError, setOrderError] = useState("");
 
-  // UPI
   const [upiId, setUpiId] = useState("");
-
-  // Card
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolderName, setCardHolderName] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -86,103 +75,125 @@ export default function Payment() {
 
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (!appliedPayload) {
-      // Still allow payment UI, but guide user back.
-    }
-  }, [appliedPayload]);
+  const isRazorpay = method === "Razorpay";
+  const isCod = method === "Cash on Delivery";
+  const showUpi = method.startsWith("UPI") || ["Google Pay", "PhonePe", "Paytm"].includes(method);
+  const showCard = method === "Credit Card" || method === "Debit Card";
 
-  const validate = () => {
+  const validateUpi = useCallback(() => {
     const e = {};
-
-    const isCod = method === "Cash on Delivery";
-    if (!isCod) {
-      if (method === "UPI" || method === "Google Pay" || method === "PhonePe" || method === "Paytm") {
-        if (!upiId.trim()) e.upiId = "UPI ID is required.";
-        else if (!/^[\w.-]{2,}@[\w.-]{2,}$/.test(upiId.trim())) e.upiId = "Enter a valid UPI ID (name@bank).";
-      } else {
-        // card payment section for Credit/Debit cards
-        if (method === "Credit Card" || method === "Debit Card") {
-          if (!validateCardNumber(cardNumber)) e.cardNumber = "Enter a valid card number.";
-          if (!cardHolderName.trim()) e.cardHolderName = "Card holder name is required.";
-          if (!/^\d{2}\/\d{2}$/.test(expiry)) e.expiry = "Expiry must be in MM/YY.";
-          if (onlyDigits(cvv).length < 3) e.cvv = "CVV must be 3-4 digits.";
-        } else {
-          // Net Banking or others: dummy validation
-        }
-      }
-    }
-
-    setErrors(e);
+    if (showUpi && !upiId.includes("@")) e.upiId = "Enter a valid UPI ID (e.g., name@bank)";
+    setErrors((prev) => ({ ...prev, ...e }));
     return Object.keys(e).length === 0;
-  };
+  }, [showUpi, upiId]);
 
-  const persistCouponForTotal = () => {
-    // Checkout page currently stores only checkout payload.
-    // If coupon was applied, we persist it here from state if possible.
-    // For production, you’d store in one place. Here it's a dummy.
-    try {
-      // no-op
-    } catch {
-      // ignore
+  const validateCard = useCallback(() => {
+    const e = {};
+    if (showCard) {
+      if (!validateCardNumber(cardNumber)) e.cardNumber = "Enter a valid card number";
+      if (!cardHolderName.trim()) e.cardHolderName = "Enter cardholder name";
+      if (expiry.length < 5) e.expiry = "Enter a valid expiry";
+      if (cvv.length < 3) e.cvv = "Enter a valid CVV";
     }
-  };
+    setErrors((prev) => ({ ...prev, ...e }));
+    return Object.keys(e).length === 0;
+  }, [showCard, cardNumber, cardHolderName, expiry, cvv]);
 
-  const onPay = async () => {
-    if (empty) {
-      navigate("/cart");
-      return;
-    }
+  const onPay = useCallback(async () => {
+    setOrderError("");
+    setErrors({});
 
-    if (!validate()) return;
+    if (!validateUpi() || !validateCard()) return;
 
     setBusy(true);
-    await new Promise((r) => setTimeout(r, 700));
-
-    // Dummy order creation
-    let orderId = "DK";
-    try {
-      const n = Math.floor(100000 + Math.random() * 900000);
-      orderId = `DK${n}`;
-    } catch {
-      // ignore
-    }
-
-    const etaDays = 2;
-    const d = new Date();
-    d.setDate(d.getDate() + etaDays);
-    const estimated = d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
-
-    const order = {
-      id: orderId,
-      amount: grand,
-      method,
-      estimatedDelivery: estimated,
-      createdAt: Date.now(),
-    };
 
     try {
-      localStorage.setItem("kent_order", JSON.stringify(order));
-    } catch {
-      // ignore
+      const checkout = appliedPayload || (() => {
+        try { return JSON.parse(localStorage.getItem("kent_checkout")); } catch { return null; }
+      })();
+      if (!checkout) {
+        setOrderError("Checkout data missing. Please go back to checkout.");
+        setBusy(false);
+        return;
+      }
+
+      if (isRazorpay) {
+        const scriptLoaded = await loadRazorpayScript();
+        if (!scriptLoaded) {
+          setOrderError("Failed to load Razorpay SDK. Please try again.");
+          setBusy(false);
+          return;
+        }
+
+        const { data: order } = await api.post("/payment/create-order", {
+          amount: Math.round(grand * 100),
+          currency: "INR",
+          receipt: `rcpt_${Date.now()}`,
+          notes: { checkoutPayload: JSON.stringify(checkout) },
+        });
+
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+          amount: order.amount,
+          currency: order.currency,
+          name: "Kent Homoeopharmacy",
+          description: "Medicine Order Payment",
+          order_id: order.id,
+          prefill: {
+            name: checkout.shippingAddress?.fullName || "",
+            email: checkout.shippingAddress?.email || "",
+            contact: checkout.shippingAddress?.phone || "",
+          },
+          theme: { color: "#16a34a" },
+          handler: async function (response) {
+            try {
+              await api.post("/payment/verify", {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                checkoutPayload: checkout,
+              });
+              navigate("/order-success", { replace: true });
+            } catch (err) {
+              setOrderError("Payment verification failed. Please contact support.");
+            }
+          },
+          modal: {
+            ondismiss: function () { setBusy(false); },
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", function (response) {
+          setOrderError(response.error?.description || "Payment failed. Please try again.");
+          setBusy(false);
+        });
+        rzp.open();
+      } else {
+        const payload = {
+          ...checkout,
+          paymentMethod: method,
+          upiId: showUpi ? upiId : undefined,
+          cardLast4: showCard ? onlyDigits(cardNumber).slice(-4) : undefined,
+        };
+
+        const { data } = await api.post("/orders/place", payload);
+        localStorage.removeItem("kent_cart");
+        localStorage.removeItem("kent_checkout");
+        localStorage.removeItem("kent_coupon");
+        navigate("/order-success", { state: { orderId: data.order?._id || data._id }, replace: true });
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message || "Payment failed. Please try again.";
+      setOrderError(msg);
+    } finally {
+      if (!isRazorpay) setBusy(false);
     }
+  }, [appliedPayload, grand, isRazorpay, method, showUpi, showCard, upiId, cardNumber, cardHolderName, expiry, cvv, navigate, validateUpi, validateCard]);
 
-    // Clear cart (typical UX) AFTER order success
-    try {
-      // we can't rely on cart.clearCart existence from context value? It exists in CartState.
-      cart.clearCart?.();
-    } catch {
-      // ignore
-    }
-
-    setBusy(false);
-    persistCouponForTotal();
-    navigate("/order-success");
-  };
-
-  const isCod = method === "Cash on Delivery";
-  const showUpi = method === "UPI" || method === "Google Pay" || method === "PhonePe" || method === "Paytm";
-  const showCard = method === "Credit Card" || method === "Debit Card";
+  useEffect(() => {
+    document.title = "Payment - Kent Homoeopharmacy";
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
@@ -200,36 +211,36 @@ export default function Payment() {
           <p className="text-xs text-slate-400 font-medium">Choose a payment method</p>
         </div>
 
+        {orderError && (
+          <div className="mb-6 rounded-2xl bg-red-50 border border-red-200 px-5 py-4">
+            <p className="text-sm font-semibold text-red-700">{orderError}</p>
+            <button className="text-xs text-red-600 underline mt-1" onClick={() => setOrderError("")}>Dismiss</button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* LEFT */}
           <section className="lg:col-span-7 space-y-5">
+
+            {/* Payment Methods Selection */}
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                 <h2 className="font-bold text-slate-800 text-base">Payment Methods</h2>
-                <p className="text-xs text-slate-400 mt-0.5">One method only · Secure UI (dummy)</p>
+                <p className="text-xs text-slate-400 mt-0.5">Select your preferred method</p>
               </div>
-
               <div className="px-5 py-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {PAYMENT_METHODS.map((m) => {
                     const active = method === m;
                     return (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setMethod(m)}
-                        className={
-                          "rounded-2xl border px-4 py-4 text-left transition card focus-visible:outline-emerald-500 " +
-                          (active ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white hover:bg-slate-50")
-                        }
+                      <button key={m} type="button" onClick={() => setMethod(m)}
+                        className={"rounded-2xl border px-4 py-4 text-left transition card focus-visible:outline-emerald-500 " + (active ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white hover:bg-slate-50")}
                         aria-pressed={active}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="text-sm font-bold text-slate-800">{m}</p>
-                            <p className="text-xs text-slate-500 mt-1">
-                              {m === "Cash on Delivery" ? "Pay at doorstep" : "Fast & secure"}
-                            </p>
+                            <p className="text-xs text-slate-500 mt-1">{m === "Cash on Delivery" ? "Pay at doorstep" : m === "Razorpay" ? "Cards, UPI, NetBanking" : "Fast & secure"}</p>
                           </div>
                           {active ? (
                             <svg className="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -246,8 +257,31 @@ export default function Payment() {
               </div>
             </div>
 
-            {/* Method details */}
-            {showUpi ? (
+            {/* Razorpay */}
+            {isRazorpay && (
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                  <h2 className="font-bold text-slate-800 text-base">Razorpay</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Pay via Credit/Debit Card, UPI, Net Banking, Wallet</p>
+                </div>
+                <div className="px-5 py-5">
+                  <div className="rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-4">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-bold text-emerald-900">Secure Payment Gateway</p>
+                        <p className="text-xs text-emerald-800 mt-1 font-semibold">You will be redirected to Razorpay checkout to complete payment securely.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* UPI */}
+            {showUpi && (
               <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                   <h2 className="font-bold text-slate-800 text-base">UPI</h2>
@@ -256,23 +290,17 @@ export default function Payment() {
                 <div className="px-5 py-5">
                   <label className="block">
                     <span className="text-sm font-semibold text-slate-800">UPI ID</span>
-                    <input
-                      value={upiId}
-                      onChange={(e) => setUpiId(e.target.value)}
-                      placeholder="name@bank"
-                      className={
-                        "mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " +
-                        (errors.upiId ? "border-red-200 focus:ring-red-100" : "border-slate-200")
-                      }
-                      aria-invalid={!!errors.upiId}
+                    <input value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="name@bank"
+                      className={"mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " + (errors.upiId ? "border-red-200 focus:ring-red-100" : "border-slate-200")}
                     />
-                    {errors.upiId ? <p className="mt-1 text-xs text-red-600 font-semibold">{errors.upiId}</p> : null}
+                    {errors.upiId && <p className="mt-1 text-xs text-red-600 font-semibold">{errors.upiId}</p>}
                   </label>
                 </div>
               </div>
-            ) : null}
+            )}
 
-            {showCard ? (
+            {/* Credit/Debit Card */}
+            {showCard && (
               <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                   <h2 className="font-bold text-slate-800 text-base">Card Payment</h2>
@@ -281,121 +309,85 @@ export default function Payment() {
                 <div className="px-5 py-5 space-y-4">
                   <label className="block">
                     <span className="text-sm font-semibold text-slate-800">Card Number</span>
-                    <input
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(normalizeCardNumber(e.target.value))}
-                      placeholder="1234 5678 9012 3456"
-                      inputMode="numeric"
-                      className={
-                        "mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " +
-                        (errors.cardNumber ? "border-red-200 focus:ring-red-100" : "border-slate-200")
-                      }
-                      aria-invalid={!!errors.cardNumber}
+                    <input value={cardNumber} onChange={(e) => setCardNumber(normalizeCardNumber(e.target.value))} placeholder="1234 5678 9012 3456" inputMode="numeric"
+                      className={"mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " + (errors.cardNumber ? "border-red-200 focus:ring-red-100" : "border-slate-200")}
                     />
-                    {errors.cardNumber ? <p className="mt-1 text-xs text-red-600 font-semibold">{errors.cardNumber}</p> : null}
+                    {errors.cardNumber && <p className="mt-1 text-xs text-red-600 font-semibold">{errors.cardNumber}</p>}
                   </label>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <label className="block">
                       <span className="text-sm font-semibold text-slate-800">Card Holder Name</span>
-                      <input
-                        value={cardHolderName}
-                        onChange={(e) => setCardHolderName(e.target.value)}
-                        placeholder="Asish Kumar"
-                        className={
-                          "mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " +
-                          (errors.cardHolderName ? "border-red-200 focus:ring-red-100" : "border-slate-200")
-                        }
+                      <input value={cardHolderName} onChange={(e) => setCardHolderName(e.target.value)} placeholder="John Doe"
+                        className={"mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " + (errors.cardHolderName ? "border-red-200 focus:ring-red-100" : "border-slate-200")}
                       />
-                      {errors.cardHolderName ? <p className="mt-1 text-xs text-red-600 font-semibold">{errors.cardHolderName}</p> : null}
+                      {errors.cardHolderName && <p className="mt-1 text-xs text-red-600 font-semibold">{errors.cardHolderName}</p>}
                     </label>
-
                     <label className="block">
                       <span className="text-sm font-semibold text-slate-800">Expiry Date</span>
-                      <input
-                        value={expiry}
-                        onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                        placeholder="MM/YY"
-                        inputMode="numeric"
-                        className={
-                          "mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " +
-                          (errors.expiry ? "border-red-200 focus:ring-red-100" : "border-slate-200")
-                        }
+                      <input value={expiry} onChange={(e) => setExpiry(formatExpiry(e.target.value))} placeholder="MM/YY" inputMode="numeric"
+                        className={"mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " + (errors.expiry ? "border-red-200 focus:ring-red-100" : "border-slate-200")}
                       />
-                      {errors.expiry ? <p className="mt-1 text-xs text-red-600 font-semibold">{errors.expiry}</p> : null}
+                      {errors.expiry && <p className="mt-1 text-xs text-red-600 font-semibold">{errors.expiry}</p>}
                     </label>
                   </div>
-
                   <label className="block">
                     <span className="text-sm font-semibold text-slate-800">CVV</span>
-                    <input
-                      value={cvv}
-                      onChange={(e) => setCvv(onlyDigits(e.target.value).slice(0, 4))}
-                      placeholder="123"
-                      inputMode="numeric"
-                      className={
-                        "mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " +
-                        (errors.cvv ? "border-red-200 focus:ring-red-100" : "border-slate-200")
-                      }
+                    <input value={cvv} onChange={(e) => setCvv(onlyDigits(e.target.value).slice(0, 4))} placeholder="123" inputMode="numeric"
+                      className={"mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 " + (errors.cvv ? "border-red-200 focus:ring-red-100" : "border-slate-200")}
                     />
-                    {errors.cvv ? <p className="mt-1 text-xs text-red-600 font-semibold">{errors.cvv}</p> : null}
+                    {errors.cvv && <p className="mt-1 text-xs text-red-600 font-semibold">{errors.cvv}</p>}
                   </label>
-
-                  <div className="rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-3">
-                    <p className="text-xs text-emerald-800 font-semibold">
-                      Note: This is a dummy payment UI — no real charge will happen.
-                    </p>
-                  </div>
                 </div>
               </div>
-            ) : null}
+            )}
 
-            {method === "Net Banking" ? (
+            {/* Net Banking */}
+            {method === "Net Banking" && (
               <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                   <h2 className="font-bold text-slate-800 text-base">Net Banking</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Select your bank (dummy)</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Select your bank</p>
                 </div>
                 <div className="px-5 py-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {["SBI", "HDFC", "ICICI", "Axis"].map((b) => (
                       <div key={b} className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
                         <p className="text-sm font-bold text-slate-800">{b}</p>
-                        <p className="text-xs text-slate-500 mt-1">Demo option</p>
+                        <p className="text-xs text-slate-500 mt-1">Available</p>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-            ) : null}
+            )}
 
-            {isCod ? (
+            {/* Cash on Delivery */}
+            {isCod && (
               <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                   <h2 className="font-bold text-slate-800 text-base">Cash on Delivery</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Confirm order without online payment</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Pay when you receive</p>
                 </div>
                 <div className="px-5 py-5">
                   <div className="rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-4">
                     <div className="flex items-start gap-3">
                       <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m2 0a7 7 0 11-14 0a7 7 0 0114 0Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m2 0a7 7 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <div>
                         <p className="text-sm font-bold text-emerald-900">Pay at doorstep</p>
-                        <p className="text-xs text-emerald-800 mt-1 font-semibold">
-                          Your order will be handed over after verification (dummy flow).
-                        </p>
+                        <p className="text-xs text-emerald-800 mt-1 font-semibold">Your order will be placed and you can pay in cash when it arrives.</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            ) : null}
+            )}
+
           </section>
 
           {/* RIGHT summary */}
-          <aside className="lg:col-span-5">
+          <aside className="lg:col-span-5 space-y-5">
             <div className="lg:sticky lg:top-[72px] space-y-5">
               <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
@@ -410,25 +402,20 @@ export default function Payment() {
                     <span className="text-slate-500">Payment Method</span>
                     <span className="font-semibold text-slate-800">{method}</span>
                   </div>
-
                   <div className="h-px bg-slate-100" />
-
-                  <button
-                    onClick={onPay}
-                    disabled={busy || empty}
+                  <button onClick={onPay} disabled={busy || empty}
                     className="shine w-full py-4 text-white font-black rounded-2xl text-[15px] shadow-lg hover:shadow-xl active:scale-[0.99] transition-all duration-200 tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
                     style={{ background: "linear-gradient(135deg,#16a34a 0%,#059669 60%,#047857 100%)" }}
                   >
                     <span className="flex items-center justify-center gap-2">
-                      {busy ? "Processing…" : "Pay Now"}
+                      {busy ? "Processing\u2026" : isRazorpay ? "Pay with Razorpay" : "Place Order"}
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                       </svg>
                     </span>
                   </button>
-
                   <p className="text-center text-[10px] text-slate-400 font-medium">
-                    Dummy payment · No gateway integration
+                    {isRazorpay ? "Secured by Razorpay" : `${method} \u00B7 Backend integrated`}
                   </p>
                 </div>
               </div>
@@ -438,11 +425,8 @@ export default function Payment() {
                   <h2 className="font-bold text-slate-800 text-base">Need to edit?</h2>
                 </div>
                 <div className="px-5 py-5">
-                  <button
-                    onClick={() => navigate("/checkout")}
-                    className="btn-outline w-full"
-                    style={{ padding: 14, borderRadius: 16 }}
-                  >
+                  <button onClick={() => navigate("/checkout")}
+                    className="btn-outline w-full" style={{ padding: 14, borderRadius: 16 }}>
                     Back to Checkout
                   </button>
                 </div>
@@ -453,25 +437,22 @@ export default function Payment() {
       </main>
 
       {/* Mobile sticky bar */}
-      {!empty ? (
+      {!empty && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-3 shadow-2xl">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[11px] text-slate-400 font-medium">Payable</p>
               <p className="text-xl font-black text-slate-900">₹{grand.toFixed(0)}</p>
             </div>
-            <button
-              onClick={onPay}
-              disabled={busy}
+            <button onClick={onPay} disabled={busy}
               className="shine flex-1 max-w-xs py-3.5 text-white font-black rounded-2xl text-sm shadow-lg disabled:opacity-60"
               style={{ background: "linear-gradient(135deg,#16a34a,#059669)" }}
             >
-              {busy ? "Processing…" : "Pay Now"}
+              {busy ? "Processing\u2026" : "Pay Now"}
             </button>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
-

@@ -3,11 +3,23 @@ import { User } from "../models/atanu.user.model.js";
 
 export const verifyJWT = async (req, res, next) => {
     try {
-        const token = req.header("Authorization");
+        const authHeader = req.header("Authorization");
+
+        if (!authHeader) {
+            return res.status(401).json({
+                message: "Access Denied. No Token Provided."
+            });
+        }
+
+        // Extract token from "Bearer <token>" or accept raw token
+        let token = authHeader;
+        if (authHeader.startsWith("Bearer ")) {
+            token = authHeader.slice(7).trim();
+        }
 
         if (!token) {
             return res.status(401).json({
-                message: "Access Denied. No Token Provided."
+                message: "Access Denied. Invalid Token Format."
             });
         }
 

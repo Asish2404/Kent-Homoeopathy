@@ -273,12 +273,5 @@ const inventorySchema = new mongoose.Schema(
 );
 
 // Lookup indexes for pharmacy inventory, expiry management, and admin operations.
-inventorySchema.index({ product: 1 });
-inventorySchema.index({ sku: 1 });
-inventorySchema.index({ barcode: 1 });
-inventorySchema.index({ batchNumber: 1 });
 inventorySchema.index({ expiryDate: 1 });
-inventorySchema.index({ stockStatus: 1 });
-inventorySchema.index({ warehouseLocation: 1 });
-
 export const Inventory = mongoose.model("Inventory", inventorySchema);

@@ -162,11 +162,6 @@ const medicalReportSchema = new mongoose.Schema(
 );
 
 // Search-friendly indexes for patient history, clinical review, and admin reporting.
-medicalReportSchema.index({ patient: 1 });
-medicalReportSchema.index({ doctor: 1 });
-medicalReportSchema.index({ appointment: 1 });
-medicalReportSchema.index({ prescription: 1 });
-medicalReportSchema.index({ reportType: 1 });
 medicalReportSchema.index({ generatedDate: 1 });
 
 export const MedicalReport = mongoose.model("MedicalReport", medicalReportSchema);

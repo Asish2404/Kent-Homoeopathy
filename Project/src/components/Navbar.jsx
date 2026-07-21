@@ -145,9 +145,9 @@ const readUser = () => {
             </button>
 
             {/* Shared universal search */}
-            <div className="flex-1 flex justify-center min-w-0">
-              <div className="w-full max-w-[500px] min-w-[420px] px-1">
-                <div className="w-full h-[48px] rounded-full">
+            <div className="flex-1 flex justify-center min-w-0 max-w-[520px] px-1 sm:px-2">
+              <div className="w-full min-w-0">
+                <div className="w-full h-[42px] sm:h-[48px] rounded-full">
                   <SearchBox
                     className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 transition-[transform,border-color,box-shadow] duration-300 hover:border-[var(--brand-300)] focus-within:ring-4 focus-within:ring-[var(--brand-200)]"
                     placeholder="Search medicines, brands..."
@@ -155,7 +155,6 @@ const readUser = () => {
                   />
                 </div>
               </div>
-              <div className="hidden md:block flex-1" />
             </div>
 
 
@@ -224,7 +223,7 @@ const readUser = () => {
                   )}
                 </NavLink>
 
-                {user ? (
+{user ? (
                   <div className="relative flex-shrink-0" ref={profileRef}>
                     <div
                       onClick={() => setProfileOpen(!profileOpen)}
@@ -246,109 +245,109 @@ const readUser = () => {
                       </div>
                     </div>
 
+                    {profileOpen && (
+                      <div
+                        className="absolute top-14 right-0 w-72 bg-white rounded-2xl shadow-2xl overflow-hidden border border-neutral-100 z-50 animate-fade-up"
+                      >
+                        <div className="flex flex-col items-center py-6 bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-700)]">
+                          <img
+                            src={`https://ui-avatars.com/api/?name=${user.user_name}&background=ffffff&color=16a34a&bold=true`}
+                            alt="avatar"
+                            className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
+                          />
+                          <h3 className="mt-3 text-white font-bold text-lg">
+                            {user.user_name}
+                          </h3>
+                          <p className="text-[var(--brand-100)] text-sm">
+                            {user.email}
+                          </p>
+                        </div>
 
-                  {profileOpen && (
-                    <div
-                      className="absolute top-14 right-0 w-72 bg-white rounded-2xl shadow-2xl overflow-hidden border border-neutral-100 z-50 animate-fade-up"
+                        <div className="flex flex-col p-3 gap-1">
+                          <NavLink
+                            to="/Profile"
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition"
+                          >
+                            <FaUserCircle className="text-[var(--brand-600)] text-lg" />
+                            <span className="font-medium whitespace-nowrap">My Profile</span>
+                          </NavLink>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigate("/Profile", { state: { tab: "orders" } });
+                              setProfileOpen(false);
+                            }}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
+                          >
+                            <FaUserMd className="text-[var(--brand-600)] text-lg" />
+                            <span className="font-medium whitespace-nowrap">My Orders</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigate("/Profile", { state: { tab: "wishlist" } });
+                              setProfileOpen(false);
+                            }}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
+                          >
+                            <FiHeart className="text-[var(--brand-600)] text-lg" />
+                            <span className="font-medium whitespace-nowrap">Wishlist</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigate("/Profile", { state: { tab: "security" } });
+                              setProfileOpen(false);
+                            }}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
+                          >
+                            <FaCog className="text-[var(--brand-600)] text-lg" />
+                            <span className="font-medium whitespace-nowrap">Settings</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigate("/Profile", { state: { tab: "appointments" } });
+                              setProfileOpen(false);
+                            }}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
+                          >
+                            <FaUserMd className="text-[var(--brand-600)] text-lg" />
+                            <span className="font-medium whitespace-nowrap">
+                              My Appointments
+                            </span>
+                          </button>
+
+                          <div className="border-t border-neutral-100 my-1" />
+
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-500 hover:text-white text-red-600 py-3 rounded-xl font-semibold transition mt-1"
+                          >
+                            <FaSignOutAlt />
+                            <span className="whitespace-nowrap">Logout</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  !isAdmin ? (
+                    <NavLink
+                      to="/Login"
+                      className="btn-primary h-[48px] px-5 whitespace-nowrap text-sm rounded-xl flex items-center justify-center"
                     >
-                      <div className="flex flex-col items-center py-6 bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-700)]">
-                        <img
-                          src={`https://ui-avatars.com/api/?name=${user.user_name}&background=ffffff&color=16a34a&bold=true`}
-                          alt="avatar"
-                          className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
-                        />
-                        <h3 className="mt-3 text-white font-bold text-lg">
-                          {user.user_name}
-                        </h3>
-                        <p className="text-[var(--brand-100)] text-sm">
-                          {user.email}
-                        </p>
-                      </div>
+                      Login / Sign Up
+                    </NavLink>
+                  ) : null
+                )}
 
-                      <div className="flex flex-col p-3 gap-1">
-                        <NavLink
-                          to="/Profile"
-                          onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition"
-                        >
-                          <FaUserCircle className="text-[var(--brand-600)] text-lg" />
-                          <span className="font-medium whitespace-nowrap">My Profile</span>
-                        </NavLink>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigate("/Profile", { state: { tab: "orders" } });
-                            setProfileOpen(false);
-                          }}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
-                        >
-                          <FaUserMd className="text-[var(--brand-600)] text-lg" />
-                          <span className="font-medium whitespace-nowrap">My Orders</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigate("/Profile", { state: { tab: "wishlist" } });
-                            setProfileOpen(false);
-                          }}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
-                        >
-                          <FiHeart className="text-[var(--brand-600)] text-lg" />
-                          <span className="font-medium whitespace-nowrap">Wishlist</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigate("/Profile", { state: { tab: "security" } });
-                            setProfileOpen(false);
-                          }}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
-                        >
-                          <FaCog className="text-[var(--brand-600)] text-lg" />
-                          <span className="font-medium whitespace-nowrap">Settings</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigate("/Profile", { state: { tab: "appointments" } });
-                            setProfileOpen(false);
-                          }}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
-                        >
-                          <FaUserMd className="text-[var(--brand-600)] text-lg" />
-                          <span className="font-medium whitespace-nowrap">
-                            My Appointments
-                          </span>
-                        </button>
-
-                        <div className="border-t border-neutral-100 my-1" />
-
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-500 hover:text-white text-red-600 py-3 rounded-xl font-semibold transition mt-1"
-                        >
-                          <FaSignOutAlt />
-                          <span className="whitespace-nowrap">Logout</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                !isAdmin ? (
-                  <NavLink
-                    to="/Login"
-                    className="btn-primary h-[48px] px-5 whitespace-nowrap text-sm rounded-xl flex items-center justify-center"
-                  >
-                    Login / Sign Up
-                  </NavLink>
-                ) : null
-              )}
-
+            </div>
             </div>
 
             {/* Mobile right cluster */}

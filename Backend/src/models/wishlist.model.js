@@ -81,8 +81,5 @@ const wishlistSchema = new mongoose.Schema(
 );
 
 // Lookup indexes for wishlist retrieval, sharing, and analytics.
-wishlistSchema.index({ user: 1 }, { unique: true });
 wishlistSchema.index({ "products.product": 1 });
-wishlistSchema.index({ visibility: 1 });
-
 export const Wishlist = mongoose.model("Wishlist", wishlistSchema);

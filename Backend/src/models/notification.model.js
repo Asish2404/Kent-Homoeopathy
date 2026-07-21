@@ -182,10 +182,6 @@ const notificationSchema = new mongoose.Schema(
 );
 
 // Lookup indexes for inbox performance, notification analytics, and admin filtering.
-notificationSchema.index({ receiver: 1 });
-notificationSchema.index({ notificationType: 1 });
-notificationSchema.index({ status: 1 });
-notificationSchema.index({ priority: 1 });
 notificationSchema.index({ createdAt: -1 });
 
 export const Notification = mongoose.model("Notification", notificationSchema);

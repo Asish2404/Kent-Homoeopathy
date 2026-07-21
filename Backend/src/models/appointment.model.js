@@ -172,12 +172,4 @@ const appointmentSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
-
-// Search-friendly indexes for doctor schedules, patient history, and appointment lifecycle queries.
-appointmentSchema.index({ patient: 1 });
-appointmentSchema.index({ doctor: 1 });
-appointmentSchema.index({ appointmentDate: 1 });
-appointmentSchema.index({ status: 1 });
-appointmentSchema.index({ appointmentNumber: 1 });
-
 export const Appointment = mongoose.model("Appointment", appointmentSchema);

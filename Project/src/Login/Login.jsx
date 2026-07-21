@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
     FaEye,
@@ -6,6 +6,7 @@ import {
     FaGoogle,
     FaFacebookF
 } from "react-icons/fa";
+import api from "../services/api";
 
 import login from "./Login.png";
 
@@ -15,46 +16,25 @@ const Login = () => {
     const location = useLocation();
 
     // If an admin is already logged in and they visit /login, redirect to /admin
-    if (window.localStorage.getItem("role") === "admin") {
-        // Keep customer login behavior unchanged; only redirect admins.
-        navigate("/admin", { replace: true });
-    }
+    useEffect(() => {
+        if (window.localStorage.getItem("role") === "admin") {
+            navigate("/admin", { replace: true });
+        }
+    }, [navigate]);
 
-
-    const USERS_KEY = "auth_users_v1";
-    const REMEMBERED_EMAIL_KEY = "auth_remembered_email_v1";
 
     const [signup, setSignup] = useState(false);
     const [user_name, setUserName] = useState("");
-    const [email, setEmail] = useState(() => localStorage.getItem(REMEMBERED_EMAIL_KEY) || "");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
-    const [rememberMe, setRememberMe] = useState(() => Boolean(localStorage.getItem(REMEMBERED_EMAIL_KEY)));
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const [status, setStatus] = useState(() => location.state?.message || "");
-
-    
-
-    const readUsers = () => {
-        try {
-            const raw = localStorage.getItem(USERS_KEY);
-            if (!raw) return [];
-            const parsed = JSON.parse(raw);
-            return Array.isArray(parsed) ? parsed : [];
-        } catch {
-            return [];
-        }
-    };
-
-    const writeUsers = (users) => {
-        localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    };
-
-    // Initial email/remember state and status are derived from localStorage / location.state
+    const [loading, setLoading] = useState(false);
 
     const validate = () => {
         const nextErrors = {};
@@ -70,73 +50,80 @@ const Login = () => {
         return Object.keys(nextErrors).length === 0;
     };
 
-    const handleAuth = () => {
-
+    const handleAuth = async () => {
         setStatus("");
+        setErrors({});
         if (!validate()) return;
 
-        // Frontend-only role-based login (Admin uses hardcoded temporary credentials)
-        if (!signup) {
-            const adminEmail = "admin@drkent.com";
-            const adminPassword = "Admin@123";
+        setLoading(true);
 
-            if (email.trim().toLowerCase() === adminEmail && password === adminPassword) {
+        try {
+            if (signup) {
+                // Signup via backend API
+                await api.post("/auth/signup", {
+                    user_name: user_name.trim(),
+                    email: email.trim(),
+                    password,
+                    phone: phone.trim(),
+                    address: address.trim(),
+                });
+
+                // After signup, login automatically
+                const loginRes = await api.post("/auth/login", {
+                    email: email.trim(),
+                    password,
+                });
+
+                const { token, user: loggedInUser } = loginRes.data;
+
+                localStorage.setItem("authToken", token);
                 localStorage.setItem("isLoggedIn", "true");
-                localStorage.setItem("role", "admin");
-                localStorage.setItem("userName", "Administrator");
+                localStorage.setItem("role", loggedInUser.role || "user");
+                localStorage.setItem("userName", loggedInUser.user_name || "");
+                localStorage.setItem("user", JSON.stringify(loggedInUser));
 
-                // Keep Navbar/customer logic stable by also setting the shared user payload.
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify({
-                        user_name: "Administrator",
-                        email: adminEmail,
-                    })
-                );
+                setStatus("Account created. Redirecting...");
+                navigate("/", { replace: true });
+            } else {
+                // Login via backend API
+                const loginRes = await api.post("/auth/login", {
+                    email: email.trim(),
+                    password,
+                });
 
-                navigate("/admin", { replace: true });
-                return;
+                const { token, user: loggedInUser } = loginRes.data;
+                const userRole = loggedInUser.role || "user";
+
+                localStorage.setItem("authToken", token);
+                localStorage.setItem("isLoggedIn", "true");
+                localStorage.setItem("role", userRole);
+                localStorage.setItem("userName", loggedInUser.user_name || "");
+                localStorage.setItem("user", JSON.stringify(loggedInUser));
+
+                if (userRole === "admin") {
+                    navigate("/admin", { replace: true });
+                } else {
+                    navigate("/", { replace: true });
+                }
             }
-        }
+        } catch (err) {
+            const message =
+                err.response?.data?.message ||
+                err.response?.data?.error ||
+                "Authentication failed. Please try again.";
 
-        const users = readUsers();
-
-        if (signup) {
-
-            const existing = users.find((item) => item.email.toLowerCase() === email.trim().toLowerCase());
-            if (existing) {
-                setErrors({ email: "An account already exists with this email" });
-                return;
+            if (err.response?.status === 404) {
+                setErrors({ email: "Account not found. Please sign up first." });
+            } else if (err.response?.status === 401) {
+                setErrors({ password: "Invalid email or password." });
+            } else if (err.response?.status === 409) {
+                setErrors({ email: "An account already exists with this email." });
+            } else {
+                setErrors({ password: message });
             }
-
-            const user = {
-                user_name: user_name.trim(),
-                email: email.trim(),
-                password,
-                phone: phone.trim(),
-                address: address.trim()
-            };
-
-            writeUsers([...users, user]);
-            localStorage.setItem("user", JSON.stringify(user));
-            setStatus("Account created. Redirecting...");
-            navigate("/");
-            return;
+        } finally {
+            setLoading(false);
         }
-
-        const found = users.find((item) => item.email.toLowerCase() === email.trim().toLowerCase() && item.password === password);
-        if (!found) {
-            setErrors({ password: "Invalid email or password" });
-            return;
-        }
-
-        localStorage.setItem("user", JSON.stringify(found));
-        if (rememberMe) {
-            localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
-        } else {
-            localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-        }
-        navigate("/");
     };
 
     return (
@@ -283,29 +270,26 @@ const Login = () => {
 
                             {
                                 !signup &&
-                                <div className="flex justify-between items-center flex-wrap gap-4 text-sm">
-
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
-                                        Remember Me
-                                    </label>
-
+                                <div className="flex justify-end items-center flex-wrap gap-4 text-sm">
                                     <button type="button" onClick={() => setStatus(email ? `Password reset link queued for ${email}` : "Enter your email to reset password")} className="text-green-700 font-semibold cursor-pointer hover:underline">
                                         Forgot Password?
                                     </button>
-
                                 </div>
                             }
 
                             <button
                                 onClick={handleAuth}
-                                className="cursor-pointer bg-gradient-to-r from-green-600 to-emerald-500 text-white py-4 rounded-2xl font-bold shadow-lg hover:scale-105 transition"
+                                disabled={loading}
+                                className={`cursor-pointer bg-gradient-to-r from-green-600 to-emerald-500 text-white py-4 rounded-2xl font-bold shadow-lg hover:scale-105 transition ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
                             >
-                                {
-                                    signup
-                                        ? "Create Account"
-                                        : "Login"
-                                }
+                                {loading ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                        Processing...
+                                    </span>
+                                ) : (
+                                    signup ? "Create Account" : "Login"
+                                )}
                             </button>
                             {status && <p className="text-center text-sm text-green-700 font-medium">{status}</p>}
 

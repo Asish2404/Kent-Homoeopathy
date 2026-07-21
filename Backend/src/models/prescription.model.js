@@ -227,10 +227,6 @@ const prescriptionSchema = new mongoose.Schema(
 );
 
 // Search-friendly indexes for patient history, prescription management, and admin analytics.
-prescriptionSchema.index({ prescriptionNumber: 1 });
-prescriptionSchema.index({ patient: 1 });
-prescriptionSchema.index({ doctor: 1 });
-prescriptionSchema.index({ appointment: 1 });
 prescriptionSchema.index({ generatedDate: 1 });
 
 export const Prescription = mongoose.model("Prescription", prescriptionSchema);

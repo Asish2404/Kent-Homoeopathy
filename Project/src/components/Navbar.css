@@ -46,25 +46,21 @@
 }
 
 .navbarSearchWrap {
-    flex-shrink: 0
+    flex-shrink: 0;
+    width: 100%;
 }
 
 .navbarSearch {
-    width: 450px;
-    max-width: 55vw;
+    width: 100%;
+    max-width: 520px;
     height: 48px
 }
 
 @media (max-width:1024px) {
     .navbarSearch {
-        width: 320px;
-        max-width: 45vw
-    }
-}
-
-@media (max-width:640px) {
-    .navbarSearch {
-        display: none
+        max-width: 100%;
+        width: 100%;
+        height: 42px
     }
 }
 

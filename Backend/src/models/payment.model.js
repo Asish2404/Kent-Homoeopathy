@@ -211,12 +211,4 @@ const paymentSchema = new mongoose.Schema(
 );
 
 // Lookup indexes for transaction history, payment reconciliation, and admin filters.
-paymentSchema.index({ user: 1 });
-paymentSchema.index({ order: 1 });
-paymentSchema.index({ appointment: 1 });
-paymentSchema.index({ paymentStatus: 1 });
-paymentSchema.index({ paymentGateway: 1 });
-paymentSchema.index({ transactionId: 1 });
-paymentSchema.index({ paymentType: 1 });
-
 export const Payment = mongoose.model("Payment", paymentSchema);

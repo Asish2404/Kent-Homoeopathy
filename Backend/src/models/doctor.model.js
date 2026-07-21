@@ -286,12 +286,7 @@ const doctorSchema = new mongoose.Schema(
     }
 );
 
-// Lookup indexes for admin search, schedule filtering, and doctor analytics.
-doctorSchema.index({ registrationNumber: 1 });
-doctorSchema.index({ specialization: 1 });
-doctorSchema.index({ city: 1 });
-doctorSchema.index({ status: 1 });
-doctorSchema.index({ consultationFee: 1 });
+
 
 export const Doctor = mongoose.models.Doctor || mongoose.model("Doctor", doctorSchema);
 

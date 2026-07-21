@@ -112,3 +112,49 @@ export const getProfile = async (req, res) => {
     });
 
 };
+
+// ====================== ADMIN GET ALL USERS ======================
+
+export const getAllUsers = async (req, res) => {
+    try {
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 20));
+        const skip = (page - 1) * limit;
+        const search = (req.query.search || req.query.q || "").toString().trim();
+
+        const filter = {};
+        if (search) {
+            const regex = new RegExp(search, "i");
+            filter.$or = [
+                { user_name: regex },
+                { email: regex },
+                { phone: regex },
+            ];
+        }
+
+        const [users, totalCount] = await Promise.all([
+            User.find(filter)
+                .select("-password")
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            User.countDocuments(filter),
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            users,
+            pagination: {
+                page,
+                limit,
+                totalPages: Math.ceil(totalCount / limit),
+                totalCount,
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Failed to fetch users",
+        });
+    }
+};
