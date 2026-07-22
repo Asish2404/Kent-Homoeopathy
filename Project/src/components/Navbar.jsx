@@ -28,7 +28,6 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [query, setQuery] = useState("");
-  void query;
 
   const profileRef = useRef(null);
   const navigate = useNavigate();
@@ -102,8 +101,6 @@ const readUser = () => {
     navigate(`/Products?query=${encodeURIComponent(next)}`);
     setMenuOpen(false);
   };
-
-  void handleSearch;
 
   return (
     <>

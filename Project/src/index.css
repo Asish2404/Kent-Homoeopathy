@@ -257,3 +257,8 @@ body {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* Serif utility class used by Cart, Checkout, OrderSuccess */
+.serif {
+  font-family: "Plus Jakarta Sans", "Inter", serif;
+}

@@ -12,7 +12,8 @@ const productSchema = new mongoose.Schema(
         mrp_price: { type: Number, required: true },
         discount_price: { type: Number, required: true },
         stock: { type: Number, default: 0 },
-        category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true }
+        category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
+        isKentProduct: { type: Boolean, default: false }
     },
     { timestamps: true }
 );

@@ -27,6 +27,7 @@ import comboOffers from "./ComboOffer";
 import reviews from "./Review";
 const Products = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { productId } = useParams();
   const cart = useCartContext();
 

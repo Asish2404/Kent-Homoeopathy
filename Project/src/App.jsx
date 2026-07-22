@@ -5,6 +5,7 @@ import {
   Route,
 } from "react-router-dom";
 import Layout from "./Layout";
+import ErrorBoundary from "./components/ErrorBoundary";
 import ProductsCatalog from "./ProductsCatalog";
 import ProductsDetails from "./ProductDescription/Products";
 import Contact from "./ContactUS/Contact";
@@ -14,6 +15,7 @@ import Home from "./Home/Home";
 import Consult from "./ConsultDoctor/Consult";
 import Cart from "./Cart/Cart";
 import Profile from "./Profile/Profile";
+import NotFound from "./pages/NotFound";
 
 import CartProvider from "./Cart/CartProvider";
 import Checkout from "./pages/Checkout";
@@ -22,8 +24,6 @@ import OrderSuccess from "./pages/OrderSuccess";
 
 import AdminLayout from "./admin/layout/AdminLayout";
 import AdminRequireAuth from "./admin/routes/AdminRequireAuth";
-
-
 
 import Dashboard from "./admin/pages/Dashboard";
 import Products from "./admin/pages/Products";
@@ -47,10 +47,8 @@ function App() {
         <Route path="Products" element={<ProductsCatalog />} />
         <Route path="products/:productId" element={<ProductsDetails />} />
         <Route path="Contact" element={<Contact />} />
-        <Route path="Cart" element={<Cart />} />
         <Route path="cart" element={<Cart />} />
         <Route path="login" element={<Login />} />
-
         <Route path="Profile" element={<Profile />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="payment" element={<Payment />} />
@@ -59,8 +57,6 @@ function App() {
         {/* ADMIN */}
         <Route path="admin" element={<AdminRequireAuth />}>
           <Route element={<AdminLayout />}>
-
-
             <Route index element={<Dashboard />} />
             <Route path="products" element={<Products />} />
             <Route path="orders" element={<Orders />} />
@@ -70,17 +66,22 @@ function App() {
             <Route path="reports" element={<Reports />} />
             <Route path="categories" element={<Categories />} />
             <Route path="coupons" element={<Coupons />} />
-            <Route path="reviews" element={<Reviews />} />
+<Route path="reviews" element={<Reviews />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 
+        {/* 404 - Catch all unmatched routes */}
+        <Route path="*" element={<NotFound />} />
       </Route>
     )
   );
 
-  return <RouterProvider router={router} />;
+  return (
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
+  );
 }
 
 export default App;
-
