@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate, useParams, Link } from "react-router-dom";
+import { useMemo, useRef, useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   Star,
   Heart,
@@ -23,116 +23,116 @@ import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import ProductCard from "../components/ProductCard";
 import { useCartContext } from "../Cart/CartContext";
 import { vitaminsSupplements, heartCare } from "../data/products";
+import LoadingSkeleton, { ProductDetailSkeleton } from "../components/LoadingSkeleton";
+import EmptyState from "../components/EmptyState";
+import api from "../services/api";
 import comboOffers from "./ComboOffer";
 import reviews from "./Review";
+
+/**
+ * Normalize backend product response to the shape expected by the UI.
+ */
+function normalizeProduct(raw) {
+  const product_name = raw.product_name || raw.name || "";
+  const product_image = raw.product_image || raw.image || "";
+  const images = raw.images || (product_image ? [product_image] : []);
+  const mrp = Number(raw.mrp_price || raw.mrp || raw.originalPrice || 0);
+  const price = Number(raw.discount_price || raw.price || raw.currentPrice || 0);
+  const category =
+    raw.category?.category_name || raw.categoryTitle || raw.category || "Products";
+  const stock = raw.stock ?? raw.inStock ?? 0;
+  const inStock = stock > 0;
+  const description = raw.short_description || raw.shortDescription || raw.description || "";
+  const longDescription = raw.detailed_description || raw.detailedDescription || raw.longDescription || description;
+
+  // Discount % calculation
+  let discountPct = 0;
+  if (typeof raw.discount === "number") {
+    discountPct = raw.discount;
+  } else if (typeof raw.discount === "string") {
+    const m = raw.discount.match(/(\d+(?:\.\d+)?)%/);
+    if (m) discountPct = Number(m[1]);
+  } else if (mrp > 0 && price > 0 && mrp > price) {
+    discountPct = Math.round(((mrp - price) / mrp) * 100);
+  }
+
+  return {
+    id: raw._id || raw.id,
+    name: product_name,
+    category,
+    description,
+    longDescription,
+    rating: Number(raw.rating || 0),
+    reviews: Number(raw.reviews || raw.reviewCount || 0),
+    reviewCount: Number(raw.reviews || raw.reviewCount || 0),
+    images,
+    image: product_image,
+    currentPrice: price,
+    originalPrice: mrp,
+    discount: discountPct,
+    inStock,
+    availabilityText: inStock ? "In stock" : "Out of stock",
+    deliveryETA: raw.deliveryETA || raw.delivery || "24 hrs",
+    deliveryInfo: `Delivery in ${raw.deliveryETA || raw.delivery || "24 hrs"}`,
+    potencies: Array.isArray(raw.potencies) ? raw.potencies : ["30C"],
+    sizes: Array.isArray(raw.sizes) ? raw.sizes : ["30ml"],
+    shortDescription: description,
+    badge: raw.badge || "",
+    latinName: raw.latinName || "",
+    benefits: raw.benefits || ["Helps with wellness", "Supports recovery"],
+    ingredients: raw.ingredients || ["Natural ingredients"],
+    usage: raw.usage || ["Follow expert guidance"],
+    brand: raw.brand || "Dr. Kent",
+    // Spread any extra fields for cart compatibility
+    mrp: mrp,
+    price: price,
+  };
+}
+
 const Products = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { productId } = useParams();
   const cart = useCartContext();
 
-  const locationProduct = location.state?.product || null;
-  void productId;
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [notFound, setNotFound] = useState(false);
 
-  const product = useMemo(() => {
-    if (!locationProduct) return null;
-
-    const images = Array.isArray(locationProduct.images)
-      ? locationProduct.images
-      : locationProduct.image
-        ? [locationProduct.image]
-        : [];
-
-    const longDescription =
-      locationProduct.longDescription ||
-      locationProduct.description ||
-      locationProduct.shortDescription ||
-      "";
-
-    // discount% (number). If absent, derive from oldPrice/price.
-    let discountPct = 0;
-    if (typeof locationProduct.discount === "number") {
-      discountPct = locationProduct.discount;
-    } else if (typeof locationProduct.discount === "string") {
-      const m = locationProduct.discount.match(/(\d+(?:\.\d+)?)%/);
-      if (m) discountPct = Number(m[1]);
-    } else {
-      const oldP = Number(locationProduct.oldPrice);
-      const curP = Number(locationProduct.price);
-      if (
-        Number.isFinite(oldP) &&
-        Number.isFinite(curP) &&
-        oldP > 0 &&
-        oldP > curP
-      ) {
-        discountPct = Math.round(((oldP - curP) / oldP) * 100);
-      }
+  const fetchProduct = useCallback(async () => {
+    if (!productId) {
+      setError("Product ID is missing");
+      setLoading(false);
+      return;
     }
 
-    const inStockRaw =
-      locationProduct.isInStock ??
-      locationProduct.inStock ??
-      locationProduct.availability === "out" ?
-        false :
-        locationProduct.availability === "in" ?
-          true :
-          true;
+    setLoading(true);
+    setError(null);
+    setNotFound(false);
 
-    return {
-      id: locationProduct.id,
-      name: locationProduct.name,
-      category:
-        locationProduct.categoryTitle ||
-        locationProduct.category ||
-        "Products",
-      description:
-        locationProduct.description ||
-        locationProduct.shortDescription ||
-        longDescription,
-      longDescription: longDescription,
-      rating: Number(locationProduct.rating || 0),
-      reviews: Number(
-        locationProduct.reviews ||
-          locationProduct.reviewCount ||
-          0
-      ),
-      reviewCount: Number(
-        locationProduct.reviews ||
-          locationProduct.reviewCount ||
-          0
-      ),
-      images:
-        images.length > 0 ? images : locationProduct.image ? [locationProduct.image] : [],
-      image: locationProduct.image,
-      currentPrice: Number(
-        locationProduct.price ||
-          locationProduct.currentPrice ||
-          0
-      ),
-      originalPrice: Number(
-        locationProduct.oldPrice ||
-          locationProduct.originalPrice ||
-          0
-      ),
-      discount: discountPct,
-      inStock: Boolean(inStockRaw),
-      availabilityText: inStockRaw ? "In stock" : "Out of stock",
-      deliveryETA: locationProduct.deliveryETA || locationProduct.delivery || "24 hrs",
-      deliveryInfo: `Delivery in ${locationProduct.deliveryETA || locationProduct.delivery || "24 hrs"}`,
-      potencies: Array.isArray(locationProduct.potencies)
-        ? locationProduct.potencies
-        : ["30C"],
-      sizes: Array.isArray(locationProduct.sizes)
-        ? locationProduct.sizes
-        : ["30ml"],
-      shortDescription:
-        locationProduct.shortDescription ||
-        locationProduct.description ||
-        "",
-      badge: locationProduct.badge,
-      latinName: locationProduct.latinName || "",
-    };
-  }, [locationProduct]);
+    try {
+      const res = await api.get(`/products/${productId}`);
+      if (res.data?.success && res.data?.product) {
+        setProduct(normalizeProduct(res.data.product));
+      } else {
+        setNotFound(true);
+      }
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setNotFound(true);
+      } else {
+        setError(
+          err.response?.data?.message || "Failed to load product. Please try again."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [productId]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -161,9 +161,9 @@ const Products = () => {
   };
 
   const addCurrentToCart = () => {
+    if (!product) return;
     cart.addToCart(
       {
-        ...locationProduct,
         id: product.id,
         name: product.name,
         image: product.image,
@@ -195,30 +195,67 @@ const Products = () => {
             </Link>
             <ChevronRight className="w-3 h-3" />
             <span className="text-neutral-900 font-medium">
-              {product?.name || "Selected Product"}
+              {product?.name || (loading ? "Loading..." : "")}
             </span>
           </nav>
         </div>
       </div>
 
-      {!product ? (
+      {/* Loading State */}
+      {loading && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          <ProductDetailSkeleton />
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && !notFound && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
           <div className="bg-white border border-neutral-100 rounded-2xl shadow-sm p-8 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-neutral-900 mb-2">Failed to load product</h2>
+            <p className="text-sm text-neutral-500 mb-4">{error}</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button onClick={fetchProduct} className="btn-primary py-2.5 px-5">
+                Try Again
+              </button>
+              <Link to="/Products" className="btn-outline py-2.5 px-5">
+                Back to Products
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 404 / Not Found State */}
+      {notFound && !loading && !error && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+          <div className="bg-white border border-neutral-100 rounded-2xl shadow-sm p-8 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto mb-4">
+              <FaLeaf className="w-7 h-7 text-amber-600" />
+            </div>
             <h2 className="text-xl font-bold text-neutral-900 mb-2">
               Product not found
             </h2>
             <p className="text-sm text-neutral-500 mb-4">
-              Please go back to the products catalog.
+              The product you are looking for doesn't exist or has been removed.
             </p>
             <Link
               to="/Products"
               className="btn-primary inline-flex items-center justify-center py-2.5 px-5"
             >
-              Back to Products
+              Browse Products
             </Link>
           </div>
         </div>
-      ) : (
+      )}
+
+      {/* Product Content */}
+      {product && !loading && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8">
           {/* Consultation Strip */}
           <div

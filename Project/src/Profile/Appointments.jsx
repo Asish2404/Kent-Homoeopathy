@@ -1,26 +1,19 @@
 import { useMemo } from "react";
 import { CalendarDays, Clock, Stethoscope, UserRound, AlertCircle } from "lucide-react";
-
-function EmptyState() {
-  return (
-    <div className="bg-white rounded-3xl shadow-md p-8">
-      <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-          <CalendarDays size={20} />
-        </div>
-        <div>
-          <h2 className="text-lg font-bold text-gray-800">No appointments found</h2>
-          <p className="text-gray-500 mt-1">Book a doctor visit to see upcoming and previous appointments here.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+import EmptyState from "../components/EmptyState";
 
 export default function Appointments({ appointments = [] }) {
   const list = useMemo(() => (Array.isArray(appointments) ? appointments : []), [appointments]);
 
-  if (!list.length) return <EmptyState />;
+  if (!list.length) {
+    return (
+      <EmptyState
+        icon={CalendarDays}
+        title="No appointments found"
+        description="Book a doctor visit to see upcoming and previous appointments here."
+      />
+    );
+  }
 
   const upcoming = list.filter((a) => a.kind !== "previous");
   const previous = list.filter((a) => a.kind === "previous");

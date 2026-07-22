@@ -5,6 +5,7 @@ import ChartSvg from "../components/ui/ChartSvg";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
 import { formatCurrency, formatDate } from "../utils/formatters";
+import LoadingSkeleton, { StatsCardSkeleton, DashboardChartSkeleton, TableRowSkeleton } from "../../components/LoadingSkeleton";
 import {
   getDashboardOverview,
   getDashboardCharts,
@@ -109,14 +110,7 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <Card key={i} className="p-5">
-              <div className="animate-pulse">
-                <div className="h-4 bg-neutral-200 rounded w-24 mb-3"></div>
-                <div className="h-8 bg-neutral-200 rounded w-16"></div>
-              </div>
-            </Card>
-          ))}
+          <LoadingSkeleton type="stats-card" count={8} />
         </div>
       </div>
     );

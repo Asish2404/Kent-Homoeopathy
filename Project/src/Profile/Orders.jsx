@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Package, CheckCircle, Truck, MapPin, ArrowRight } from "lucide-react";
+import { CheckCircle, Truck, MapPin, ShoppingBag } from "lucide-react";
+import EmptyState from "../components/EmptyState";
 
 const STATUS_PROGRESS = {
   Delivered: "100%",
@@ -13,35 +14,20 @@ const STATUS_STYLE = {
   Processing: "bg-amber-100 text-amber-700",
 };
 
-function EmptyState() {
-  return (
-    <div className="bg-white rounded-3xl shadow-md p-8">
-      <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-          <Package size={20} />
-        </div>
-        <div>
-          <h2 className="text-lg font-bold text-gray-800">No orders yet</h2>
-          <p className="text-gray-500 mt-1">Browse our products and place your first order.</p>
-          <div className="mt-5">
-            <button
-              type="button"
-              onClick={() => (window.location.href = "/Products")}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-5 py-2.5 rounded-2xl font-semibold transition"
-            >
-              Continue Shopping <ArrowRight size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Orders({ orders = [] }) {
   const list = useMemo(() => Array.isArray(orders) ? orders : [], [orders]);
 
-  if (!list.length) return <EmptyState />;
+  if (!list.length) {
+    return (
+      <EmptyState
+        icon={ShoppingBag}
+        title="No orders yet"
+        description="Browse our products and place your first order."
+        actionLabel="Continue Shopping"
+        action={() => (window.location.href = "/Products")}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

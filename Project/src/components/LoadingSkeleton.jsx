@@ -15,7 +15,9 @@ export function ProductCardSkeleton() {
               <div className="h-5 bg-neutral-200 rounded-full w-16" />
               <div className="h-5 bg-neutral-200 rounded-full w-20" />
             </div>
+          </div>
         </div>
+      </div>
     </div>
   );
 }
@@ -45,7 +47,9 @@ export function ProductDetailSkeleton() {
             <div className="h-12 bg-neutral-200 rounded-xl flex-1" />
             <div className="h-12 bg-neutral-200 rounded-xl flex-1" />
           </div>
+        </div>
       </div>
+    </div>
   );
 }
 
@@ -61,6 +65,7 @@ export function DoctorCardSkeleton() {
           <div className="h-16 bg-neutral-200 rounded-2xl" />
           <div className="h-16 bg-neutral-200 rounded-2xl" />
         </div>
+      </div>
     </div>
   );
 }
@@ -88,6 +93,7 @@ export function OrderCardSkeleton() {
             <div className="h-4 bg-neutral-200 rounded w-1/2" />
             <div className="h-3 bg-neutral-200 rounded w-1/3" />
           </div>
+        </div>
         <div className="flex gap-4">
           <div className="space-y-2">
             <div className="h-3 bg-neutral-200 rounded w-12" />
@@ -97,7 +103,9 @@ export function OrderCardSkeleton() {
             <div className="h-3 bg-neutral-200 rounded w-12" />
             <div className="h-4 bg-neutral-200 rounded w-16" />
           </div>
+        </div>
       </div>
+    </div>
   );
 }
 
@@ -110,6 +118,7 @@ export function StatsCardSkeleton() {
           <div className="h-3 bg-neutral-200 rounded w-16" />
           <div className="h-6 bg-neutral-200 rounded w-20" />
         </div>
+      </div>
     </div>
   );
 }
@@ -133,6 +142,7 @@ export function MedicalReportSkeleton() {
           <div className="h-3 bg-neutral-200 rounded w-1/3" />
           <div className="h-3 bg-neutral-200 rounded w-1/4" />
         </div>
+      </div>
     </div>
   );
 }
@@ -155,12 +165,14 @@ export function ProfileSkeleton() {
                 </div>
                 <div className="h-12 bg-neutral-200 rounded-2xl mt-5" />
               </div>
+            </div>
           </aside>
           <main className="flex-1 space-y-4">
             <div className="h-32 bg-neutral-200 rounded-3xl" />
             <div className="h-32 bg-neutral-200 rounded-3xl" />
           </main>
         </div>
+      </div>
     </div>
   );
 }
@@ -174,6 +186,7 @@ export function SearchSuggestionSkeleton() {
           <div className="h-3 bg-neutral-200 rounded w-3/4" />
           <div className="h-2.5 bg-neutral-200 rounded w-1/2" />
         </div>
+      </div>
     </div>
   );
 }
@@ -201,3 +214,4 @@ export default function LoadingSkeleton({ type = "product-card", count = 1 }) {
     </>
   );
 }
+

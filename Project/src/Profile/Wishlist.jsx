@@ -1,35 +1,21 @@
 import { useMemo } from "react";
 import { Heart, ShoppingCart, Trash2 } from "lucide-react";
-
-function EmptyWishlist() {
-  return (
-    <div className="bg-white rounded-3xl shadow-md p-8">
-      <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
-          <Heart size={20} />
-        </div>
-        <div>
-          <h2 className="text-lg font-bold text-gray-800">Your wishlist is empty</h2>
-          <p className="text-gray-500 mt-1">Save products you love and find them easily later.</p>
-          <div className="mt-5">
-            <button
-              type="button"
-              onClick={() => (window.location.href = "/Products")}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-5 py-2.5 rounded-2xl font-semibold transition"
-            >
-              Continue Shopping
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+import EmptyState from "../components/EmptyState";
 
 export default function Wishlist({ items = [], onMoveToCart, onRemove }) {
   const list = useMemo(() => (Array.isArray(items) ? items : []), [items]);
 
-  if (!list.length) return <EmptyWishlist />;
+  if (!list.length) {
+    return (
+      <EmptyState
+        icon={Heart}
+        title="Your wishlist is empty"
+        description="Save products you love and find them easily later."
+        actionLabel="Continue Shopping"
+        action={() => (window.location.href = "/Products")}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -7,8 +7,10 @@ import {
   Briefcase,
   Award,
   X,
+  User,
 } from "lucide-react";
 import { useCartContext } from "../Cart/CartContext";
+import EmptyState from "../components/EmptyState";
 
 import Overview from "./Overview";
 import Orders from "./Orders";
@@ -141,8 +143,14 @@ export default function Profile() {
   if (!user) {
 
     return (
-      <div className="min-h-screen flex items-center justify-center text-3xl font-bold text-gray-700">
-        Please Login First
+      <div className="min-h-screen flex items-center justify-center">
+        <EmptyState
+          icon={User}
+          title="Please Login First"
+          description="Sign in to access your profile, orders, and appointments."
+          actionLabel="Login"
+          actionLink="/Login"
+        />
       </div>
     );
 
