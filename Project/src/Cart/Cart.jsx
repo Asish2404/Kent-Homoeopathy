@@ -96,6 +96,7 @@ export default function Cart() {
   const active = items;
   const inStock = useMemo(() => active.filter((it) => it.inStock !== false), [active]);
   const outStock = useMemo(() => active.filter((it) => it.inStock === false), [active]);
+  const cartHasKentProduct = useMemo(() => inStock.some((item) => item.isKentProduct), [inStock]);
 
   const mrpTotal = inStock.reduce((s, it) => s + Number(it.mrp || 0) * Number(it.qty || 1), 0);
   const discTotal = inStock.reduce(
@@ -105,10 +106,11 @@ export default function Cart() {
 
   const sub = mrpTotal - discTotal;
   const couponSave = applied ? Math.round((sub * applied.pct) / 100) : 0;
-  const delivery = sub > 499 ? 0 : 49;
+  const deliveryBase = sub > 499 ? 0 : 49;
+  const delivery = Math.max(0, deliveryBase - (cartHasKentProduct ? 50 : 0));
   const platform = 5;
   const grand = sub - couponSave + delivery + platform;
-  const totalSave = discTotal + couponSave + (delivery === 0 ? 49 : 0);
+  const totalSave = discTotal + couponSave + (deliveryBase === 0 ? 49 : 0) + (cartHasKentProduct ? 50 : 0);
 
   const empty = active.length === 0;
 
@@ -505,12 +507,19 @@ export default function Cart() {
                         <span className="text-slate-500">Delivery Charges</span>
                         {delivery === 0 ? (
                           <span className="font-semibold text-emerald-600 flex items-center gap-1">
-                            <span className="line-through text-slate-400 font-normal text-xs">₹49</span> FREE
+                            <span className="line-through text-slate-400 font-normal text-xs">₹{deliveryBase}</span> FREE
                           </span>
                         ) : (
                           <span className="font-semibold text-slate-800">₹{delivery}</span>
                         )}
                       </div>
+
+                      {cartHasKentProduct && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Kent Product Discount</span>
+                          <span className="font-semibold text-emerald-600">−₹50</span>
+                        </div>
+                      )}
 
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500 flex items-center gap-1">

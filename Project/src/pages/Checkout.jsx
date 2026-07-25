@@ -3,6 +3,10 @@ import { useCartContext } from "../Cart/CartContext";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
+const FREE_DELIVERY_THRESHOLD = 499;
+const STANDARD_DELIVERY_CHARGE = 49;
+const KENT_SHIPPING_DISCOUNT = 50;
+
 const DELIVERY_SLOTS = [
   { id: "morning", label: "Morning" },
   { id: "afternoon", label: "Afternoon" },
@@ -65,6 +69,7 @@ export default function Checkout() {
   const items = cart?.items || [];
   const inStock = useMemo(() => items.filter((it) => it.inStock !== false), [items]);
   const empty = inStock.length === 0;
+  const cartHasKentProduct = useMemo(() => inStock.some((item) => item.isKentProduct), [inStock]);
 
   const mrpTotal = inStock.reduce((s, it) => s + Number(it.mrp || 0) * Number(it.qty || 1), 0);
   const discTotal = inStock.reduce(
@@ -81,7 +86,8 @@ export default function Checkout() {
   const [couponLoading, setCouponLoading] = useState(false);
   const couponSave = applied ? Number(applied.discountAmount) : 0;
 
-  const delivery = sub > 499 ? 0 : 49;
+  const deliveryBase = sub >= FREE_DELIVERY_THRESHOLD ? 0 : STANDARD_DELIVERY_CHARGE;
+  const delivery = Math.max(0, deliveryBase - (cartHasKentProduct ? KENT_SHIPPING_DISCOUNT : 0));
   const platform = 5;
   const grand = sub - couponSave + delivery + platform;
 
@@ -277,12 +283,19 @@ export default function Checkout() {
             <span className="text-slate-500">Delivery Charges</span>
             {delivery === 0 ? (
               <span className="font-semibold text-emerald-600 flex items-center gap-2">
-                <span className="line-through text-slate-400 font-normal text-xs">₹49</span> FREE
+                <span className="line-through text-slate-400 font-normal text-xs">₹{deliveryBase}</span> FREE
               </span>
             ) : (
               <span className="font-semibold text-slate-800">₹{delivery}</span>
             )}
           </div>
+
+          {cartHasKentProduct ? (
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Kent Product Discount</span>
+              <span className="font-semibold text-emerald-600">−₹{KENT_SHIPPING_DISCOUNT}</span>
+            </div>
+          ) : null}
 
           <div className="flex justify-between text-sm">
             <span className="text-slate-500">Platform Fee</span>

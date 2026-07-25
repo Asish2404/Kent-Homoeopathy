@@ -32,6 +32,7 @@ export function normalizeCartItem(item) {
     category: item.category ?? item.categoryTitle ?? "",
     deliveryLabel: item.deliveryLabel ?? "",
     stock,
+    isKentProduct: Boolean(item.isKentProduct),
   };
 }
 

@@ -343,9 +343,8 @@ export default function Profile() {
               <Wishlist
                 items={wishlistItems}
                 onMoveToCart={(item) => {
-                  // Support existing cart context API; wishlist item objects match cart normalize shape.
                   if (!item) return;
-                  cart.moveSavedToCart?.(item.id);
+                  cart.addToCart?.(item, 1);
                   cart.removeFromWishlist?.(item.id);
                 }}
                 onRemove={(id) => cart.removeFromWishlist?.(id)}

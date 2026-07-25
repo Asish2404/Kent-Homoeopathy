@@ -1,6 +1,7 @@
 import { Cart } from "../models/atanu.cart.model.js";
 import { Order } from "../models/atanu.order.model.js";
 import { Product } from "../models/atanu.product.model.js";
+import { COD_CHARGE, FREE_DELIVERY_THRESHOLD, KENT_SHIPPING_DISCOUNT, STANDARD_DELIVERY_CHARGE } from "../constants.js";
 import {
     buildOrderItems,
     calculateOrderTotals,
@@ -379,6 +380,12 @@ export const placeOrder = async (req, res) => {
         const paymentStatus = req.body.paymentStatus || "Pending";
         const orderStatus = req.body.orderStatus || "Pending";
 
+        const hasKentProduct = cart.items.some((item) => Boolean(item.product?.isKentProduct));
+        const deliveryBase = totals.subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : STANDARD_DELIVERY_CHARGE;
+        const deliveryCharge = Math.max(0, deliveryBase - (hasKentProduct ? KENT_SHIPPING_DISCOUNT : 0));
+        const codCharge = paymentMethod === "Cash on Delivery" ? COD_CHARGE : 0;
+        const grandTotal = Math.max(0, totals.subtotal - totals.discount + deliveryCharge + totals.tax + codCharge);
+
 
         const stockResult = await updateProductStock(cart.items);
 
@@ -400,14 +407,14 @@ export const placeOrder = async (req, res) => {
             paymentStatus,
             subtotal: totals.subtotal,
             discount: totals.discount,
-            deliveryCharge: totals.deliveryCharge,
+            deliveryCharge,
             tax: totals.tax,
-            grandTotal: totals.grandTotal,
+            grandTotal,
             orderNumber,
             orderStatus,
             status: "pending",
             orderedDate,
-            orderPrice: totals.grandTotal,
+            orderPrice: grandTotal,
             createdAt: orderedDate,
             updatedAt: orderedDate,
         };

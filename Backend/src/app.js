@@ -16,6 +16,7 @@ import wishlistRoutes from "./routes/wishlist.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
+import searchRoutes from "./routes/search.routes.js";
 
 
 
@@ -66,6 +67,7 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/search", searchRoutes);
 export default app;
 
 

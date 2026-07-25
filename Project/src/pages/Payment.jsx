@@ -3,6 +3,11 @@ import { useCartContext } from "../Cart/CartContext";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
+const FREE_DELIVERY_THRESHOLD = 499;
+const STANDARD_DELIVERY_CHARGE = 49;
+const KENT_SHIPPING_DISCOUNT = 50;
+const COD_CHARGE = 50;
+
 const PAYMENT_METHODS = [
   "Razorpay", "UPI", "Google Pay", "PhonePe", "Paytm",
   "Credit Card", "Debit Card", "Net Banking", "Cash on Delivery",
@@ -45,6 +50,7 @@ export default function Payment() {
   const items = cart?.items || [];
   const inStock = useMemo(() => items.filter((it) => it.inStock !== false), [items]);
   const empty = inStock.length === 0;
+  const cartHasKentProduct = useMemo(() => inStock.some((item) => item.isKentProduct), [inStock]);
 
   const mrpTotal = inStock.reduce((s, it) => s + Number(it.mrp || 0) * Number(it.qty || 1), 0);
   const discTotal = inStock.reduce((s, it) => s + (Number(it.mrp || 0) - Number(it.price || 0)) * Number(it.qty || 1), 0);
@@ -59,9 +65,11 @@ export default function Payment() {
   });
 
   const couponSave = couponApplied ? Number(couponApplied.discountAmount) : 0;
-  const delivery = sub > 499 ? 0 : 49;
+  const deliveryBase = sub >= FREE_DELIVERY_THRESHOLD ? 0 : STANDARD_DELIVERY_CHARGE;
+  const delivery = Math.max(0, deliveryBase - (cartHasKentProduct ? KENT_SHIPPING_DISCOUNT : 0));
   const platform = 5;
-  const grand = sub - couponSave + delivery + platform;
+  const codCharge = isCod ? COD_CHARGE : 0;
+  const grand = sub - couponSave + delivery + platform + codCharge;
 
   const [method, setMethod] = useState("Razorpay");
   const [busy, setBusy] = useState(false);
@@ -402,6 +410,18 @@ export default function Payment() {
                     <span className="text-slate-500">Payment Method</span>
                     <span className="font-semibold text-slate-800">{method}</span>
                   </div>
+                  {cartHasKentProduct ? (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500">Kent Product Discount</span>
+                      <span className="font-semibold text-emerald-600">−₹{KENT_SHIPPING_DISCOUNT}</span>
+                    </div>
+                  ) : null}
+                  {isCod ? (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500">COD Charge</span>
+                      <span className="font-semibold text-slate-800">₹{COD_CHARGE}</span>
+                    </div>
+                  ) : null}
                   <div className="h-px bg-slate-100" />
                   <button onClick={onPay} disabled={busy || empty}
                     className="shine w-full py-4 text-white font-black rounded-2xl text-[15px] shadow-lg hover:shadow-xl active:scale-[0.99] transition-all duration-200 tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"

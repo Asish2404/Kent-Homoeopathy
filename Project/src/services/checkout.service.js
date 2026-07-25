@@ -56,6 +56,15 @@ export const removeCoupon = async ({ couponCode, reservationId }) => {
 };
 
 // ========================
+// SEARCH
+// ========================
+
+export const universalSearch = async (q) => {
+  const { data } = await api.get("/search", { params: { q } });
+  return data;
+};
+
+// ========================
 // ORDERS
 // ========================
 

@@ -118,7 +118,7 @@ const readUser = () => {
                     ${scrolled ? "shadow-xl py-2" : "shadow-md py-2"}`}
       >
         <div className="max-w-[1400px] mx-auto px-2 xs:px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-1.5 sm:gap-3 w-full flex-nowrap">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:gap-3 w-full min-w-0">
             {/* Logo + Branding */}
             <button
               type="button"
@@ -142,22 +142,21 @@ const readUser = () => {
             </button>
 
             {/* Shared universal search */}
-            <div className="flex-1 flex justify-center min-w-0 max-w-[520px] px-1 sm:px-2">
-              <div className="w-full min-w-0">
-                <div className="w-full h-[42px] sm:h-[48px] rounded-full">
-                  <SearchBox
-                    className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 transition-[transform,border-color,box-shadow] duration-300 hover:border-[var(--brand-300)] focus-within:ring-4 focus-within:ring-[var(--brand-200)]"
-                    placeholder="Search medicines, brands..."
-                    ariaLabel="Universal Search"
-                  />
-                </div>
+            <div className="min-w-0 px-1 sm:px-2 justify-self-stretch">
+              <div className="w-full max-w-[580px] mx-auto min-w-0 h-[42px] sm:h-[48px] rounded-full">
+                <SearchBox
+                  className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 transition-[transform,border-color,box-shadow] duration-300 hover:border-[var(--brand-300)] focus-within:ring-4 focus-within:ring-[var(--brand-200)]"
+                  placeholder="Search medicines, doctors, tests..."
+                  ariaLabel="Universal Search"
+                  onSearch={handleSearch}
+                />
               </div>
             </div>
 
 
             {/* Desktop nav */}
-            <div className="hidden lg:flex items-center flex-nowrap justify-center gap-7">
-              <div className="flex items-center gap-7">
+            <div className="hidden lg:flex items-center flex-nowrap justify-end gap-4 xl:gap-7 justify-self-end min-w-0">
+              <div className="flex items-center gap-4 xl:gap-7 min-w-0">
                 <NavLink to="/" className={navStyle} end>
                   Home
                 </NavLink>
@@ -186,7 +185,7 @@ const readUser = () => {
                 ) : null}
               </div>
 
-              <div className="flex items-center gap-3 ml-2">
+              <div className="flex items-center gap-3 ml-1 xl:ml-2 flex-shrink-0">
                 {/* Quick action icons */}
                 <button
                   type="button"
@@ -348,7 +347,7 @@ const readUser = () => {
             </div>
 
             {/* Mobile right cluster */}
-            <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
+            <div className="flex lg:hidden items-center gap-1.5 sm:gap-2 justify-self-end">
               <NavLink
                 to="/Cart"
                 className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 flex items-center justify-center text-white"
@@ -408,6 +407,7 @@ const readUser = () => {
                 className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
                 placeholder="Search..."
                 ariaLabel="Universal Search"
+                onSearch={handleSearch}
               />
             </div>
           </div>

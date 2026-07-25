@@ -146,12 +146,18 @@ export function useCartState() {
 
   const clearCart = () => setItems([]);
 
+  const cartHasKentProduct = useMemo(
+    () => items.some((item) => Boolean(item.isKentProduct)),
+    [items]
+  );
+
   return {
     items,
     savedItems,
     wishlistItems,
     totalCount,
     wishlistCount,
+    cartHasKentProduct,
     addToCart,
     addToSaved,
     moveSavedToCart,

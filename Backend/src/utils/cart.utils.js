@@ -14,11 +14,13 @@ export const calculateDiscount = () => {
 
 export const calculateDeliveryCharge = ({
     subtotal,
-    threshold = 999,
-    charge = 80,
+    threshold = 499,
+    charge = 49,
+    kentDiscount = 0,
 }) => {
     const value = Number(subtotal) || 0;
-    return value >= threshold ? 0 : charge;
+    const base = value >= threshold ? 0 : charge;
+    return Math.max(0, base - Number(kentDiscount || 0));
 };
 
 export const calculateGrandTotal = ({
