@@ -65,6 +65,20 @@ export const universalSearch = async (q) => {
 };
 
 // ========================
+// DOCTORS
+// ========================
+
+export const getDoctors = async (params = {}) => {
+  const { data } = await api.get("/doctor", { params });
+  return data;
+};
+
+export const getDoctorById = async (doctorId) => {
+  const { data } = await api.get(`/doctor/${doctorId}`);
+  return data;
+};
+
+// ========================
 // ORDERS
 // ========================
 

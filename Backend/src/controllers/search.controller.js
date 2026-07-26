@@ -8,6 +8,13 @@ const toQuery = (value) => String(value || "").trim();
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+// Strip "Dr." or "Dr " prefix from search query for doctor matching
+const stripDoctorPrefix = (name) => {
+  return String(name || "")
+    .replace(/^dr\.?\s*/i, "")
+    .trim();
+};
+
 const mapProduct = (product) => ({
   _id: product._id,
   product_name: product.product_name,
@@ -36,6 +43,14 @@ export const universalSearch = async (req, res) => {
     }
 
     const rx = new RegExp(escapeRegex(q), "i");
+
+    // For doctor search, also create a pattern that makes "Dr." prefix optional
+    // This handles queries like "Dr. Ananya", "Dr Ananya", "Ananya" all matching
+    const qStripped = stripDoctorPrefix(q);
+    const doctorRx = qStripped !== q
+      ? new RegExp(escapeRegex(qStripped), "i")
+      : rx;
+
     const limit = 6;
 
     const [products, doctors, categories, labTests, faqs] = await Promise.all([
@@ -49,11 +64,11 @@ export const universalSearch = async (req, res) => {
       }).populate("category").limit(limit),
       Doctor.find({
         $or: [
-          { doctor_name: rx },
-          { specialization: rx },
-          { qualification: rx },
-          { hospital: rx },
-          { about: rx },
+          { doctor_name: doctorRx },
+          { specialization: doctorRx },
+          { qualification: doctorRx },
+          { hospital: doctorRx },
+          { about: doctorRx },
         ],
       }).limit(limit),
       Category.find({ category_name: rx }).limit(limit),

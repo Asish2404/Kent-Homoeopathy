@@ -27,7 +27,6 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [query, setQuery] = useState("");
 
   const profileRef = useRef(null);
   const navigate = useNavigate();
@@ -96,7 +95,6 @@ const readUser = () => {
 
   const handleSearch = (value) => {
     const next = value.trim();
-    setQuery(value);
     if (!next) return;
     navigate(`/Products?query=${encodeURIComponent(next)}`);
     setMenuOpen(false);
@@ -143,10 +141,10 @@ const readUser = () => {
 
             {/* Shared universal search */}
             <div className="min-w-0 px-1 sm:px-2 justify-self-stretch">
-              <div className="w-full max-w-[580px] mx-auto min-w-0 h-[42px] sm:h-[48px] rounded-full">
+              <div className="w-full max-w-[420px] mx-auto min-w-0">
                 <SearchBox
-                  className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 transition-[transform,border-color,box-shadow] duration-300 hover:border-[var(--brand-300)] focus-within:ring-4 focus-within:ring-[var(--brand-200)]"
-                  placeholder="Search medicines, doctors, tests..."
+                  className="relative h-[44px] sm:h-[48px] w-full bg-white rounded-full shadow-md  transition-[transform,border-color,box-shadow] duration-300 hover:border-[var(--brand-300)] focus-within:ring-4 focus-within:ring-[var(--brand-200)]"
+                  placeholder="Search "
                   ariaLabel="Universal Search"
                   onSearch={handleSearch}
                 />
@@ -401,15 +399,13 @@ const readUser = () => {
                      max-h-[calc(100vh-88px)] overflow-y-auto"
         >
           {/* Mobile search (full width) */}
-          <div className="w-full">
-            <div className="h-[48px]">
-              <SearchBox
-                className="h-full w-full flex items-center gap-2 bg-white rounded-full px-3 shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
-                placeholder="Search..."
-                ariaLabel="Universal Search"
-                onSearch={handleSearch}
-              />
-            </div>
+          <div className="w-full h-[48px]">
+            <SearchBox
+              className="relative h-full w-full bg-white rounded-full shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
+              placeholder="Search..."
+              ariaLabel="Universal Search"
+              onSearch={handleSearch}
+            />
           </div>
 
           <NavLink

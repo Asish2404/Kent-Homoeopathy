@@ -141,6 +141,21 @@ export const getProducts = async (params = {}) => {
   return data;
 };
 
+export const createProduct = async (productData) => {
+  const { data } = await api.post("/products", productData);
+  return data;
+};
+
+export const updateProduct = async (productId, productData) => {
+  const { data } = await api.patch(`/products/${productId}`, productData);
+  return data;
+};
+
+export const deleteProduct = async (productId) => {
+  const { data } = await api.delete(`/products/${productId}`);
+  return data;
+};
+
 // ========================
 // USERS / CUSTOMERS
 // ========================

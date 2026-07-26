@@ -138,7 +138,7 @@ export const getDoctors = async (req, res) => {
         const p = Math.max(1, Number(page));
         const l = Math.max(1, Math.min(100, Number(limit)));
 
-        const query = { isActive: true };
+        const query = {};
 
         if (specialization) {
             query.specialization = { $regex: String(specialization), $options: "i" };
@@ -197,7 +197,7 @@ export const getDoctorById = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid doctorId" });
         }
 
-        const doctor = await Doctor.findOne({ _id: doctorId, isActive: true });
+        const doctor = await Doctor.findById(doctorId);
 
         if (!doctor) {
             return res.status(404).json({ success: false, message: "Doctor not found" });

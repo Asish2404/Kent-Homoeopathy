@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   UserRound,
@@ -8,7 +8,26 @@ import {
   Filter,
   Stethoscope,
 } from "lucide-react";
-import doctors from "./Doctor.js";
+import { getDoctors } from "../services/checkout.service";
+
+// Map backend field names to UI display fields
+const mapDoctor = (doc) => ({
+  _id: doc._id,
+  id: doc._id,
+  name: doc.doctor_name,
+  speciality: doc.specialization,
+  qualification: doc.qualification,
+  experience: `${doc.experience} Years`,
+  languages: "English, Hindi",
+  clinic: doc.hospital,
+  fee: `₹${doc.consultation_fee}`,
+  OfferFee: `₹${doc.consultation_fee}`,
+  availableToday: true,
+  rating: "4.8",
+  image: doc.image,
+  about: doc.about,
+});
+
 function Consult() {
   const [mode, setMode] = useState("visit");
   const [query, setQuery] = useState("");
@@ -24,6 +43,21 @@ function Consult() {
   });
   const [bookingMessage, setBookingMessage] = useState("");
   const [activeFaq, setActiveFaq] = useState(0);
+  const [doctors, setDoctors] = useState([]);
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const data = await getDoctors({ limit: 100 });
+        if (data.success && Array.isArray(data.doctors)) {
+          setDoctors(data.doctors.map(mapDoctor));
+        }
+      } catch (_) {
+        // silently handle — empty doctors array will show "no doctors match" message
+      }
+    };
+    fetchDoctors();
+  }, []);
 
   // const specialityCards = [
   //   { title: "General Physician", desc: "Primary care and everyday consultation", icon: <Stethoscope size={20} /> },

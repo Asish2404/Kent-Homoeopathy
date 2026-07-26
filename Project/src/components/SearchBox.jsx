@@ -49,7 +49,6 @@ export default function SearchBox({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const timerRef = useRef(null);
   const rootRef = useRef(null);
   const abortRef = useRef(null);
   const inputRef = useRef(null);
@@ -68,7 +67,6 @@ export default function SearchBox({
     return Object.values(results).some((arr) => arr.length > 0);
   }, [results]);
 
-  // Build grouped flat list with section headers
   const groupedResults = useMemo(() => {
     const groups = ["products", "doctors", "categories", "labTests", "faqs"];
     const flat = [];
@@ -114,30 +112,54 @@ export default function SearchBox({
     }
   }, []);
 
+  // Search effect: starts debounced search when value changes
   useEffect(() => {
     const q = value.trim();
-    setActiveIndex(-1);
 
-    if (!q) {
-      setResults({ products: [], doctors: [], categories: [], labTests: [], faqs: [] });
-      setLoading(false);
-      return undefined;
-    }
-
-    // Cancel any pending requests
     if (abortRef.current) {
       abortRef.current.abort();
     }
 
-    setLoading(true);
-    timerRef.current = setTimeout(() => {
+    if (!q) {
+      // Reset results when input is cleared - defer to avoid cascading render warnings
+      const resetTimer = setTimeout(() => {
+        setResults({ products: [], doctors: [], categories: [], labTests: [], faqs: [] });
+        setLoading(false);
+      }, 0);
+      return () => clearTimeout(resetTimer);
+    }
+
+    const searchTimer = setTimeout(() => {
+      setLoading(true);
       performSearch(q);
     }, 300);
 
     return () => {
-      clearTimeout(timerRef.current);
+      clearTimeout(searchTimer);
     };
   }, [value, performSearch]);
+
+  // Reset active index when value changes (deferred to avoid cascading render warnings)
+  const prevValueRef = useRef("");
+  useEffect(() => {
+    const q = value.trim();
+    const prev = prevValueRef.current;
+    prevValueRef.current = q;
+    if (q !== prev) {
+      const timer = setTimeout(() => setActiveIndex(-1), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [value]);
+
+  // Reset active index when results fully change
+  const prevResultsRef = useRef(null);
+  useEffect(() => {
+    if (prevResultsRef.current !== results) {
+      prevResultsRef.current = results;
+      const timer = setTimeout(() => setActiveIndex(-1), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [results]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -149,7 +171,6 @@ export default function SearchBox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Scroll active item into view
   useEffect(() => {
     if (activeIndex >= 0 && listRef.current) {
       const items = listRef.current.querySelectorAll("[data-result-index]");
@@ -159,12 +180,6 @@ export default function SearchBox({
     }
   }, [activeIndex]);
 
-  // Reset active index when results change
-  useEffect(() => {
-    setActiveIndex(-1);
-  }, [results]);
-
-  // Announce result count for screen readers
   useEffect(() => {
     if (liveRef.current) {
       const total = groupedResults.filter((r) => !r.isHeader).length;
@@ -189,7 +204,7 @@ export default function SearchBox({
 
   const getItemLabel = (group, item) => {
     if (group === "products") return item.product_name;
-    if (group === "doctors") return item.fullName;
+    if (group === "doctors") return item.doctor_name;
     if (group === "categories") return item.category_name;
     if (group === "labTests") return item.test_name;
     if (group === "faqs") return item.question;
@@ -199,14 +214,9 @@ export default function SearchBox({
   return (
     <div ref={rootRef} className="relative w-full min-w-0">
       <div className={className} role="search" aria-label={ariaLabel}>
-        <button
-          type="button"
-          aria-label={`${ariaLabel} submit`}
-          onClick={() => doSearch(value)}
-          className="h-full w-11 flex items-center justify-center text-neutral-500 hover:text-[var(--brand-700)] transition"
-        >
+        <div className="absolute left-0 top-0 bottom-0 w-11 flex items-center justify-center pointer-events-none text-neutral-500 z-10">
           <FiSearch className="text-base" />
-        </button>
+        </div>
 
         <input
           ref={inputRef}
@@ -223,13 +233,13 @@ export default function SearchBox({
             if (value.trim()) setOpen(true);
           }}
           onChange={(e) => {
-            setValue(e.target.value);
-            if (e.target.value.trim()) setOpen(true);
+            const next = e.target.value;
+            setValue(next);
+            if (next.trim()) setOpen(true);
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              // Check if activeIndex is on a non-header item
               if (activeIndex >= 0 && groupedResults[activeIndex] && !groupedResults[activeIndex].isHeader) {
                 const picked = groupedResults[activeIndex];
                 navigate(getEntityTarget(picked.group, picked.item));
@@ -246,7 +256,6 @@ export default function SearchBox({
               setOpen(true);
               setActiveIndex((prev) => {
                 let next = prev + 1;
-                // Skip header items when navigating
                 while (next < groupedResults.length && groupedResults[next].isHeader) {
                   next++;
                 }
@@ -259,7 +268,6 @@ export default function SearchBox({
               setOpen(true);
               setActiveIndex((prev) => {
                 let next = prev - 1;
-                // Skip header items when navigating
                 while (next >= 0 && groupedResults[next].isHeader) {
                   next--;
                 }
@@ -273,30 +281,31 @@ export default function SearchBox({
               inputRef.current?.blur();
             }
           }}
-          className="h-full flex-1 outline-none text-neutral-800 text-sm bg-transparent min-w-0 placeholder:text-neutral-400"
+          className="h-full w-full outline-none text-neutral-800 text-sm bg-transparent placeholder:text-neutral-400"
+          style={{ paddingLeft: "2.75rem", paddingRight: "2.75rem" }}
         />
 
-        {loading ? (
-          <div className="h-full w-11 flex items-center justify-center text-[var(--brand-600)]">
-            <FiLoader className="animate-spin text-base" />
-          </div>
-        ) : value?.length > 0 ? (
-          <button
-            type="button"
-            aria-label="Clear search"
-            onClick={() => {
-              setValue("");
-              setOpen(false);
-              inputRef.current?.focus();
-            }}
-            className="h-full w-11 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition"
-          >
-            <span className="text-xl leading-none">×</span>
-          </button>
-        ) : null}
+        <div className="absolute right-0 top-0 bottom-0 w-11 flex items-center justify-center z-10">
+          {loading ? (
+            <FiLoader className="animate-spin text-base text-[var(--brand-600)]" />
+          ) : value?.length > 0 ? (
+            <button
+              type="button"
+              aria-label="Clear search"
+              tabIndex={-1}
+              onClick={() => {
+                setValue("");
+                setOpen(false);
+                inputRef.current?.focus();
+              }}
+              className="w-full h-full flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition cursor-pointer"
+            >
+              <span className="text-xl leading-none">&times;</span>
+            </button>
+          ) : null}
+        </div>
       </div>
 
-      {/* Screen reader live region */}
       <div
         ref={liveRef}
         role="status"
@@ -304,7 +313,6 @@ export default function SearchBox({
         className="sr-only"
       />
 
-      {/* Results dropdown */}
       {open && value.trim() && (
         <div
           id="search-results-listbox"
@@ -316,12 +324,12 @@ export default function SearchBox({
             {loading ? (
               <div className="px-4 py-6 flex items-center justify-center gap-2 text-sm text-neutral-500">
                 <FiLoader className="animate-spin" />
-                <span>Searching…</span>
+                <span>Searching&hellip;</span>
               </div>
             ) : groupedResults.length === 0 ? (
               <div className="px-4 py-6 text-center text-sm text-neutral-500">
-                <div className="text-neutral-300 text-2xl mb-2">🔍</div>
-                <p>No results found for "{value}"</p>
+                <div className="text-neutral-300 text-2xl mb-2">&#128269;</div>
+                <p>No results found for &ldquo;{value}&rdquo;</p>
                 <p className="text-xs text-neutral-400 mt-1">Try different keywords</p>
               </div>
             ) : (
@@ -377,14 +385,13 @@ export default function SearchBox({
             )}
           </div>
 
-          {/* Footer with "View all results" */}
           {!loading && hasAnyResults && (
             <button
               type="button"
               onClick={() => doSearch(value)}
               className="w-full px-4 py-3 bg-white border-t border-neutral-100 text-sm font-semibold text-[var(--brand-700)] hover:bg-[var(--brand-50)] transition text-center"
             >
-              View all results for "{value}"
+              View all results for &ldquo;{value}&rdquo;
             </button>
           )}
         </div>
@@ -392,3 +399,4 @@ export default function SearchBox({
     </div>
   );
 }
+
