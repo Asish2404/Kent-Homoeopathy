@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Cart } from "../models/atanu.cart.model.js";
 import { Order } from "../models/atanu.order.model.js";
 import { Product } from "../models/atanu.product.model.js";
@@ -73,10 +74,22 @@ export const updateProductStock = async (cartItems) => {
 
     for (const item of cartItems) {
         const quantity = Number(item.quantity) || 0;
+        const productId = item.product?._id;
+
+        // Skip stock deduction for items without a valid MongoDB ObjectId
+        // (e.g., static catalog products with numeric IDs like 401, 402, or bundle items)
+        if (!productId || !mongoose.Types.ObjectId.isValid(String(productId))) {
+            stockAdjustments.push({
+                productId,
+                quantity,
+                skipped: true,
+            });
+            continue;
+        }
 
         const updatedProduct = await Product.findOneAndUpdate(
             {
-                _id: item.product._id,
+                _id: productId,
                 stock: { $gte: quantity },
             },
             {
@@ -89,6 +102,7 @@ export const updateProductStock = async (cartItems) => {
 
         if (!updatedProduct) {
             for (const appliedItem of stockAdjustments.reverse()) {
+                if (appliedItem.skipped) continue;
                 await Product.updateOne(
                     { _id: appliedItem.productId },
                     { $inc: { stock: appliedItem.quantity } }
@@ -97,13 +111,14 @@ export const updateProductStock = async (cartItems) => {
 
             return {
                 success: false,
-                failedProductId: item.product._id,
+                failedProductId: productId,
             };
         }
 
         stockAdjustments.push({
-            productId: item.product._id,
+            productId,
             quantity,
+            skipped: false,
         });
     }
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
-import { getInventory } from "../services/admin.service";
+import { getInventory, exportInventory } from "../services/admin.service";
 
 const statusVariant = (status) => {
   const s = String(status).toLowerCase();
@@ -71,7 +71,18 @@ const InventoryPage = () => {
           <div className="mt-2 text-3xl font-extrabold text-neutral-900">Inventory</div>
           <div className="mt-1 text-sm text-neutral-500">Live stock breakdown from database.</div>
         </div>
-        <button className="btn-primary" type="button">Reorder</button>
+        <div className="flex gap-2">
+          <select
+            onChange={(e) => { if (e.target.value) { exportInventory(e.target.value); e.target.value = ""; } }}
+            className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none text-sm bg-white cursor-pointer"
+            defaultValue=""
+          >
+            <option value="" disabled>Export</option>
+            <option value="csv">CSV</option>
+            <option value="xlsx">Excel (.xlsx)</option>
+          </select>
+          <button className="btn-primary" type="button">Reorder</button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

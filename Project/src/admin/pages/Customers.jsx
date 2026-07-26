@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
-import { getCustomers } from "../services/admin.service";
+import { getCustomers, exportCustomers } from "../services/admin.service";
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -50,9 +50,20 @@ const Customers = () => {
           <div className="mt-2 text-3xl font-extrabold text-neutral-900">Customers</div>
           <div className="mt-1 text-sm text-neutral-500">View customer profiles from centralized data.</div>
         </div>
-        <button className="btn-primary" type="button">
-          Add Customer
-        </button>
+        <div className="flex gap-2">
+          <select
+            onChange={(e) => { if (e.target.value) { exportCustomers(e.target.value); e.target.value = ""; } }}
+            className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none text-sm bg-white cursor-pointer"
+            defaultValue=""
+          >
+            <option value="" disabled>Export</option>
+            <option value="csv">CSV</option>
+            <option value="xlsx">Excel (.xlsx)</option>
+          </select>
+          <button className="btn-primary" type="button">
+            Add Customer
+          </button>
+        </div>
       </div>
 
       <Card className="p-5">

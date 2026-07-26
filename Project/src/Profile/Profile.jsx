@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   CheckCircle,
@@ -10,6 +10,7 @@ import {
   User,
 } from "lucide-react";
 import { useCartContext } from "../Cart/CartContext";
+import api from "../services/api";
 import EmptyState from "../components/EmptyState";
 
 import Overview from "./Overview";
@@ -18,27 +19,7 @@ import Appointments from "./Appointments";
 import Wishlist from "./Wishlist";
 import Settings from "./Settings";
 
- 
-const ORDERS = [
-  {
-    id: "ORD-8821",
-    name: "Arnica Montana 30C",
-    brand: "SBL Homeopathy",
-    status: "Delivered",
-    date: "20 May 2025",
-    price: "₹185",
-  },
-  {
-    id: "ORD-8819",
-    name: "Rhus Tox 200C",
-    brand: "Boiron",
-    status: "Shipped",
-    date: "18 May 2025",
-    price: "₹320",
-  },
-];
 
-// const ADDRESSES = [
 const _ADDRESSES_PLACEHOLDER = [
 
   {
@@ -59,29 +40,6 @@ const _ADDRESSES_PLACEHOLDER = [
     isDefault: false,
   },
 ];
-
-const STATUS_PROGRESS = {
-  Delivered: "100%",
-  Shipped: "65%",
-  Processing: "30%",
-};
-
-const STATUS_STYLE = {
-  Delivered: "bg-emerald-100 text-emerald-700",
-  Shipped: "bg-blue-100 text-blue-700",
-  Processing: "bg-amber-100 text-amber-700",
-};
-
-const readList = (key, fallback) => {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : fallback;
-  } catch {
-    return fallback;
-  }
-};
 
 function AnimatedCount({ target }) {
 
@@ -136,8 +94,55 @@ export default function Profile() {
   });
 
   const [form, setForm] = useState(user || {});
-  const orders = readList("profile_orders_v1", ORDERS);
-  const appointments = readList("profile_appointments_v1", []);
+
+  // Orders state - fetched from API
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
+
+  const fetchOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    setOrdersError(null);
+    try {
+      const response = await api.get("/orders");
+      const data = response.data;
+      if (data.success && Array.isArray(data.orders)) {
+        setOrders(data.orders);
+      } else {
+        setOrders([]);
+      }
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to load orders. Please try again.";
+      setOrdersError(message);
+      setOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, []);
+
+  // Fetch orders on initial mount for overview stats
+  useEffect(() => {
+    fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch orders when navigating to the orders tab
+  useEffect(() => {
+    if (tab === "orders") {
+      fetchOrders();
+    }
+  }, [tab, fetchOrders]);
+
+  // Check if a new order was just placed (from order-success page via kent_order_placed flag)
+  useEffect(() => {
+    const justPlaced = localStorage.getItem("kent_order_placed");
+    if (justPlaced === "true") {
+      localStorage.removeItem("kent_order_placed");
+      fetchOrders();
+    }
+  }, [fetchOrders]);
+
+  const appointments = [];
 
 
   if (!user) {
@@ -335,7 +340,14 @@ export default function Profile() {
               />
             )}
 
-            {tab === "orders" && <Orders orders={orders} />}
+            {tab === "orders" && (
+              <Orders
+                orders={orders}
+                loading={ordersLoading}
+                error={ordersError}
+                onRetry={fetchOrders}
+              />
+            )}
 
             {tab === "appointments" && <Appointments appointments={appointments} />}
 

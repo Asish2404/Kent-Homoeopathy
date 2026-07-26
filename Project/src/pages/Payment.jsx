@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useCartContext } from "../Cart/CartContext";
+import { STORAGE_KEY } from "../Cart/cartUtils";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
@@ -56,6 +57,13 @@ export default function Payment() {
   const discTotal = inStock.reduce((s, it) => s + (Number(it.mrp || 0) - Number(it.price || 0)) * Number(it.qty || 1), 0);
   const sub = mrpTotal - discTotal;
 
+  const [method, setMethod] = useState("Razorpay");
+
+  const isRazorpay = method === "Razorpay";
+  const isCod = method === "Cash on Delivery";
+  const showUpi = method.startsWith("UPI") || ["Google Pay", "PhonePe", "Paytm"].includes(method);
+  const showCard = method === "Credit Card" || method === "Debit Card";
+
   const [appliedPayload] = useState(() => {
     try { const r = localStorage.getItem("kent_checkout"); return r ? JSON.parse(r) : null; } catch { return null; }
   });
@@ -71,7 +79,6 @@ export default function Payment() {
   const codCharge = isCod ? COD_CHARGE : 0;
   const grand = sub - couponSave + delivery + platform + codCharge;
 
-  const [method, setMethod] = useState("Razorpay");
   const [busy, setBusy] = useState(false);
   const [orderError, setOrderError] = useState("");
 
@@ -83,12 +90,7 @@ export default function Payment() {
 
   const [errors, setErrors] = useState({});
 
-  const isRazorpay = method === "Razorpay";
-  const isCod = method === "Cash on Delivery";
-  const showUpi = method.startsWith("UPI") || ["Google Pay", "PhonePe", "Paytm"].includes(method);
-  const showCard = method === "Credit Card" || method === "Debit Card";
-
-  const validateUpi = useCallback(() => {
+const validateUpi = useCallback(() => {
     const e = {};
     if (showUpi && !upiId.includes("@")) e.upiId = "Enter a valid UPI ID (e.g., name@bank)";
     setErrors((prev) => ({ ...prev, ...e }));
@@ -155,12 +157,24 @@ export default function Payment() {
           theme: { color: "#16a34a" },
           handler: async function (response) {
             try {
-              await api.post("/payment/verify", {
+              const verifyRes = await api.post("/payment/verify", {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 checkoutPayload: checkout,
               });
+              // Clear cart after successful payment
+              cart.clearCart();
+              localStorage.removeItem("kent_cart");
+              try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+              localStorage.removeItem("kent_checkout");
+              localStorage.removeItem("kent_coupon");
+              // Save order data for OrderSuccess page
+              if (verifyRes.data && verifyRes.data.order) {
+                localStorage.setItem("kent_order", JSON.stringify(verifyRes.data.order));
+              }
+              localStorage.setItem("kent_order_placed", "true");
+              localStorage.setItem("kent_last_order_id", "");
               navigate("/order-success", { replace: true });
             } catch (err) {
               setOrderError("Payment verification failed. Please contact support.");
@@ -183,13 +197,25 @@ export default function Payment() {
           paymentMethod: method,
           upiId: showUpi ? upiId : undefined,
           cardLast4: showCard ? onlyDigits(cardNumber).slice(-4) : undefined,
+          items: cart?.items || [],
+          coupon: appliedPayload ? (() => { try { const r = localStorage.getItem("kent_coupon"); return r ? JSON.parse(r) : null; } catch { return null; } })() : null,
         };
 
         const { data } = await api.post("/orders/place", payload);
+        // Clear cart after successful order
+        cart.clearCart();
         localStorage.removeItem("kent_cart");
+        try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
         localStorage.removeItem("kent_checkout");
         localStorage.removeItem("kent_coupon");
-        navigate("/order-success", { state: { orderId: data.order?._id || data._id }, replace: true });
+        // Save order data for OrderSuccess page
+        if (data.order) {
+          localStorage.setItem("kent_order", JSON.stringify(data.order));
+        }
+        // Signal Profile page to refresh
+        localStorage.setItem("kent_order_placed", "true");
+        localStorage.setItem("kent_last_order_id", data.order?._id || data._id || "");
+        navigate("/order-success", { replace: true, state: { orderId: data.order?._id || data._id } });
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.error || err.message || "Payment failed. Please try again.";

@@ -1,6 +1,70 @@
 import api from "../../services/api";
 
 // ========================
+// EXPORT FUNCTIONS
+// ========================
+
+const downloadFile = (data, filename, type) => {
+  const blob = new Blob([data], { type });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+};
+
+export const exportProducts = async (format = "csv") => {
+  const { data } = await api.get("/export/products", {
+    params: { format },
+    responseType: "blob",
+  });
+  downloadFile(data, `products_export_${Date.now()}.${format}`, format === "xlsx" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv");
+};
+
+export const exportOrders = async (format = "csv") => {
+  const { data } = await api.get("/export/orders", {
+    params: { format },
+    responseType: "blob",
+  });
+  downloadFile(data, `orders_export_${Date.now()}.${format}`, format === "xlsx" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv");
+};
+
+export const exportCustomers = async (format = "csv") => {
+  const { data } = await api.get("/export/customers", {
+    params: { format },
+    responseType: "blob",
+  });
+  downloadFile(data, `customers_export_${Date.now()}.${format}`, format === "xlsx" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv");
+};
+
+export const exportInventory = async (format = "csv") => {
+  const { data } = await api.get("/export/inventory", {
+    params: { format },
+    responseType: "blob",
+  });
+  downloadFile(data, `inventory_export_${Date.now()}.${format}`, format === "xlsx" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv");
+};
+
+export const exportCoupons = async (format = "csv") => {
+  const { data } = await api.get("/export/coupons", {
+    params: { format },
+    responseType: "blob",
+  });
+  downloadFile(data, `coupons_export_${Date.now()}.${format}`, format === "xlsx" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv");
+};
+
+export const exportReports = async (format = "csv") => {
+  const { data } = await api.get("/export/reports", {
+    params: { format },
+    responseType: "blob",
+  });
+  downloadFile(data, `reports_export_${Date.now()}.${format}`, format === "xlsx" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv");
+};
+
+// ========================
 // DASHBOARD OVERVIEW
 // ========================
 
@@ -110,6 +174,21 @@ export const getCategories = async (params = {}) => {
 
 export const getCoupons = async (params = {}) => {
   const { data } = await api.get("/coupons", { params });
+  return data;
+};
+
+export const createCoupon = async (couponData) => {
+  const { data } = await api.post("/coupons", couponData);
+  return data;
+};
+
+export const updateCoupon = async (couponId, couponData) => {
+  const { data } = await api.patch(`/coupons/${couponId}`, couponData);
+  return data;
+};
+
+export const deleteCoupon = async (couponId) => {
+  const { data } = await api.delete(`/coupons/${couponId}`);
   return data;
 };
 

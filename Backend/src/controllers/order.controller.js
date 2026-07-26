@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Cart } from "../models/atanu.cart.model.js";
 import { Order } from "../models/atanu.order.model.js";
 import { Product } from "../models/atanu.product.model.js";
@@ -54,6 +55,14 @@ const validateCartItem = (item) => {
         return "Product deleted";
     }
 
+    const productId = item.product._id;
+
+    // Skip stock/inactive validation for items without a valid MongoDB ObjectId
+    // e.g., static catalog products with numeric IDs (401, 402) or bundle items
+    if (!productId || !mongoose.Types.ObjectId.isValid(String(productId))) {
+        return null;
+    }
+
     if (isProductInactive(item.product)) {
         return "Product is inactive";
     }
@@ -95,7 +104,8 @@ const getMyOrders = async (req, res) => {
             Order.find(query)
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * limit)
-                .limit(limit),
+                .limit(limit)
+                .populate("orderItems.productId", "product_name product_image brand slug mrp_price discount_price"),
             Order.countDocuments(query),
         ]);
 
@@ -319,13 +329,87 @@ const getAdminOrders = async (req, res) => {
 
 export { getMyOrders, getOrderById, cancelOrder, updateOrderStatus, getAdminOrders };
 
+const buildCartItemsFromBody = (bodyItems) => {
+    if (!Array.isArray(bodyItems) || bodyItems.length === 0) return null;
+    return bodyItems.map((item) => ({
+        product: {
+            _id: item.id || item.productId,
+            product_name: item.name || "",
+            product_image: item.image || "",
+            mrp_price: Number(item.mrp || 0),
+            discount_price: Number(item.price || 0),
+            stock: Number(item.stock || 15),
+            isKentProduct: Boolean(item.isKentProduct),
+        },
+        quantity: Number(item.qty || 1),
+    }));
+};
+
+const placeOrderWithItems = async (items, userId, shippingAddress, paymentMethod, paymentStatus, orderStatus, couponDiscount) => {
+    const orderItems = buildOrderItems(items);
+    const totals = calculateOrderTotals(items);
+    const orderNumber = await generateOrderNumber();
+    const orderedDate = new Date();
+
+    const hasKentProduct = items.some((item) => Boolean(item.product?.isKentProduct));
+    const deliveryBase = totals.subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : STANDARD_DELIVERY_CHARGE;
+    const deliveryCharge = Math.max(0, deliveryBase - (hasKentProduct ? KENT_SHIPPING_DISCOUNT : 0));
+    const codCharge = paymentMethod === "Cash on Delivery" ? COD_CHARGE : 0;
+    const couponSave = Number(couponDiscount) || 0;
+    const grandTotal = Math.max(0, totals.subtotal - totals.discount - couponSave + deliveryCharge + totals.tax + codCharge);
+
+    const stockResult = await updateProductStock(items);
+    if (!stockResult.success) {
+        throw new Error("Product out of stock");
+    }
+
+    const orderDocument = {
+        user: userId,
+        customer: userId,
+        products: orderItems,
+        orderItems,
+        shippingAddress,
+        address: shippingAddress,
+        paymentMethod: paymentMethod || "Cash On Delivery",
+        paymentStatus: paymentStatus || "Pending",
+        subtotal: totals.subtotal,
+        discount: totals.discount + couponSave,
+        deliveryCharge,
+        tax: totals.tax,
+        grandTotal,
+        orderNumber,
+        orderStatus: orderStatus || "Pending",
+        status: "pending",
+        orderedDate,
+        orderPrice: grandTotal,
+        createdAt: orderedDate,
+        updatedAt: orderedDate,
+    };
+
+    const insertedOrder = await Order.collection.insertOne(orderDocument);
+
+    try {
+        await clearCart(userId);
+    } catch (cartError) {
+        await Order.collection.deleteOne({ _id: insertedOrder.insertedId });
+        for (const item of items) {
+            await Product.updateOne(
+                { _id: item.product._id },
+                { $inc: { stock: Number(item.quantity) || 0 } }
+            );
+        }
+        throw cartError;
+    }
+
+    return {
+        _id: insertedOrder.insertedId,
+        ...orderDocument,
+    };
+};
+
 export const placeOrder = async (req, res) => {
     try {
         const userId = req.user?._id;
-
-
-
-
 
         if (!userId) {
             return res.status(401).json({
@@ -334,28 +418,33 @@ export const placeOrder = async (req, res) => {
             });
         }
 
+        // Try loading the user's MongoDB cart first
         const cart = await Cart.findOne({ user: userId }).populate("items.product");
 
-        if (!cart) {
-            return res.status(404).json({
-                success: false,
-                message: "Cart not found",
-            });
+        let itemsSource;
+        let cartSource = "mongodb";
+
+        if (cart && Array.isArray(cart.items) && cart.items.length > 0) {
+            itemsSource = cart.items;
+        } else {
+            // Fallback to items from request body (sent from frontend localStorage cart)
+            const bodyItems = req.body.items || req.body.cartItems;
+            const built = buildCartItemsFromBody(bodyItems);
+            if (!built) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Your cart is empty. Please add items before placing an order.",
+                });
+            }
+            itemsSource = built;
+            cartSource = "body";
         }
 
-        if (!Array.isArray(cart.items) || cart.items.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Your cart is empty",
-            });
-        }
-
-        for (const item of cart.items) {
+        // Validate items
+        for (const item of itemsSource) {
             const validationError = validateCartItem(item);
-
             if (validationError) {
                 const statusCode = validationError === "Product out of stock" ? 409 : 400;
-
                 return res.status(statusCode).json({
                     success: false,
                     message: validationError,
@@ -363,12 +452,7 @@ export const placeOrder = async (req, res) => {
             }
         }
 
-        const orderItems = buildOrderItems(cart.items);
-        const totals = calculateOrderTotals(cart.items);
-        const orderNumber = await generateOrderNumber();
-        const orderedDate = new Date();
         const shippingAddress = resolveShippingAddress(req.body);
-
         if (!ensureValidShippingAddress(shippingAddress)) {
             return res.status(400).json({
                 success: false,
@@ -379,72 +463,23 @@ export const placeOrder = async (req, res) => {
         const paymentMethod = req.body.paymentMethod || "Cash On Delivery";
         const paymentStatus = req.body.paymentStatus || "Pending";
         const orderStatus = req.body.orderStatus || "Pending";
+        const couponDiscount = req.body.coupon?.discountAmount || 0;
 
-        const hasKentProduct = cart.items.some((item) => Boolean(item.product?.isKentProduct));
-        const deliveryBase = totals.subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : STANDARD_DELIVERY_CHARGE;
-        const deliveryCharge = Math.max(0, deliveryBase - (hasKentProduct ? KENT_SHIPPING_DISCOUNT : 0));
-        const codCharge = paymentMethod === "Cash on Delivery" ? COD_CHARGE : 0;
-        const grandTotal = Math.max(0, totals.subtotal - totals.discount + deliveryCharge + totals.tax + codCharge);
-
-
-        const stockResult = await updateProductStock(cart.items);
-
-        if (!stockResult.success) {
-            return res.status(409).json({
-                success: false,
-                message: "Product out of stock",
-            });
-        }
-
-        const orderDocument = {
-            user: userId,
-            customer: userId,
-            products: orderItems,
-            orderItems,
+        const placedOrder = await placeOrderWithItems(
+            itemsSource,
+            userId,
             shippingAddress,
-            address: shippingAddress,
             paymentMethod,
             paymentStatus,
-            subtotal: totals.subtotal,
-            discount: totals.discount,
-            deliveryCharge,
-            tax: totals.tax,
-            grandTotal,
-            orderNumber,
             orderStatus,
-            status: "pending",
-            orderedDate,
-            orderPrice: grandTotal,
-            createdAt: orderedDate,
-            updatedAt: orderedDate,
-        };
-
-        const insertedOrder = await Order.collection.insertOne(orderDocument);
-
-        try {
-            await clearCart(userId);
-        } catch (cartError) {
-            await Order.collection.deleteOne({ _id: insertedOrder.insertedId });
-
-            for (const item of cart.items) {
-                await Product.updateOne(
-                    { _id: item.product._id },
-                    { $inc: { stock: Number(item.quantity) || 0 } }
-                );
-            }
-
-            throw cartError;
-        }
-
-        const placedOrder = {
-            _id: insertedOrder.insertedId,
-            ...orderDocument,
-        };
+            couponDiscount
+        );
 
         return res.status(201).json({
             success: true,
             message: "Order placed successfully",
             order: placedOrder,
+            cartSource,
         });
     } catch (error) {
         return res.status(500).json({

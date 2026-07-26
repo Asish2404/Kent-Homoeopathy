@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
-import { getCoupons } from "../services/admin.service";
+import { getCoupons, createCoupon, updateCoupon, deleteCoupon, exportCoupons } from "../services/admin.service";
 
 const statusVariant = (status) => {
   const s = String(status).toLowerCase();

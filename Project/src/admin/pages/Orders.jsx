@@ -3,7 +3,7 @@ import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
 import { formatCurrency, formatDate } from "../utils/formatters";
-import { getOrders } from "../services/admin.service";
+import { getOrders, exportOrders } from "../services/admin.service";
 
 const statusVariant = (status) => {
   if (status === "Delivered" || status === "delivered") return "success";
@@ -83,7 +83,15 @@ const Orders = () => {
           <div className="mt-2 text-3xl font-extrabold text-neutral-900">Orders</div>
           <div className="mt-1 text-sm text-neutral-500">Track, filter and review order status.</div>
         </div>
-        <button className="btn-primary" type="button">Export</button>
+        <select
+          onChange={(e) => { if (e.target.value) { exportOrders(e.target.value); e.target.value = ""; } }}
+          className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none text-sm bg-white cursor-pointer"
+          defaultValue=""
+        >
+          <option value="" disabled>Export</option>
+          <option value="csv">CSV</option>
+          <option value="xlsx">Excel (.xlsx)</option>
+        </select>
       </div>
 
       <Card className="p-5">

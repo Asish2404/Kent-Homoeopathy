@@ -46,13 +46,12 @@ const createRazorpayOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: "Amount must be greater than 0" });
         }
 
-        if (!paymentFor || !referenceId) {
-            return res.status(400).json({ success: false, message: "paymentFor and referenceId are required" });
-        }
-
-        const validated = await validatePaymentForReference({ paymentFor, referenceId });
-        if (!validated.valid) {
-            return res.status(404).json({ success: false, message: validated.message });
+        // If paymentFor and referenceId are provided, validate them
+        if (paymentFor && referenceId) {
+            const validated = await validatePaymentForReference({ paymentFor, referenceId });
+            if (!validated.valid) {
+                return res.status(404).json({ success: false, message: validated.message });
+            }
         }
 
         const razorpay = getRazorpayClient();
@@ -69,28 +68,30 @@ const createRazorpayOrder = async (req, res) => {
         // Store pending payment
         const paymentDoc = await Payment.create({
             user: userId,
-            // keep both refs in schema for flexibility
-            order: paymentFor === "ORDER" ? referenceId : null,
-            appointment:
-                paymentFor === "APPOINTMENT" ? referenceId : null,
-
-            paymentType: paymentFor === "ORDER" ? "Medicine Purchase" : "Doctor Consultation",
+            order: paymentFor === "ORDER" && referenceId ? referenceId : null,
+            appointment: paymentFor === "APPOINTMENT" && referenceId ? referenceId : null,
+            paymentType: paymentFor === "ORDER" ? "Medicine Purchase" : paymentFor === "APPOINTMENT" ? "Doctor Consultation" : "Medicine Purchase",
             paymentMethod: "Online Payment",
             paymentGateway: "Razorpay",
             paymentStatus: "Pending",
-
             amount: numericAmount,
             currency: safeCurrency,
-
             gatewayOrderId: razorpayOrder.id,
-            // other signature/payment ids are set on verify
-            customerName: req.user?.name || "Customer",
+            customerName: req.user?.user_name || req.user?.name || "Customer",
             customerEmail: req.user?.email || "",
             customerPhone: req.user?.phone || "",
         });
 
+        // Return in format expected by frontend Payment.jsx
         return res.status(201).json({
             success: true,
+            order: {
+                id: razorpayOrder.id,
+                amount: paymentDoc.amount,
+                currency: paymentDoc.currency,
+                receipt: options.receipt,
+                status: "created",
+            },
             orderId: razorpayOrder.id,
             amount: paymentDoc.amount,
             currency: paymentDoc.currency,

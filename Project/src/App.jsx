@@ -15,6 +15,7 @@ import Home from "./Home/Home";
 import Consult from "./ConsultDoctor/Consult";
 import Cart from "./Cart/Cart";
 import Profile from "./Profile/Profile";
+import OrderTracking from "./pages/OrderTracking";
 import NotFound from "./pages/NotFound";
 
 import CartProvider from "./Cart/CartProvider";
@@ -52,7 +53,8 @@ function App() {
         <Route path="Profile" element={<Profile />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="payment" element={<Payment />} />
-        <Route path="order-success" element={<OrderSuccess />} />
+<Route path="order-success" element={<OrderSuccess />} />
+        <Route path="orders/:orderId" element={<OrderTracking />} />
 
         {/* ADMIN */}
         <Route path="admin" element={<AdminRequireAuth />}>

@@ -1,6 +1,6 @@
 export const formatCurrency = (value) => {
   const num = Number(value ?? 0);
-  return num.toLocaleString(undefined, { style: "currency", currency: "USD" });
+  return "₹" + num.toLocaleString("en-IN", { maximumFractionDigits: 0 });
 };
 
 export const formatDate = (iso) => {

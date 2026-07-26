@@ -3,7 +3,7 @@ import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
 import { formatCurrency } from "../utils/formatters";
-import { getProducts } from "../services/admin.service";
+import { getProducts, exportProducts } from "../services/admin.service";
 
 const statusVariant = (status) => {
   const s = String(status).toLowerCase();
@@ -60,9 +60,20 @@ const Products = () => {
           <div className="mt-2 text-3xl font-extrabold text-neutral-900">Products</div>
           <div className="mt-1 text-sm text-neutral-500">Browse and manage product catalog.</div>
         </div>
-        <button className="btn-primary" onClick={() => {}}>
-          Add Product
-        </button>
+        <div className="flex gap-2">
+          <select
+            onChange={(e) => { if (e.target.value) { exportProducts(e.target.value); e.target.value = ""; } }}
+            className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none text-sm bg-white cursor-pointer"
+            defaultValue=""
+          >
+            <option value="" disabled>Export</option>
+            <option value="csv">CSV</option>
+            <option value="xlsx">Excel (.xlsx)</option>
+          </select>
+          <button className="btn-primary" onClick={() => {}}>
+            Add Product
+          </button>
+        </div>
       </div>
 
       <Card className="p-5">

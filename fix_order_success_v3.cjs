@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+const fs = require('fs');
+const path = 'c:/Users/Asish/OneDrive/Desktop/Kent web/Project/src/pages/OrderSuccess.jsx';
+
+const content = `import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function OrderSuccess() {
@@ -34,11 +37,11 @@ export default function OrderSuccess() {
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
-      <style>{`
+      <style>{\`
         @keyframes popIn{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.07);opacity:1}100%{transform:scale(1);opacity:1}}
         .pop{animation:popIn .55s ease both}
         .glow{filter: drop-shadow(0 10px 18px rgba(22,163,74,.25))}
-      `}</style>
+      \`}</style>
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           <div className="px-6 sm:px-10 py-10 sm:py-12">
@@ -76,10 +79,9 @@ export default function OrderSuccess() {
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left">
                   <p className="text-xs text-slate-400">Amount Paid</p>
-                  <p className="font-black text-slate-900 text-lg mt-1">&#8377;{Number(orderAmount).toFixed(0)}</p>
+                  <p className="font-black text-slate-900 text-lg mt-1">₹{Number(orderAmount).toFixed(0)}</p>
                   <p className="text-xs text-slate-500 mt-1">{eta || "Estimated delivery: 2-3 days"}</p>
                 </div>
-              </div>
               {shippingAddr && (
                 <div className="mt-4 w-full max-w-2xl bg-slate-50 rounded-2xl border border-slate-200 px-5 py-4 text-left">
                   <p className="text-xs text-slate-400 font-semibold mb-1">Delivery Address</p>
@@ -110,9 +112,12 @@ export default function OrderSuccess() {
                 Secure flow
               </p>
             </div>
-          </div>
         </div>
       </main>
     </div>
   );
 }
+`;
+
+fs.writeFileSync(path, content, 'utf8');
+console.log('OrderSuccess.jsx written successfully');

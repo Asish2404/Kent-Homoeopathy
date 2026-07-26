@@ -1,5 +1,5 @@
 import { Product } from "../models/atanu.product.model.js";
-import { Doctor } from "../models/doctor.model.js";
+import { Doctor } from "../models/atanu.doctor.model.js";
 import { Category } from "../models/atanu.category.model.js";
 import { LabTest } from "../models/atanu.labtest.model.js";
 import { Faq } from "../models/faq.model.js";
@@ -49,12 +49,11 @@ export const universalSearch = async (req, res) => {
       }).populate("category").limit(limit),
       Doctor.find({
         $or: [
-          { fullName: rx },
+          { doctor_name: rx },
           { specialization: rx },
           { qualification: rx },
-          { hospitalClinicName: rx },
-          { city: rx },
-          { state: rx },
+          { hospital: rx },
+          { about: rx },
         ],
       }).limit(limit),
       Category.find({ category_name: rx }).limit(limit),

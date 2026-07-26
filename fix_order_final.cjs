@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+const fs = require('fs');
+
+// Fix OrderSuccess.jsx - rewrite entirely
+const successContent = `import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function OrderSuccess() {
@@ -34,11 +37,12 @@ export default function OrderSuccess() {
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
-      <style>{`
+      <style>{\`
         @keyframes popIn{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.07);opacity:1}100%{transform:scale(1);opacity:1}}
         .pop{animation:popIn .55s ease both}
         .glow{filter: drop-shadow(0 10px 18px rgba(22,163,74,.25))}
-      `}</style>
+      \`}</style>
+
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           <div className="px-6 sm:px-10 py-10 sm:py-12">
@@ -57,12 +61,15 @@ export default function OrderSuccess() {
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
+
               <h1 className="serif text-3xl sm:text-4xl font-black text-slate-900 mt-6">
                 Order Placed Successfully
               </h1>
+
               <p className="text-slate-500 mt-3 max-w-xl text-sm sm:text-base">
                 Thank you! Your medicine order is confirmed. We are processing it for dispatch.
               </p>
+
               <div className="mt-7 w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left">
                   <p className="text-xs text-slate-400">Order Number</p>
@@ -79,7 +86,7 @@ export default function OrderSuccess() {
                   <p className="font-black text-slate-900 text-lg mt-1">&#8377;{Number(orderAmount).toFixed(0)}</p>
                   <p className="text-xs text-slate-500 mt-1">{eta || "Estimated delivery: 2-3 days"}</p>
                 </div>
-              </div>
+
               {shippingAddr && (
                 <div className="mt-4 w-full max-w-2xl bg-slate-50 rounded-2xl border border-slate-200 px-5 py-4 text-left">
                   <p className="text-xs text-slate-400 font-semibold mb-1">Delivery Address</p>
@@ -89,6 +96,7 @@ export default function OrderSuccess() {
                   <p className="text-xs text-slate-500 mt-0.5">{shippingAddr.phone}</p>
                 </div>
               )}
+
               <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full max-w-2xl">
                 <button
                   onClick={() => navigate("/")}
@@ -97,6 +105,7 @@ export default function OrderSuccess() {
                 >
                   Continue Shopping
                 </button>
+
                 <button
                   onClick={() => navigate("/Profile", { state: { tab: "orders" } })}
                   className="btn-outline w-full sm:w-auto sm:flex-none"
@@ -105,14 +114,27 @@ export default function OrderSuccess() {
                   View My Orders
                 </button>
               </div>
-              <p className="mt-4 text-[10px] text-slate-400">
+<p className="mt-4 text-[10px] text-slate-400">
                 {tick < 3 ? "" : ""}
                 Secure flow
               </p>
             </div>
-          </div>
         </div>
       </main>
     </div>
   );
 }
+`;
+
+fs.writeFileSync('c:/Users/Asish/OneDrive/Desktop/Kent web/Project/src/pages/OrderSuccess.jsx', successContent, 'utf8');
+console.log('OrderSuccess.jsx rewritten successfully');
+
+// Fix OrderTracking.jsx - fix the corrupt className
+let tracking = fs.readFileSync('c:/Users/Asish/OneDrive/Desktop/Kent web/Project/src/pages/OrderTracking.jsx', 'utf8');
+// Fix the corrupted span: "mt-1 p">" should be "mt-1 " + (...paymentStatus...
+tracking = tracking.replace(
+  'mt-1 p"> + (order.paymentStatus',
+  'mt-1 " + (order.paymentStatus'
+);
+fs.writeFileSync('c:/Users/Asish/OneDrive/Desktop/Kent web/Project/src/pages/OrderTracking.jsx', tracking, 'utf8');
+console.log('OrderTracking.jsx fixed');

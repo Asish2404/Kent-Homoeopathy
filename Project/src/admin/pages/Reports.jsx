@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
-import { getDashboardOrders, getDashboardAppointments, getDashboardReports } from "../services/admin.service";
+import { getDashboardOrders, getDashboardAppointments, getDashboardReports, exportReports } from "../services/admin.service";
 
 const Reports = () => {
   const [loading, setLoading] = useState(true);
@@ -103,7 +103,15 @@ const Reports = () => {
           <div className="mt-2 text-3xl font-extrabold text-neutral-900">Reports</div>
           <div className="mt-1 text-sm text-neutral-500">Operational reporting from database.</div>
         </div>
-        <button className="btn-primary" type="button">Generate</button>
+        <select
+          onChange={(e) => { if (e.target.value) { exportReports(e.target.value); e.target.value = ""; } }}
+          className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none text-sm bg-white cursor-pointer"
+          defaultValue=""
+        >
+          <option value="" disabled>Export</option>
+          <option value="csv">CSV</option>
+          <option value="xlsx">Excel (.xlsx)</option>
+        </select>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
