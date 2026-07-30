@@ -1,5 +1,5 @@
 import { User } from "../models/atanu.user.model.js";
-import { Doctor } from "../models/doctor.model.js";
+import { Doctor } from "../models/atanu.doctor.model.js";
 import { Product } from "../models/atanu.product.model.js";
 import { Order } from "../models/atanu.order.model.js";
 import { Appointment } from "../models/appointment.model.js";

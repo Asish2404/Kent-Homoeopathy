@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { MedicalReport } from "../models/medicalReport.model.js";
 import { Appointment } from "../models/appointment.model.js";
 import { Prescription } from "../models/prescription.model.js";
-import { Doctor } from "../models/doctor.model.js";
+import { Doctor } from "../models/atanu.doctor.model.js";
 import { User } from "../models/atanu.user.model.js";
 
 const getPagination = (query = {}) => {

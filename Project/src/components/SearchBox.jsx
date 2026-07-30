@@ -214,8 +214,8 @@ export default function SearchBox({
   return (
     <div ref={rootRef} className="relative w-full min-w-0">
       <div className={className} role="search" aria-label={ariaLabel}>
-        <div className="absolute left-0 top-0 bottom-0 w-11 flex items-center justify-center pointer-events-none text-neutral-500 z-10">
-          <FiSearch className="text-base" />
+        <div className="absolute left-0 top-0 bottom-0 w-[38px] flex items-center justify-center pointer-events-none text-neutral-500 z-10">
+          <FiSearch className="text-sm" />
         </div>
 
         <input
@@ -282,10 +282,10 @@ export default function SearchBox({
             }
           }}
           className="h-full w-full outline-none text-neutral-800 text-sm bg-transparent placeholder:text-neutral-400"
-          style={{ paddingLeft: "2.75rem", paddingRight: "2.75rem" }}
+          style={{ paddingLeft: "2.25rem", paddingRight: "2.25rem" }}
         />
 
-        <div className="absolute right-0 top-0 bottom-0 w-11 flex items-center justify-center z-10">
+        <div className="absolute right-0 top-0 bottom-0 w-[38px] flex items-center justify-center z-10">
           {loading ? (
             <FiLoader className="animate-spin text-base text-[var(--brand-600)]" />
           ) : value?.length > 0 ? (

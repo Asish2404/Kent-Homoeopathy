@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 
 const doctorSchema = new mongoose.Schema(
     {
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
+            index: true,
+        },
+
         doctor_name: {
             type: String,
             required: true,
@@ -51,14 +58,27 @@ const doctorSchema = new mongoose.Schema(
         about: {
             type: String,
             required: true
-        }
+        },
+
+        averageRating: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 5,
+        },
+
+        totalReviews: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
     },
     {
         timestamps: true
     }
 );
 
-export const Doctor = mongoose.model(
+export const Doctor = mongoose.models.Doctor || mongoose.model(
     "Doctor",
     doctorSchema
 );

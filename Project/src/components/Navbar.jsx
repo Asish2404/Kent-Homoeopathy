@@ -141,10 +141,10 @@ const readUser = () => {
 
             {/* Shared universal search */}
             <div className="min-w-0 px-1 sm:px-2 justify-self-stretch">
-              <div className="w-full max-w-[420px] mx-auto min-w-0">
+              <div className="w-full max-w-[280px] lg:max-w-[300px] mx-auto min-w-0">
                 <SearchBox
-                  className="relative h-[44px] sm:h-[48px] w-full bg-white rounded-full shadow-md  transition-[transform,border-color,box-shadow] duration-300 hover:border-[var(--brand-300)] focus-within:ring-4 focus-within:ring-[var(--brand-200)]"
-                  placeholder="Search "
+                  className="relative h-[40px] w-full bg-[#F8FAFC] rounded-[14px] border border-[#E5E7EB] shadow-sm transition-all duration-250 hover:border-[var(--brand-300)] focus-within:border-[var(--brand-500)] focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]"
+                  placeholder="Search medicines, doctors..."
                   ariaLabel="Universal Search"
                   onSearch={handleSearch}
                 />
@@ -153,8 +153,9 @@ const readUser = () => {
 
 
             {/* Desktop nav */}
-            <div className="hidden lg:flex items-center flex-nowrap justify-end gap-4 xl:gap-7 justify-self-end min-w-0">
-              <div className="flex items-center gap-4 xl:gap-7 min-w-0">
+            <div className="hidden lg:flex items-center justify-end gap-5 xl:gap-6 justify-self-end min-w-0">
+              {/* Navigation Links */}
+              <div className="flex items-center gap-0.5 xl:gap-1">
                 <NavLink to="/" className={navStyle} end>
                   Home
                 </NavLink>
@@ -183,15 +184,14 @@ const readUser = () => {
                 ) : null}
               </div>
 
-              <div className="flex items-center gap-3 ml-1 xl:ml-2 flex-shrink-0">
-                {/* Quick action icons */}
+              {/* Action Icons + Profile */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Wishlist */}
                 <button
                   type="button"
                   aria-label="Wishlist"
                   onClick={handleWishlistOpen}
-                  className="relative w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex-shrink-0
-                           flex items-center justify-center text-white transition duration-200
-                           hover:scale-105 active:scale-95"
+                  className="navIconBtn"
                 >
                   <FiHeart className="text-base" />
 
@@ -202,11 +202,10 @@ const readUser = () => {
                   )}
                 </button>
 
+                {/* Cart */}
                 <NavLink
                   to="/Cart"
-                  className="relative w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex-shrink-0
-                           flex items-center justify-center text-white transition duration-200
-                           hover:scale-105 active:scale-95"
+                  className="navIconBtn relative"
                 >
                   <BsCart3 className="text-base" />
 
@@ -217,27 +216,29 @@ const readUser = () => {
                   )}
                 </NavLink>
 
-{user ? (
+                {/* User Profile / Login */}
+                {user ? (
                   <div className="relative flex-shrink-0" ref={profileRef}>
-                    <div
+                    <button
+                      type="button"
                       onClick={() => setProfileOpen(!profileOpen)}
-                      className="flex items-center gap-2 cursor-pointer bg-white/10 hover:bg-white/15 pl-2 pr-2.5 py-1 rounded-full transition border border-white/10 whitespace-nowrap max-w-[220px]"
+                      className="flex items-center gap-2 cursor-pointer bg-white/10 hover:bg-white/15 pl-2 pr-3 py-1.5 rounded-full transition border border-white/10 whitespace-nowrap h-[44px]"
                     >
                       <img
                         src={`https://ui-avatars.com/api/?name=${user.user_name}&background=22c55e&color=fff&bold=true`}
                         alt="avatar"
-                        className="w-9 h-9 rounded-full ring-2 ring-[var(--brand-400)]"
+                        className="w-8 h-8 rounded-full ring-2 ring-[var(--brand-400)] flex-shrink-0"
                       />
 
                       <div className="hidden sm:flex flex-col leading-tight">
-                        <p className="text-white font-semibold text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">
+                        <p className="text-white font-semibold text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-[110px]">
                           {user.user_name}
                         </p>
                         <p className="text-[var(--brand-300)] text-[10px] tracking-wider whitespace-nowrap">
                           My Account
                         </p>
                       </div>
-                    </div>
+                    </button>
 
                     {profileOpen && (
                       <div
@@ -334,14 +335,13 @@ const readUser = () => {
                   !isAdmin ? (
                     <NavLink
                       to="/Login"
-                      className="btn-primary h-[48px] px-5 whitespace-nowrap text-sm rounded-xl flex items-center justify-center"
+                      className="btn-primary h-[44px] px-5 whitespace-nowrap text-sm rounded-xl flex items-center justify-center"
                     >
                       Login / Sign Up
                     </NavLink>
                   ) : null
                 )}
-
-            </div>
+              </div>
             </div>
 
             {/* Mobile right cluster */}
@@ -399,10 +399,10 @@ const readUser = () => {
                      max-h-[calc(100vh-88px)] overflow-y-auto"
         >
           {/* Mobile search (full width) */}
-          <div className="w-full h-[48px]">
+          <div className="w-full h-[44px]">
             <SearchBox
-              className="relative h-full w-full bg-white rounded-full shadow-md border border-neutral-100/70 focus-within:ring-4 focus-within:ring-[var(--brand-200)] transition"
-              placeholder="Search..."
+              className="relative h-full w-full bg-[#F8FAFC] rounded-[14px] border border-[#E5E7EB] shadow-sm transition-all duration-250 focus-within:border-[var(--brand-500)] focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]"
+              placeholder="Search medicines, doctors..."
               ariaLabel="Universal Search"
               onSearch={handleSearch}
             />
