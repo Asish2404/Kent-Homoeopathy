@@ -239,8 +239,7 @@ const Labtest = () => {
                 Phone: ${data.phone}
                 Email: ${data.email}
                 Test: ${data.labtest}
-                Date: ${date.toDateString()}
-                Time: ${data.time}`;
+                Date: ${date.toDateString()}`;
     const phone = "917980972894";
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -681,25 +680,7 @@ const Labtest = () => {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Preferred Time
-                      </label>
-                      <select
-                        {...register("time")}
-                        className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
-                      >
-                        <option value="">Select Time Slot</option>
-                        <option value="08:00 AM">08:00 AM</option>
-                        <option value="09:00 AM">09:00 AM</option>
-                        <option value="10:00 AM">10:00 AM</option>
-                        <option value="11:00 AM">11:00 AM</option>
-                        <option value="12:00 PM">12:00 PM</option>
-                        <option value="02:00 PM">02:00 PM</option>
-                        <option value="04:00 PM">04:00 PM</option>
-                      </select>
-                    </div>
-                  </div>
+</div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">

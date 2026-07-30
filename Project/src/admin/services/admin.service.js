@@ -183,6 +183,21 @@ export const getCategories = async (params = {}) => {
   return data;
 };
 
+export const createCategory = async (categoryData) => {
+  const { data } = await api.post("/category", categoryData);
+  return data;
+};
+
+export const updateCategory = async (categoryId, categoryData) => {
+  const { data } = await api.patch(`/category/${categoryId}`, categoryData);
+  return data;
+};
+
+export const deleteCategory = async (categoryId) => {
+  const { data } = await api.delete(`/category/${categoryId}`);
+  return data;
+};
+
 // ========================
 // COUPONS
 // ========================
@@ -213,6 +228,21 @@ export const deleteCoupon = async (couponId) => {
 
 export const getReviews = async (params = {}) => {
   const { data } = await api.get("/reviews", { params });
+  return data;
+};
+
+export const approveReview = async (reviewId) => {
+  const { data } = await api.patch(`/reviews/${reviewId}/approve`);
+  return data;
+};
+
+export const rejectReview = async (reviewId) => {
+  const { data } = await api.patch(`/reviews/${reviewId}/reject`);
+  return data;
+};
+
+export const hideReview = async (reviewId) => {
+  const { data } = await api.patch(`/reviews/${reviewId}/hide`);
   return data;
 };
 

@@ -80,8 +80,8 @@ const Home = () => {
       {/* Hero Carousel */}
       <Carousel slides={slides} />
 
-      {/* Services strip */}
-      <section className="relative -mt-12 z-10 px-4">
+{/* Services strip */}
+      <section id="home-services" className="relative -mt-12 z-10 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl border border-neutral-100
                           p-5 md:p-6 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
