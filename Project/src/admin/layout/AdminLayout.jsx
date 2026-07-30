@@ -119,32 +119,22 @@ const AdminLayout = () => {
           </div>
         </div>
 
-<div className="hidden lg:grid lg:grid-cols-[280px_1fr] min-h-screen">
+        <div className="hidden lg:grid lg:grid-cols-[280px_1fr] min-h-screen">
           <aside className="bg-white border-r border-neutral-200">{sidebar}</aside>
 
           <section className="flex flex-col">
             {/* Topbar */}
             <header className="sticky top-0 z-10 bg-white border-b border-neutral-200 px-6 py-4">
               <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  {/* Hamburger for tablet */}
-                  <button
-                    className="p-2 rounded-xl hover:bg-neutral-50 transition lg:hidden"
-                    onClick={() => setMobileOpen(true)}
-                    aria-label="Open navigation"
-                  >
-                    <Menu size={20} className="text-neutral-700" />
-                  </button>
-                  <div className="min-w-0">
-                    <div className="text-neutral-700 text-xs">{location.pathname}</div>
-                    <h1 className="text-xl font-extrabold text-neutral-900">
-                      {location.pathname === "/admin"
-                        ? "Dashboard"
-                        : location.pathname
-                            .replace("/admin/", "")
-                            .replace(/-/g, " ")}
-                    </h1>
-                  </div>
+                <div className="min-w-0">
+                  <div className="text-neutral-700 text-xs">{location.pathname}</div>
+                  <h1 className="text-xl font-extrabold text-neutral-900">
+                    {location.pathname === "/admin"
+                      ? "Dashboard"
+                      : location.pathname
+                          .replace("/admin/", "")
+                          .replace(/-/g, " ")}
+                  </h1>
                 </div>
 
                 <div className="flex items-center gap-3">

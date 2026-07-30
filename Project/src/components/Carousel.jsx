@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Carousel({ slides, autoplayInterval = 4000 }) {
   const [current, setCurrent] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [touching, setTouching] = useState(false);
 
@@ -37,7 +37,7 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     setCurrent(index);
   }, []);
 
-  // autoplay - pauses on hover or touch, resumes when not hovering/touching
+  // autoplay
   useEffect(() => {
     if (!isPlaying || isHovered || touching) return;
 
@@ -72,7 +72,6 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
 
     shouldBlockVerticalScrollRef.current = false;
     setTouching(true);
-    setIsPlaying(false);
   };
 
   const onTouchMove = (e) => {
@@ -111,7 +110,6 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     const endY = touchEndY.current;
 
     setTouching(false);
-    setIsPlaying(true);
 
     const dx = endX - startX;
     const dy = endY - startY;
@@ -139,14 +137,8 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     <section className="w-full overflow-hidden relative">
       <div
         className="relative touch-pan-x"
-        onMouseEnter={() => {
-          setIsHovered(true);
-          setIsPlaying(false);
-        }}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          setIsPlaying(true);
-        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -162,32 +154,32 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
           </div>
         </div>
 
-        {/* left arrow - visible on all screen sizes */}
+        {/* left arrow - moved further out to avoid overlapping hero content */}
         <button
           onClick={prevSlide}
           aria-label="Previous Slide"
-          className="flex absolute left-2 sm:left-4 md:left-12 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-12 sm:w-12 rounded-full
-                     bg-white/85 md:bg-white/95 backdrop-blur shadow-lg md:shadow-xl
+          className="hidden md:flex absolute left-12 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full
+                     bg-white/95 backdrop-blur shadow-xl
                      items-center justify-center
                      hover:scale-110 hover:bg-[var(--brand-600)] hover:text-white
                      text-neutral-700
-                     transition cursor-pointer z-10"
+                     transition cursor-pointer"
         >
-          <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+          <ChevronLeft />
         </button>
 
-        {/* right arrow - visible on all screen sizes */}
+        {/* right arrow - moved further out to avoid overlapping hero content */}
         <button
           onClick={nextSlide}
           aria-label="Next Slide"
-          className="flex absolute right-2 sm:right-4 md:right-12 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-12 sm:w-12 rounded-full
-                     bg-white/85 md:bg-white/95 backdrop-blur shadow-lg md:shadow-xl
+          className="hidden md:flex absolute right-12 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full
+                     bg-white/95 backdrop-blur shadow-xl
                      items-center justify-center
                      hover:scale-110 hover:bg-[var(--brand-600)] hover:text-white
                      text-neutral-700
-                     transition cursor-pointer z-10"
+                     transition cursor-pointer"
         >
-          <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+          <ChevronRight />
         </button>
 
         {/* controls */}

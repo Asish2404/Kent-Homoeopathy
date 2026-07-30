@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const CTA_ROUTES = {
   "Consult Doctor": "/Consult",
@@ -18,37 +18,8 @@ const CTA_ROUTES = {
   "Consult Now": "/Consult",
 };
 
-// Map CTA labels to homepage section IDs for smooth scrolling
-const HOME_SCROLL_MAP = {
-  "Consult Doctor": "home-services",
-  "Find a Specialist": "home-services",
-  "Products": "home-featured-products",
-  "Explore Products": "home-featured-products",
-  "Shop Now": "home-featured-products",
-  "View Categories": "home-featured-products",
-  "Order Medicines": "home-featured-products",
-  "Discover Wellness": "home-featured-products",
-  "See Wellness Packs": "home-featured-products",
-};
-
-const getNavbarHeight = () => {
-  // Announcement bar ~40px + navbar ~96px = ~136px
-  return 140;
-};
-
-const scrollToSection = (sectionId) => {
-  const el = document.getElementById(sectionId);
-  if (el) {
-    const navbarHeight = getNavbarHeight();
-    const top = el.getBoundingClientRect().top + window.scrollY - navbarHeight;
-    window.scrollTo({ top, behavior: "smooth" });
-  }
-};
-
 const SlideCard = React.memo(({ slide }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const isHomepage = location.pathname === "/";
   const placeholderImg =
     "https://images.unsplash.com/photo-1580281658628-93a3e2c21cbf?q=80&w=2000&auto=format&fit=crop";
 
@@ -59,11 +30,6 @@ const SlideCard = React.memo(({ slide }) => {
   }, [slide.image]);
 
   const goToCta = (label) => {
-    // If on homepage and the CTA maps to a section, scroll to it
-    if (isHomepage && HOME_SCROLL_MAP[label]) {
-      scrollToSection(HOME_SCROLL_MAP[label]);
-      return;
-    }
     const route = CTA_ROUTES[label];
     if (route) navigate(route);
   };
@@ -140,3 +106,4 @@ const SlideCard = React.memo(({ slide }) => {
 });
 
 export default SlideCard;
+

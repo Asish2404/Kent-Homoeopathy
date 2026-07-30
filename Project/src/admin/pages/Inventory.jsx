@@ -1,15 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
 import { getInventory, exportInventory } from "../services/admin.service";
-import api from "../../services/api";
 
 const statusVariant = (status) => {
   const s = String(status).toLowerCase();
   if (s === "in stock" || s === "available") return "success";
   if (s === "low stock") return "warning";
-  if (s === "out of stock" || s === "expired") return "danger";
+  if (s === "out of stock" || s === "out of stock" || s === "expired") return "danger";
   return "neutral";
 };
 
@@ -20,50 +19,33 @@ const InventoryPage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [stockModal, setStockModal] = useState(null);
-  const [stockQty, setStockQty] = useState("");
-  const [stockSubmitting, setStockSubmitting] = useState(false);
-  const [notification, setNotification] = useState(null);
 
-  const showNotification = (msg, type = "success") => {
-    setNotification({ msg, type });
-    setTimeout(() => setNotification(null), 3000);
-  };
+  const loadInventory = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  const updateStock = async (inventoryId, quantity) => {
-    const { data } = await api.patch(`/inventory/${inventoryId}/add-stock`, { quantity: Number(quantity) });
-    return data;
-  };
+      const params = { page, limit: 20 };
+      if (search.trim()) params.q = search.trim();
+      if (statusFilter !== "All") params.status = statusFilter;
 
-  const removeStock = async (inventoryId, quantity) => {
-    const { data } = await api.patch(`/inventory/${inventoryId}/remove-stock`, { quantity: Number(quantity) });
-    return data;
-  };
-
-const loadInventory = () => {
-    setLoading(true);
-    setError(null);
-    const params = { page, limit: 20 };
-    if (search.trim()) params.q = search.trim();
-    if (statusFilter !== "All") params.status = statusFilter;
-    getInventory(params)
-      .then((res) => {
-        setInventory(res.inventories || []);
-        setTotalCount(res.pagination?.totalCount || 0);
-      })
-      .catch((err) => {
-        console.error("Inventory load error:", err);
-        setError("Failed to load inventory. Please try again.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
+      const res = await getInventory(params);
+      setInventory(res.inventories || []);
+      setTotalPages(res.pagination?.totalPages || 1);
+      setTotalCount(res.pagination?.totalCount || 0);
+    } catch (err) {
+      console.error("Inventory load error:", err);
+      setError("Failed to load inventory. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, search, statusFilter]);
 
   useEffect(() => {
     loadInventory();
-  }, [page, search, statusFilter]);
+  }, [loadInventory]);
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
@@ -75,33 +57,6 @@ const loadInventory = () => {
     setPage(1);
   };
 
-  const openStockModal = (item, action) => {
-    setStockModal({ item, action });
-    setStockQty("");
-  };
-
-  const handleStockSubmit = async (e) => {
-    e.preventDefault();
-    const qty = Number(stockQty);
-    if (!qty || qty <= 0) return;
-    setStockSubmitting(true);
-    try {
-      if (stockModal.action === "add") {
-        await updateStock(stockModal.item._id, qty);
-        showNotification(`Added ${qty} units to stock`);
-      } else {
-        await removeStock(stockModal.item._id, qty);
-        showNotification(`Removed ${qty} units from stock`);
-      }
-      setStockModal(null);
-      loadInventory();
-    } catch (err) {
-      showNotification(err.response?.data?.message || "Stock update failed", "error");
-    } finally {
-      setStockSubmitting(false);
-    }
-  };
-
   const summary = {
     currentStock: inventory.reduce((sum, item) => sum + (item.currentStock || item.availableStock || 0), 0),
     lowStock: inventory.filter((i) => String(i.stockStatus).toLowerCase() === "low stock").length,
@@ -110,14 +65,6 @@ const loadInventory = () => {
 
   return (
     <div className="space-y-6">
-      {notification && (
-        <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-2xl shadow-xl text-white font-semibold text-sm transition-all ${
-          notification.type === "error" ? "bg-red-500" : "bg-green-600"
-        }`}>
-          {notification.msg}
-        </div>
-      )}
-
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
         <div>
           <div className="section-eyebrow">Stock & Availability</div>
@@ -209,7 +156,6 @@ const loadInventory = () => {
                     <th className="font-bold py-3">Product</th>
                     <th className="font-bold py-3">On Hand</th>
                     <th className="font-bold py-3">Status</th>
-                    <th className="font-bold py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm">
@@ -228,29 +174,12 @@ const loadInventory = () => {
                         <td className="py-3">
                           <Badge variant={statusVariant(status)}>{status}</Badge>
                         </td>
-                        <td className="py-3">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => openStockModal(item, "add")}
-                              className="text-xs bg-green-100 text-green-700 hover:bg-green-200 font-semibold px-3 py-1.5 rounded-lg transition"
-                            >
-                              + Add
-                            </button>
-                            <button
-                              onClick={() => openStockModal(item, "remove")}
-                              className="text-xs bg-red-100 text-red-700 hover:bg-red-200 font-semibold px-3 py-1.5 rounded-lg transition"
-                              disabled={onHand <= 0}
-                            >
-                              - Remove
-                            </button>
-                          </div>
-                        </td>
                       </tr>
                     );
                   })}
                   {inventory.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="py-10">
+                      <td colSpan={3} className="py-10">
                         <EmptyState title="No inventory items found" />
                       </td>
                     </tr>
@@ -261,51 +190,9 @@ const loadInventory = () => {
           )}
         </div>
       </Card>
-
-      {/* Stock Update Modal */}
-      {stockModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-neutral-900/40" onClick={() => setStockModal(null)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm">
-            <div className="text-lg font-extrabold text-neutral-900 mb-4">
-              {stockModal.action === "add" ? "Add Stock" : "Remove Stock"}
-            </div>
-            <form onSubmit={handleStockSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-neutral-700 mb-1">Quantity</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={stockQty}
-                  onChange={(e) => setStockQty(e.target.value)}
-                  className="w-full border border-neutral-200 rounded-2xl px-4 py-3 outline-none focus:border-brand-500"
-                  placeholder="Enter quantity"
-                  autoFocus
-                  required
-                />
-              </div>
-              <div className="flex gap-3 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setStockModal(null)}
-                  className="px-5 py-2.5 rounded-xl border border-neutral-200 text-neutral-700 font-semibold hover:bg-neutral-50 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={stockSubmitting || !stockQty || Number(stockQty) <= 0}
-                  className="btn-primary px-5 py-2.5 disabled:opacity-50"
-                >
-                  {stockSubmitting ? "Updating..." : stockModal.action === "add" ? "Add Stock" : "Remove Stock"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
 export default InventoryPage;
+
