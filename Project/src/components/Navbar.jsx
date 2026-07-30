@@ -115,7 +115,7 @@ const readUser = () => {
         className={`w-full bg-[var(--neutral-900)]/95 backdrop-blur-md sticky top-0 z-50 transition-all duration-300
                     ${scrolled ? "shadow-xl py-2" : "shadow-md py-2"}`}
       >
-        <div className="max-w-[1400px] mx-auto px-2 xs:px-3 sm:px-6 lg:px-8">
+        <div className="max-w-[1440px] mx-auto pl-3 xs:pl-4 sm:pl-6 lg:pl-6 pr-3 xs:pr-4 sm:pr-6 lg:pr-8">
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:gap-3 w-full min-w-0">
             {/* Logo + Branding */}
             <button
@@ -140,8 +140,8 @@ const readUser = () => {
             </button>
 
             {/* Shared universal search */}
-            <div className="min-w-0 px-1 sm:px-2 justify-self-stretch">
-              <div className="w-full max-w-[280px] lg:max-w-[300px] mx-auto min-w-0">
+            <div className="min-w-0 justify-self-stretch">
+              <div className="w-full max-w-[300px] lg:max-w-[320px] mx-auto min-w-0">
                 <SearchBox
                   className="relative h-[40px] w-full bg-[#F8FAFC] rounded-[14px] border border-[#E5E7EB] shadow-sm transition-all duration-250 hover:border-[var(--brand-300)] focus-within:border-[var(--brand-500)] focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]"
                   placeholder="Search medicines, doctors..."
@@ -154,8 +154,8 @@ const readUser = () => {
 
             {/* Desktop nav */}
             <div className="hidden lg:flex items-center justify-end gap-5 xl:gap-6 justify-self-end min-w-0">
-              {/* Navigation Links */}
-              <div className="flex items-center gap-0.5 xl:gap-1">
+{/* Navigation Links */}
+              <div className="flex items-center gap-1 xl:gap-1.5">
                 <NavLink to="/" className={navStyle} end>
                   Home
                 </NavLink>
