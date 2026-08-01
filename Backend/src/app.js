@@ -29,7 +29,24 @@ const app = express();
 
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: (origin, callback) => {
+            // Allow requests with no Origin (same-origin / server-to-server / curl).
+            if (!origin) {
+                return callback(null, true);
+            }
+
+            // Allow all localhost dev-server origins (5173, 5174, 4173, etc.).
+            const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+            // Allow any production origin served over HTTPS.
+            const isHttps = /^https:\/\//.test(origin);
+
+            if (isLocalhost || isHttps) {
+                return callback(null, true);
+            }
+
+            return callback(null, false);
+        },
         credentials: true
     })
 );

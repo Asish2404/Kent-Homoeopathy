@@ -87,10 +87,13 @@ export const loginUser = async (req, res) => {
             }
         );
 
+        // Strip password from response
+        const { password: _, ...userWithoutPassword } = user.toObject();
+
         res.status(200).json({
             message: "Login Successful",
             token,
-            user
+            user: userWithoutPassword
         });
 
     } catch (error) {

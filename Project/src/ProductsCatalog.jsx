@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { FaHeart } from "react-icons/fa";
@@ -6,6 +6,7 @@ import { HiOutlineSparkles } from "react-icons/hi2";
 import { FiSearch } from "react-icons/fi";
 import { allCategories } from "./data/products";
 import { useCartContext } from "./Cart/CartContext";
+import api from "./services/api";
 
 
 
@@ -14,22 +15,83 @@ const ProductsCatalog = () => {
   const cart = useCartContext();
   const location = useLocation();
 
-  const allProducts = useMemo(() => {
+  // ===== API-driven product list (with static fallback) =====
+  const [apiProducts, setApiProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState("");
+
+  const fetchProducts = useCallback(async () => {
+    setProductsLoading(true);
+    setProductsError("");
+    try {
+      const res = await api.get("/products");
+      const items = res.data?.products || res.data?.data?.products || [];
+      setApiProducts(Array.isArray(items) ? items : []);
+    } catch (err) {
+      setProductsError(
+        err?.response?.data?.message || err.message || "Failed to load products."
+      );
+      setApiProducts([]);
+    } finally {
+      setProductsLoading(false);
+    }
+  }, []);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const normalizeApiProduct = useCallback((raw) => {
+    const product_name = raw.product_name || raw.name || "";
+    const product_image = raw.product_image || raw.image || "";
+    const category =
+      raw.category?.category_name ||
+      (typeof raw.category === "string" ? raw.category : "Products");
+    const price = Number(raw.discount_price ?? raw.price ?? 0);
+    const mrp = Number(raw.mrp_price ?? raw.oldPrice ?? price);
+    return {
+      id: raw._id || raw.id,
+      name: product_name,
+      image: product_image,
+      price,
+      oldPrice: mrp > price ? mrp : undefined,
+      rating: Number(raw.rating || 0),
+      reviews: Number(raw.reviews || raw.reviewCount || 0),
+      categoryTitle: category,
+      brand: raw.brand || "Dr. Kent",
+      isInStock: (raw.stock ?? raw.inStock ?? 0) > 0,
+      deliveryETA: raw.deliveryETA || "24 hrs",
+      consultRequired: raw.consultRequired ?? false,
+      badge: raw.badge || "",
+      discount: raw.discount,
+      shortDescription: raw.short_description || raw.shortDescription || "",
+      longDescription: raw.detailed_description || raw.detailedDescription || "",
+      mrp,
+      _id: raw._id,
+    };
+  }, []);
+
+  const staticProducts = useMemo(() => {
     return allCategories.flatMap((c) => c.products || []).map((p) => ({
       ...p,
       categoryTitle:
         allCategories.find((cc) => cc.products?.some((pp) => pp.id === p.id))?.title || "Products",
-      // Normalize discount% when missing
-      discountPct:
-        typeof p.discount === "string" && p.discount.includes("₹")
-          ? undefined
-          : undefined,
       isInStock: true,
       brand: "Dr. Kent",
       deliveryETA: "24 hrs",
       consultRequired: true,
     }));
   }, []);
+
+  const allProducts = useMemo(() => {
+    const apiList = Array.isArray(apiProducts)
+      ? apiProducts.map(normalizeApiProduct)
+      : [];
+    if (apiList.length > 0) return apiList;
+    return staticProducts;
+  }, [apiProducts, staticProducts, normalizeApiProduct]);
 
   // UI state
   const [query, setQuery] = useState("");
@@ -78,7 +140,16 @@ const ProductsCatalog = () => {
     if (activeCategory !== "all") {
       const cat = allCategories.find((c) => c.id === activeCategory);
       const ids = new Set(cat?.products?.map((p) => p.id) || []);
-      list = list.filter((p) => ids.has(p.id));
+      const catTitle = (cat?.title || "").toLowerCase().trim();
+      list = list.filter((p) => {
+        // Static products are matched by their numeric id.
+        if (ids.has(p.id)) return true;
+        // API products carry categoryTitle from MongoDB — match by title.
+        if (catTitle) {
+          return String(p.categoryTitle || "").toLowerCase().trim() === catTitle;
+        }
+        return false;
+      });
     }
 
     if (q) {
@@ -513,7 +584,27 @@ const ProductsCatalog = () => {
             </div>
 
             <div className="space-y-3">
-              {results.length === 0 ? (
+              {productsLoading ? (
+                <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-12 text-center">
+                  <div className="animate-spin w-8 h-8 border-4 border-[var(--brand-600)] border-t-transparent rounded-full mx-auto mb-3" />
+                  <h3 className="text-neutral-900 font-bold">Loading products...</h3>
+                </div>
+              ) : productsError && results.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-10 text-center">
+                  <div className="mx-auto w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mb-3">
+                    <HiOutlineSparkles className="text-xl" />
+                  </div>
+                  <h3 className="text-neutral-900 font-bold">Couldn't load products</h3>
+                  <p className="text-neutral-500 text-sm mt-1">{productsError}</p>
+                  <button
+                    type="button"
+                    onClick={fetchProducts}
+                    className="btn-outline mt-4 py-2 px-4"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : results.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-10 text-center">
                   <div className="mx-auto w-12 h-12 rounded-2xl bg-[var(--brand-50)] text-[var(--brand-700)] flex items-center justify-center mb-3">
                     <HiOutlineSparkles className="text-xl" />

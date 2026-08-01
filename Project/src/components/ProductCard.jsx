@@ -41,8 +41,24 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
     });
   const handleWishlist = onWishlist || (() => cart.toggleWishlist(product));
 
+  // Clicking anywhere on the card opens the product details page.
+  const handleCardClick = () => {
+    if (product?.id) {
+      navigate(`/products/${product.id}`);
+    }
+  };
+
   return (
     <div
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
       className={`
         group shrink-0
         ${isCompact ? "w-[180px] sm:w-[200px]" : "w-[85%] sm:w-[60%] md:w-[45%] lg:w-[30%] xl:w-[23%]"}
@@ -51,6 +67,7 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
         shadow-sm hover:shadow-xl
         card-lift
         relative
+        cursor-pointer
       `}
     >
       {/* Top action bar */}
