@@ -26,6 +26,26 @@ const emptyProductForm = {
   stock: "0",
   category: "",
   isKentProduct: false,
+  // New optional fields
+  variants: [],
+  benefits: [],
+  ingredients: [],
+  usage: [],
+  dosage: "",
+  latin_name: "",
+  extra_images: [],
+  rating: "",
+  review_count: "",
+  side_effects: [],
+  precautions: [],
+  storage_instructions: "",
+  manufacturer_info: "",
+  country_of_origin: "",
+  shelf_life: "",
+  suitable_age_group: "",
+  prescription_required: false,
+  potency: "",
+  faq: [],
 };
 
 const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
@@ -48,6 +68,25 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
         stock: product.stock ?? "0",
         category: product.category?._id || product.category || "",
         isKentProduct: product.isKentProduct || false,
+        variants: Array.isArray(product.variants) ? product.variants : [],
+        benefits: Array.isArray(product.benefits) ? product.benefits : [],
+        ingredients: Array.isArray(product.ingredients) ? product.ingredients : [],
+        usage: Array.isArray(product.usage) ? product.usage : [],
+        dosage: product.dosage || "",
+        latin_name: product.latin_name || "",
+        extra_images: Array.isArray(product.extra_images) ? product.extra_images : [],
+        rating: product.rating ?? "",
+        review_count: product.review_count ?? "",
+        side_effects: Array.isArray(product.side_effects) ? product.side_effects : [],
+        precautions: Array.isArray(product.precautions) ? product.precautions : [],
+        storage_instructions: product.storage_instructions || "",
+        manufacturer_info: product.manufacturer_info || "",
+        country_of_origin: product.country_of_origin || "",
+        shelf_life: product.shelf_life || "",
+        suitable_age_group: product.suitable_age_group || "",
+        prescription_required: product.prescription_required || false,
+        potency: product.potency || "",
+        faq: Array.isArray(product.faq) ? product.faq : [],
       });
     } else {
       setForm({ ...emptyProductForm });
@@ -71,10 +110,59 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
   };
 
   const handleChange = (field) => (e) => {
-    const value = field === "isKentProduct" ? e.target.checked : e.target.value;
+    const isCheckbox = field === "isKentProduct" || field === "prescription_required";
+    const value = isCheckbox ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
+
+  // Helpers for newline-separated string list fields
+  const handleListText = (field) => (e) => {
+    const items = e.target.value
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    setForm((prev) => ({ ...prev, [field]: items }));
+  };
+  const listTextValue = (field) => (Array.isArray(form[field]) ? form[field] : []).join("\n");
+
+  // Variants manager
+  const handleVariantChange = (idx, key) => (e) => {
+    setForm((prev) => {
+      const variants = [...(prev.variants || [])];
+      variants[idx] = { ...(variants[idx] || {}), [key]: e.target.value };
+      return { ...prev, variants };
+    });
+  };
+  const addVariant = () =>
+    setForm((prev) => ({
+      ...prev,
+      variants: [...(prev.variants || []), { size: "", mrp_price: "", discount_price: "", stock: "" }],
+    }));
+  const removeVariant = (idx) =>
+    setForm((prev) => ({
+      ...prev,
+      variants: (prev.variants || []).filter((_, i) => i !== idx),
+    }));
+
+  // FAQ manager
+  const handleFaqChange = (idx, key) => (e) => {
+    setForm((prev) => {
+      const faq = [...(prev.faq || [])];
+      faq[idx] = { ...(faq[idx] || {}), [key]: e.target.value };
+      return { ...prev, faq };
+    });
+  };
+  const addFaq = () =>
+    setForm((prev) => ({
+      ...prev,
+      faq: [...(prev.faq || []), { question: "", answer: "" }],
+    }));
+  const removeFaq = (idx) =>
+    setForm((prev) => ({
+      ...prev,
+      faq: (prev.faq || []).filter((_, i) => i !== idx),
+    }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,6 +173,14 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
       mrp_price: Number(form.mrp_price),
       discount_price: Number(form.discount_price),
       stock: Number(form.stock) || 0,
+      rating: form.rating !== "" ? Number(form.rating) : undefined,
+      review_count: form.review_count !== "" ? Number(form.review_count) : undefined,
+      variants: (form.variants || []).map((v) => ({
+        size: v.size,
+        mrp_price: Number(v.mrp_price) || 0,
+        discount_price: Number(v.discount_price) || 0,
+        stock: Number(v.stock) || 0,
+      })),
     };
     await onSave(payload);
   };
@@ -174,6 +270,144 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
               <div className="w-9 h-5 bg-neutral-300 rounded-full peer peer-checked:bg-brand-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
             </label>
             <span className="text-sm font-bold text-neutral-700">Kent Product</span>
+          </div>
+
+          {/* ==== ADVANCED FIELDS ==== */}
+          <div className="pt-4 border-t border-neutral-100">
+            <div className="text-xs font-extrabold uppercase tracking-wider text-neutral-400 mb-4">Advanced Product Details</div>
+
+            {/* Latin name / Potency / Dosage */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Latin Name</label>
+                <input value={form.latin_name} onChange={handleChange("latin_name")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Belladonna" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Potency</label>
+                <input value={form.potency} onChange={handleChange("potency")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 30C, 200C" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Dosage</label>
+                <input value={form.dosage} onChange={handleChange("dosage")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 3-4 drops, 3x daily" />
+              </div>
+            </div>
+
+            {/* Rating / Reviews / Age group / Shelf life */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Rating (0-5)</label>
+                <input type="number" step="0.1" min="0" max="5" value={form.rating} onChange={handleChange("rating")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 4.6" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Review Count</label>
+                <input type="number" min="0" value={form.review_count} onChange={handleChange("review_count")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 128" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Suitable Age Group</label>
+                <input value={form.suitable_age_group} onChange={handleChange("suitable_age_group")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Adults & Children 2+" />
+              </div>
+            </div>
+
+            {/* Prescription toggle */}
+            <div className="flex items-center gap-3 mt-4">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked={form.prescription_required} onChange={handleChange("prescription_required")} className="sr-only peer" />
+                <div className="w-9 h-5 bg-neutral-300 rounded-full peer peer-checked:bg-brand-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+              </label>
+              <span className="text-sm font-bold text-neutral-700">Prescription Required</span>
+            </div>
+
+            {/* Benefits / Ingredients / Usage (newline-separated) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Benefits (one per line)</label>
+                <textarea rows={4} value={listTextValue("benefits")} onChange={handleListText("benefits")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"Relieves fever\nBoosts immunity"} />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Ingredients (one per line)</label>
+                <textarea rows={4} value={listTextValue("ingredients")} onChange={handleListText("ingredients")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"Belladonna 30C\nAconite 30C"} />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Usage Instructions (one per line)</label>
+                <textarea rows={4} value={listTextValue("usage")} onChange={handleListText("usage")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"Take 3 drops in 1/4 cup water\nRepeat 3 times daily"} />
+              </div>
+            </div>
+
+            {/* Side effects / Precautions */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Side Effects (one per line)</label>
+                <textarea rows={3} value={listTextValue("side_effects")} onChange={handleListText("side_effects")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"None known\nConsult doctor if symptoms persist"} />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Precautions (one per line)</label>
+                <textarea rows={3} value={listTextValue("precautions")} onChange={handleListText("precautions")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"Keep out of reach of children\nStore away from strong odours"} />
+              </div>
+            </div>
+
+            {/* Storage / Manufacturer / Origin / Shelf life */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Storage Instructions</label>
+                <input value={form.storage_instructions} onChange={handleChange("storage_instructions")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Store in a cool dry place" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Shelf Life</label>
+                <input value={form.shelf_life} onChange={handleChange("shelf_life")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 36 months" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Manufacturer Info</label>
+                <input value={form.manufacturer_info} onChange={handleChange("manufacturer_info")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Dr. Kent Homoeopathy Pvt. Ltd." />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-700 block mb-1">Country of Origin</label>
+                <input value={form.country_of_origin} onChange={handleChange("country_of_origin")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. India" />
+              </div>
+            </div>
+
+            {/* Extra images */}
+            <div className="mt-4">
+              <label className="text-xs font-bold text-neutral-700 block mb-1">Extra Images (one URL per line)</label>
+              <textarea rows={2} value={listTextValue("extra_images")} onChange={handleListText("extra_images")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"https://...image2.jpg\nhttps://...image3.jpg"} />
+            </div>
+
+            {/* Variant Manager */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-neutral-700 block">Variants (pack sizes, potencies)</label>
+                <button type="button" onClick={addVariant} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add Variant</button>
+              </div>
+              {(form.variants || []).length === 0 && (
+                <p className="text-xs text-neutral-400 mb-2">No variants added. The main product price/stock will be used.</p>
+              )}
+              {(form.variants || []).map((v, idx) => (
+                <div key={idx} className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-center border border-neutral-100 rounded-2xl p-2 mb-2">
+                  <input value={v.size || ""} onChange={handleVariantChange(idx, "size")} placeholder="Variant size" className="col-span-2 sm:col-span-1 border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+                  <input type="number" value={v.mrp_price || ""} onChange={handleVariantChange(idx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+                  <input type="number" value={v.discount_price || ""} onChange={handleVariantChange(idx, "discount_price")} placeholder="Price" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+                  <input type="number" value={v.stock || ""} onChange={handleVariantChange(idx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+                  <button type="button" onClick={() => removeVariant(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold justify-self-end">Remove</button>
+                </div>
+              ))}
+            </div>
+
+            {/* FAQ Manager */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-neutral-700 block">FAQs</label>
+                <button type="button" onClick={addFaq} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add FAQ</button>
+              </div>
+              {(form.faq || []).length === 0 && (
+                <p className="text-xs text-neutral-400 mb-2">No FAQs added yet.</p>
+              )}
+              {(form.faq || []).map((f, idx) => (
+                <div key={idx} className="border border-neutral-100 rounded-2xl p-3 mb-3 space-y-2">
+                  <input value={f.question || ""} onChange={handleFaqChange(idx, "question")} placeholder="Question" className="w-full border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+                  <textarea rows={2} value={f.answer || ""} onChange={handleFaqChange(idx, "answer")} placeholder="Answer" className="w-full border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+                  <button type="button" onClick={() => removeFaq(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold">Remove FAQ</button>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
@@ -434,11 +668,10 @@ const Products = () => {
                         <td className="py-3">
                           <button
                             onClick={() => handleToggleKent(p)}
-                            className={`px-2.5 py-1 rounded-2xl text-xs font-bold border ${
-                              isKent
+                            className={`px-2.5 py-1 rounded-2xl text-xs font-bold border ${isKent
                                 ? "bg-brand-50 text-brand-700 border-brand-200"
                                 : "bg-neutral-50 text-neutral-400 border-neutral-200"
-                            }`}
+                              }`}
                           >
                             {isKent ? "Yes" : "No"}
                           </button>

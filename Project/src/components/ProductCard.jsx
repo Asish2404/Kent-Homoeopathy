@@ -42,9 +42,12 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
   const handleWishlist = onWishlist || (() => cart.toggleWishlist(product));
 
   // Clicking anywhere on the card opens the product details page.
+  // Route by the MongoDB _id (the value the backend expects); fall back
+  // to the numeric id only for legacy in-memory objects that lack _id.
   const handleCardClick = () => {
-    if (product?.id) {
-      navigate(`/products/${product.id}`);
+    const routeId = product?._id || product?.id;
+    if (routeId) {
+      navigate(`/products/${routeId}`);
     }
   };
 

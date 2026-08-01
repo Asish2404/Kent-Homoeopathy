@@ -263,7 +263,10 @@ const ProductsCatalog = () => {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleProductClick = (product) => {
-    navigate(`/products/${product.id}`, { state: { product } });
+    // Route by the MongoDB _id (what the backend expects). The numeric id
+    // is only used for display/sorting, never for API calls or routing.
+    const routeId = product?._id || product?.id;
+    navigate(`/products/${routeId}`, { state: { product } });
   };
 
   const formatDiscountPct = (p) => {

@@ -56,8 +56,14 @@ function normalizeProduct(raw) {
     discountPct = Math.round(((mrp - price) / mrp) * 100);
   }
 
+  // Preserve the MongoDB _id — this is the value the backend product
+  // routes expect (e.g. GET /products/:id, cart, wishlist, order).
+  const routeId = raw._id || raw.id;
+
   return {
-    id: raw._id || raw.id,
+    id: routeId,
+    _id: routeId,
+    slug: raw.slug || "",
     name: product_name,
     category,
     description,
@@ -143,10 +149,13 @@ const Products = () => {
 
   
 
+  // Related products reuse the same card component. ProductCard routes to
+  // /products/:id using the Mongo _id, so we must keep the original _id
+  // untouched (previously `id: p.id + i` corrupted it and broke navigation).
   const relatedProducts = [
     ...vitaminsSupplements.slice(0, 4),
     ...heartCare.slice(0, 2),
-  ].map((p, i) => ({ ...p, id: p.id + i }));
+  ];
 
    const ratingBreakdown = [
     { stars: 5, count: 168, pct: 66 },

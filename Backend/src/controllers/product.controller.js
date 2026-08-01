@@ -66,7 +66,28 @@ export const createProduct = async (req, res) => {
             mrp_price,
             discount_price,
             stock,
-            category
+            category,
+            // New optional fields
+            variants,
+            benefits,
+            ingredients,
+            usage,
+            dosage,
+            latin_name,
+            extra_images,
+            rating,
+            review_count,
+            side_effects,
+            precautions,
+            storage_instructions,
+            manufacturer_info,
+            country_of_origin,
+            shelf_life,
+            suitable_age_group,
+            prescription_required,
+            potency,
+            faq,
+            isKentProduct
         } = req.body;
 
         // Validation
@@ -87,7 +108,7 @@ export const createProduct = async (req, res) => {
         }
 
         // Create Product
-        const product = await Product.create({
+        const productData = {
             product_name,
             product_image,
             brand,
@@ -98,8 +119,32 @@ export const createProduct = async (req, res) => {
             mrp_price,
             discount_price,
             stock,
-            category
-        });
+            category,
+            isKentProduct: isKentProduct || false,
+        };
+
+        // Only add optional fields if they are provided
+        if (variants !== undefined) productData.variants = variants;
+        if (benefits !== undefined) productData.benefits = benefits;
+        if (ingredients !== undefined) productData.ingredients = ingredients;
+        if (usage !== undefined) productData.usage = usage;
+        if (dosage !== undefined) productData.dosage = dosage;
+        if (latin_name !== undefined) productData.latin_name = latin_name;
+        if (extra_images !== undefined) productData.extra_images = extra_images;
+        if (rating !== undefined) productData.rating = rating;
+        if (review_count !== undefined) productData.review_count = review_count;
+        if (side_effects !== undefined) productData.side_effects = side_effects;
+        if (precautions !== undefined) productData.precautions = precautions;
+        if (storage_instructions !== undefined) productData.storage_instructions = storage_instructions;
+        if (manufacturer_info !== undefined) productData.manufacturer_info = manufacturer_info;
+        if (country_of_origin !== undefined) productData.country_of_origin = country_of_origin;
+        if (shelf_life !== undefined) productData.shelf_life = shelf_life;
+        if (suitable_age_group !== undefined) productData.suitable_age_group = suitable_age_group;
+        if (prescription_required !== undefined) productData.prescription_required = prescription_required;
+        if (potency !== undefined) productData.potency = potency;
+        if (faq !== undefined) productData.faq = faq;
+
+        const product = await Product.create(productData);
 
         res.status(201).json({
             success: true,
