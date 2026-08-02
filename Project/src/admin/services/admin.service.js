@@ -183,6 +183,21 @@ export const getCategories = async (params = {}) => {
   return data;
 };
 
+export const createCategory = async (categoryData) => {
+  const { data } = await api.post("/category", categoryData);
+  return data;
+};
+
+export const updateCategory = async (categoryId, categoryData) => {
+  const { data } = await api.patch(`/category/${categoryId}`, categoryData);
+  return data;
+};
+
+export const deleteCategory = async (categoryId) => {
+  const { data } = await api.delete(`/category/${categoryId}`);
+  return data;
+};
+
 // ========================
 // COUPONS
 // ========================

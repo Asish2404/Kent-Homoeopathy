@@ -23,8 +23,7 @@ import { HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import ProductCard from "../components/ProductCard";
 import { useCartContext } from "../Cart/CartContext";
 import { vitaminsSupplements, heartCare } from "../data/products";
-import LoadingSkeleton, { ProductDetailSkeleton } from "../components/LoadingSkeleton";
-import EmptyState from "../components/EmptyState";
+import { ProductDetailSkeleton } from "../components/LoadingSkeleton";
 import api from "../services/api";
 import comboOffers from "./ComboOffer";
 import reviews from "./Review";
@@ -44,6 +43,11 @@ function normalizeProduct(raw) {
   const inStock = stock > 0;
   const description = raw.short_description || raw.shortDescription || raw.description || "";
   const longDescription = raw.detailed_description || raw.detailedDescription || raw.longDescription || description;
+  const potency = raw.potency || raw.potencies?.[0] || "30C";
+  const variantList = Array.isArray(raw.variants) ? raw.variants : [];
+  const sizeOptions = variantList.map((variant) => variant?.size).filter(Boolean);
+  const packFallback = raw.pack || raw.sizes?.[0] || "30ml";
+  const sizes = sizeOptions.length > 0 ? [...new Set(sizeOptions)] : [packFallback];
 
   // Discount % calculation
   let discountPct = 0;
@@ -80,8 +84,9 @@ function normalizeProduct(raw) {
     availabilityText: inStock ? "In stock" : "Out of stock",
     deliveryETA: raw.deliveryETA || raw.delivery || "24 hrs",
     deliveryInfo: `Delivery in ${raw.deliveryETA || raw.delivery || "24 hrs"}`,
-    potencies: Array.isArray(raw.potencies) ? raw.potencies : ["30C"],
-    sizes: Array.isArray(raw.sizes) ? raw.sizes : ["30ml"],
+    potencies: Array.isArray(raw.potencies) && raw.potencies.length > 0 ? raw.potencies : [potency],
+    sizes,
+    variants: variantList,
     shortDescription: description,
     badge: raw.badge || "",
     latinName: raw.latinName || "",
@@ -89,6 +94,7 @@ function normalizeProduct(raw) {
     ingredients: raw.ingredients || ["Natural ingredients"],
     usage: raw.usage || ["Follow expert guidance"],
     brand: raw.brand || "Dr. Kent",
+    stock,
     // Spread any extra fields for cart compatibility
     mrp: mrp,
     price: price,
@@ -137,13 +143,14 @@ const Products = () => {
   }, [productId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProduct();
   }, [fetchProduct]);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedPotency, setSelectedPotency] = useState("30C");
-  const [selectedSize, setSelectedSize] = useState("30ml");
+  const [selectedPotency, setSelectedPotency] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
   const [activeTab, setActiveTab] = useState("description");
   const relatedRef = useRef(null);
 
@@ -169,6 +176,28 @@ const Products = () => {
     relatedRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
   };
 
+  const displaySelectedPotency = selectedPotency || product?.potencies?.[0] || "";
+  const displaySelectedSize = selectedSize || product?.sizes?.[0] || "";
+
+  const selectedVariant = useMemo(() => {
+    if (!product || !Array.isArray(product.variants) || product.variants.length === 0) {
+      return null;
+    }
+
+    return (
+      product.variants.find((variant) => String(variant?.size || "") === String(displaySelectedSize || "")) ||
+      product.variants[0] ||
+      null
+    );
+  }, [product, displaySelectedSize]);
+
+  const activePrice = Number(selectedVariant?.discount_price ?? product?.currentPrice ?? 0);
+  const activeMrp = Number(selectedVariant?.mrp_price ?? product?.originalPrice ?? 0);
+  const activeStock = Number(selectedVariant?.stock ?? product?.stock ?? 0);
+  const isVariantDriven = Boolean(selectedVariant);
+  const isAvailable = isVariantDriven ? activeStock > 0 : Boolean(product?.inStock);
+  const selectedPackInfo = [displaySelectedPotency, displaySelectedSize].filter(Boolean).join(" · ");
+
   const addCurrentToCart = () => {
     if (!product) return;
     cart.addToCart(
@@ -176,10 +205,12 @@ const Products = () => {
         id: product.id,
         name: product.name,
         image: product.image,
-        price: product.currentPrice,
-        mrp: product.originalPrice || product.currentPrice,
+        price: activePrice,
+        mrp: activeMrp || activePrice,
         category: product.category,
-        inStock: product.inStock,
+        inStock: isAvailable,
+        stock: activeStock,
+        packInfo: selectedPackInfo,
       },
       quantity
     );
@@ -474,19 +505,19 @@ const Products = () => {
               {/* Price */}
               <div className="flex items-baseline gap-3 mb-2 pb-6 border-b border-dashed border-neutral-200">
                 <span className="text-4xl font-extrabold text-neutral-900">
-                  ₹{product.currentPrice}
+                  ₹{activePrice}
                 </span>
-                {product.originalPrice > 0 && (
+                {activeMrp > 0 && (
                   <span className="text-xl text-neutral-400 line-through">
-                    ₹{product.originalPrice}
+                    ₹{activeMrp}
                   </span>
                 )}
-                {product.originalPrice > 0 && product.originalPrice > product.currentPrice && (
+                {activeMrp > 0 && activeMrp > activePrice && (
                   <span
                     className="bg-emerald-100 text-emerald-700
                                text-xs font-bold px-2.5 py-1 rounded-full"
                   >
-                    Save ₹{(product.originalPrice - product.currentPrice).toFixed(2)}
+                    Save ₹{(activeMrp - activePrice).toFixed(2)}
                   </span>
                 )}
               </div>
@@ -504,7 +535,7 @@ const Products = () => {
                       onClick={() => setSelectedPotency(potency)}
                       className={`px-4 py-2 rounded-lg font-medium text-sm transition
                                   ${
-                                    selectedPotency === potency
+                                    displaySelectedPotency === potency
                                       ? "bg-[var(--brand-600)] text-white shadow-md shadow-[var(--brand-600)]/30"
                                       : "bg-white text-neutral-700 border border-neutral-200 hover:border-[var(--brand-300)] hover:text-[var(--brand-700)]"
                                   }`}
@@ -525,7 +556,7 @@ const Products = () => {
                       onClick={() => setSelectedSize(size)}
                       className={`px-4 py-2 rounded-lg font-medium text-sm transition
                                   ${
-                                    selectedSize === size
+                                    displaySelectedSize === size
                                       ? "bg-[var(--brand-600)] text-white shadow-md shadow-[var(--brand-600)]/30"
                                       : "bg-white text-neutral-700 border border-neutral-200 hover:border-[var(--brand-300)] hover:text-[var(--brand-700)]"
                                   }`}
@@ -562,7 +593,7 @@ const Products = () => {
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <button
                   className="flex-1 btn-primary py-3.5 text-base"
-                  disabled={!product.inStock}
+                  disabled={!isAvailable}
                   onClick={addCurrentToCart}
                 >
                   <ShoppingCart className="w-5 h-5" />
@@ -570,7 +601,7 @@ const Products = () => {
                 </button>
                 <button
                   className="flex-1 btn-outline py-3.5 text-base"
-                  disabled={!product.inStock}
+                  disabled={!isAvailable}
                   onClick={() => {
                     buyCurrentNow();
                     navigate("/Cart");
@@ -585,12 +616,12 @@ const Products = () => {
               <div className="mb-4">
                 <span
                   className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border ${
-                    product.inStock
+                    isAvailable
                       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                       : "bg-rose-50 text-rose-700 border-rose-100"
                   }`}
                 >
-                  {product.availabilityText}
+                  {isAvailable ? "In stock" : "Out of stock"}
                 </span>
               </div>
 
