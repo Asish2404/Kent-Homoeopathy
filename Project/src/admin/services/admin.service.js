@@ -156,6 +156,26 @@ export const deleteProduct = async (productId) => {
   return data;
 };
 
+export const getDoctors = async (params = {}) => {
+  const { data } = await api.get("/doctor", { params });
+  return data;
+};
+
+export const createDoctor = async (doctorData) => {
+  const { data } = await api.post("/doctor", doctorData);
+  return data;
+};
+
+export const updateDoctor = async (doctorId, doctorData) => {
+  const { data } = await api.patch(`/doctor/${doctorId}`, doctorData);
+  return data;
+};
+
+export const deleteDoctor = async (doctorId) => {
+  const { data } = await api.delete(`/doctor/${doctorId}`);
+  return data;
+};
+
 // ========================
 // USERS / CUSTOMERS
 // ========================

@@ -6,6 +6,7 @@ import AdminLayout from "../layout/AdminLayout";
 import AdminRequireAuth from "./AdminRequireAuth";
 
 import Products from "../pages/Products";
+import Doctors from "../pages/Doctors";
 import Orders from "../pages/Orders";
 import Customers from "../pages/Customers";
 import Inventory from "../pages/Inventory";
@@ -28,6 +29,7 @@ const adminRoutes = [
         children: [
           { index: true, element: <Dashboard /> },
           { path: "products", element: <Products /> },
+          { path: "doctors", element: <Doctors /> },
           { path: "orders", element: <Orders /> },
           { path: "customers", element: <Customers /> },
           { path: "inventory", element: <Inventory /> },

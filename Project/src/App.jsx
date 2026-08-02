@@ -28,6 +28,7 @@ import AdminRequireAuth from "./admin/routes/AdminRequireAuth";
 
 import Dashboard from "./admin/pages/Dashboard";
 import Products from "./admin/pages/Products";
+import Doctors from "./admin/pages/Doctors";
 import Orders from "./admin/pages/Orders";
 import Customers from "./admin/pages/Customers";
 import Inventory from "./admin/pages/Inventory";
@@ -61,6 +62,7 @@ function App() {
           <Route element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="products" element={<Products />} />
+            <Route path="doctors" element={<Doctors />} />
             <Route path="orders" element={<Orders />} />
             <Route path="customers" element={<Customers />} />
             <Route path="inventory" element={<Inventory />} />

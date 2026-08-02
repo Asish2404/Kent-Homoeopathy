@@ -15,6 +15,7 @@ const navItems = [
   { to: "/admin", label: "Dashboard" },
   { to: "/admin/orders", label: "Orders" },
   { to: "/admin/products", label: "Products" },
+  { to: "/admin/doctors", label: "Doctors" },
   { to: "/admin/categories", label: "Categories" },
   { to: "/admin/inventory", label: "Inventory" },
   { to: "/admin/customers", label: "Customers" },

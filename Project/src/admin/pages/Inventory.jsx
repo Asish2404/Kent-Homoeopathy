@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
-import { getInventory, exportInventory } from "../services/admin.service";
+import { getProducts, exportProducts } from "../services/admin.service";
+import { formatCurrency } from "../utils/formatters";
 
 const statusVariant = (status) => {
   const s = String(status).toLowerCase();
@@ -18,50 +19,65 @@ const InventoryPage = () => {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
 
   const loadInventory = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const params = { page, limit: 20 };
-      if (search.trim()) params.q = search.trim();
-      if (statusFilter !== "All") params.status = statusFilter;
-
-      const res = await getInventory(params);
-      setInventory(res.inventories || []);
-      setTotalPages(res.pagination?.totalPages || 1);
-      setTotalCount(res.pagination?.totalCount || 0);
+      const res = await getProducts();
+      setInventory(Array.isArray(res.products) ? res.products : []);
     } catch (err) {
       console.error("Inventory load error:", err);
-      setError("Failed to load inventory. Please try again.");
+      setError("Failed to load product stock. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [page, search, statusFilter]);
+  }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadInventory();
   }, [loadInventory]);
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
-    setPage(1);
   };
 
   const handleStatusChange = (e) => {
     setStatusFilter(e.target.value);
-    setPage(1);
   };
 
-  const summary = {
-    currentStock: inventory.reduce((sum, item) => sum + (item.currentStock || item.availableStock || 0), 0),
-    lowStock: inventory.filter((i) => String(i.stockStatus).toLowerCase() === "low stock").length,
-    outOfStock: inventory.filter((i) => String(i.stockStatus).toLowerCase() === "out of stock").length,
-  };
+  const normalizedInventory = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return inventory
+      .map((item) => {
+        const productStock = Number(item.stock ?? item.currentStock ?? item.availableStock ?? 0);
+        const status = productStock <= 0 ? "Out Of Stock" : productStock <= 5 ? "Low Stock" : "In Stock";
+        const category = item.category?.category_name || item.categoryTitle || item.category || "Products";
+        return { ...item, productStock, status, category };
+      })
+      .filter((item) => {
+        const name = (item.product_name || item.name || "").toLowerCase();
+        const category = String(item.category || "").toLowerCase();
+        const brand = String(item.brand || "").toLowerCase();
+        const matchesQuery = !q || name.includes(q) || category.includes(q) || brand.includes(q);
+        const matchesStatus = statusFilter === "All" ? true : item.status === statusFilter;
+        return matchesQuery && matchesStatus;
+      });
+  }, [inventory, search, statusFilter]);
+
+  const summary = useMemo(() => {
+    return normalizedInventory.reduce(
+      (acc, item) => {
+        acc.currentStock += item.productStock;
+        if (item.status === "Low Stock") acc.lowStock += 1;
+        if (item.status === "Out Of Stock") acc.outOfStock += 1;
+        return acc;
+      },
+      { currentStock: 0, lowStock: 0, outOfStock: 0 }
+    );
+  }, [normalizedInventory]);
 
   return (
     <div className="space-y-6">
@@ -73,7 +89,7 @@ const InventoryPage = () => {
         </div>
         <div className="flex gap-2">
           <select
-            onChange={(e) => { if (e.target.value) { exportInventory(e.target.value); e.target.value = ""; } }}
+            onChange={(e) => { if (e.target.value) { exportProducts(e.target.value); e.target.value = ""; } }}
             className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none text-sm bg-white cursor-pointer"
             defaultValue=""
           >
@@ -110,7 +126,7 @@ const InventoryPage = () => {
         </Card>
         <Card className="p-5">
           <div className="text-neutral-500 text-sm font-semibold">Total Items</div>
-          <div className="text-3xl font-extrabold text-neutral-900 mt-1">{totalCount}</div>
+          <div className="text-3xl font-extrabold text-neutral-900 mt-1">{normalizedInventory.length}</div>
         </Card>
       </div>
 
@@ -154,32 +170,36 @@ const InventoryPage = () => {
                 <thead className="text-left text-xs text-neutral-500">
                   <tr>
                     <th className="font-bold py-3">Product</th>
+                    <th className="font-bold py-3">Category</th>
                     <th className="font-bold py-3">On Hand</th>
+                    <th className="font-bold py-3">Price</th>
                     <th className="font-bold py-3">Status</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm">
-                  {inventory.map((item) => {
-                    const name = item.productDoc?.product_name || item.productName || `Item ${item._id?.slice(-6)}`;
-                    const onHand = item.availableStock ?? item.currentStock ?? 0;
-                    const status = item.stockStatus || "In Stock";
+                  {normalizedInventory.map((item) => {
+                    const name = item.product_name || item.productName || item.name || `Item ${item._id?.slice(-6)}`;
+                    const onHand = item.productStock;
+                    const price = Number(item.discount_price ?? item.price ?? 0);
 
                     return (
                       <tr key={item._id} className="border-t border-neutral-200">
                         <td className="py-3">
                           <div className="font-extrabold text-neutral-900">{name}</div>
-                          <div className="text-xs text-neutral-500">{item.batchNumber || ""}</div>
+                          <div className="text-xs text-neutral-500">{item.brand || item.slug || ""}</div>
                         </td>
+                        <td className="py-3 text-sm text-neutral-700">{item.category}</td>
                         <td className="py-3 font-extrabold text-neutral-900">{onHand}</td>
+                        <td className="py-3 text-sm text-neutral-700">{formatCurrency(price)}</td>
                         <td className="py-3">
-                          <Badge variant={statusVariant(status)}>{status}</Badge>
+                          <Badge variant={statusVariant(item.status)}>{item.status}</Badge>
                         </td>
                       </tr>
                     );
                   })}
-                  {inventory.length === 0 && (
+                  {normalizedInventory.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="py-10">
+                      <td colSpan={5} className="py-10">
                         <EmptyState title="No inventory items found" />
                       </td>
                     </tr>
