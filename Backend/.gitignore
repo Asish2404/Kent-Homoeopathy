@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+README/
+test-results/
+/TODO.md
+.env.example
