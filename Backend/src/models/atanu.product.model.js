@@ -1,28 +1,31 @@
 import mongoose from "mongoose";
 
-const variantSchema = new mongoose.Schema(
-    {
-        size: { type: String, required: true },
-        unit: { type: String, default: "ml" },
-        net_quantity: { type: String, default: "" },
-        mrp_price: { type: Number, required: true },
-        discount_price: { type: Number, required: true },
-        stock: { type: Number, default: 0 },
-        sku: { type: String, default: "" },
-        barcode: { type: String, default: "" },
-        weight: { type: String, default: "" },
-        status: { type: String, default: "active" },
-    },
-    { _id: false }
-);
-
 const potencySchema = new mongoose.Schema(
     {
         value: { type: String, required: true },
         mrp_price: { type: Number, default: 0 },
         discount_price: { type: Number, default: 0 },
+        discountPercent: { type: Number, default: 0 },
         stock: { type: Number, default: 0 },
         sku: { type: String, default: "" },
+    },
+    { _id: false }
+);
+
+const variantSchema = new mongoose.Schema(
+    {
+        size: { type: String, required: true },
+        unit: { type: String, default: "ml" },
+        net_quantity: { type: String, default: "" },
+        mrp_price: { type: Number, default: 0 },
+        discount_price: { type: Number, default: 0 },
+        discountPercent: { type: Number, default: 0 },
+        stock: { type: Number, default: 0 },
+        sku: { type: String, default: "" },
+        barcode: { type: String, default: "" },
+        weight: { type: String, default: "" },
+        status: { type: String, default: "active" },
+        potencies: { type: [potencySchema], default: [] },
     },
     { _id: false }
 );
@@ -44,8 +47,9 @@ const productSchema = new mongoose.Schema(
         detailed_description: { type: String, required: true },
         quantity: { type: Number },
         pack: { type: String },
-        mrp_price: { type: Number, required: true },
-        discount_price: { type: Number, required: true },
+        mrp_price: { type: Number, default: 0 },
+        discount_price: { type: Number, default: 0 },
+        discountPercent: { type: Number, default: 0 },
         stock: { type: Number, default: 0 },
         category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
         isKentProduct: { type: Boolean, default: false },

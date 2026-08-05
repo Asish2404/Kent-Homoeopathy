@@ -22,6 +22,7 @@ import CartProvider from "./Cart/CartProvider";
 import Checkout from "./pages/Checkout";
 import Payment from "./pages/Payment";
 import OrderSuccess from "./pages/OrderSuccess";
+import OffersPage from "./pages/OffersPage";
 
 import AdminLayout from "./admin/layout/AdminLayout";
 import AdminRequireAuth from "./admin/routes/AdminRequireAuth";
@@ -55,6 +56,7 @@ function App() {
         <Route path="checkout" element={<Checkout />} />
         <Route path="payment" element={<Payment />} />
 <Route path="order-success" element={<OrderSuccess />} />
+        <Route path="offers" element={<OffersPage />} />
         <Route path="orders/:orderId" element={<OrderTracking />} />
 
         {/* ADMIN */}

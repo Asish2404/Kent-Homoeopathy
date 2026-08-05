@@ -1,15 +1,41 @@
 import { Product } from "../models/atanu.product.model.js";
 
+const toNumber = (value) => {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) ? numberValue : undefined;
+};
+
+const computeDiscountPercent = ({ mrp_price, discount_price, discountPercent }) => {
+    const explicit = toNumber(discountPercent);
+    if (explicit !== undefined) return explicit;
+
+    const mrp = toNumber(mrp_price);
+    const price = toNumber(discount_price);
+    if (!mrp || !price || mrp <= 0 || price <= 0 || price >= mrp) return 0;
+    return Math.round(((mrp - price) / mrp) * 100);
+};
+
+const withComputedPricing = (product) => {
+    const plainProduct = typeof product?.toObject === "function" ? product.toObject() : product;
+    return {
+        ...plainProduct,
+        discountPercent: computeDiscountPercent(plainProduct),
+    };
+};
+
+const matchesDiscount = (product, minDiscount) => computeDiscountPercent(product) >= minDiscount;
+
 
 export const getAllProducts = async (req, res) => {
     try {
-
         const products = await Product.find().populate("category");
+        const discount = Number(req.query.discount);
+        const filtered = Number.isFinite(discount) ? products.filter((product) => matchesDiscount(product, discount)) : products;
 
         res.status(200).json({
             success: true,
-            count: products.length,
-            products
+            count: filtered.length,
+            products: filtered.map(withComputedPricing)
         });
 
     } catch (error) {
@@ -67,6 +93,7 @@ export const createProduct = async (req, res) => {
             discount_price,
             stock,
             category,
+            discountPercent,
             // New optional fields
             variants,
             benefits,
@@ -142,8 +169,6 @@ prescription_required,
             !brand ||
             !short_description ||
             !detailed_description ||
-            !mrp_price ||
-            !discount_price ||
             !category
         ) {
             return res.status(400).json({
@@ -151,6 +176,8 @@ prescription_required,
                 message: "All required fields are mandatory"
             });
         }
+
+        const resolvedDiscountPercent = computeDiscountPercent({ mrp_price, discount_price, discountPercent });
 
         // Create Product
         const productData = {
@@ -163,6 +190,7 @@ prescription_required,
             pack,
             mrp_price,
             discount_price,
+            discountPercent: resolvedDiscountPercent,
             stock,
             category,
             isKentProduct: isKentProduct || false,
@@ -235,6 +263,9 @@ if (potency !== undefined) productData.potency = potency;
         if (draft !== undefined) productData.draft = draft;
         if (sold_count !== undefined) productData.sold_count = sold_count;
 
+        if (productData.mrp_price === undefined) productData.mrp_price = 0;
+        if (productData.discount_price === undefined) productData.discount_price = 0;
+
         const product = await Product.create(productData);
 
         res.status(201).json({
@@ -258,9 +289,17 @@ export const updateProduct = async (req, res) => {
 
         const { id } = req.params;
 
+        const updatePayload = {
+            ...req.body,
+        };
+
+        if (updatePayload.discountPercent === undefined) {
+            updatePayload.discountPercent = computeDiscountPercent(updatePayload);
+        }
+
         const updatedProduct = await Product.findByIdAndUpdate(
             id,
-            req.body,
+            updatePayload,
             {
                 new: true,
                 runValidators: true

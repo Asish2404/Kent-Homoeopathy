@@ -12,7 +12,7 @@ import { useCartContext } from "../Cart/CartContext";
  *  - onAdd, onBuy, onWishlist  (optional handlers)
  *  - variant: "default" | "compact"
  */
-const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" }) => {
+const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default", className = "" }) => {
   const cart = useCartContext();
   const navigate = useNavigate();
   const {
@@ -62,27 +62,29 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
           handleCardClick();
         }
       }}
-      className={`
+className={`
         group shrink-0
-        ${isCompact ? "w-[180px] sm:w-[200px]" : "w-[85%] sm:w-[60%] md:w-[45%] lg:w-[30%] xl:w-[23%]"}
+        ${isCompact ? "w-[220px] sm:w-[240px]" : "w-[82%] sm:w-[60%] md:w-[45%] lg:w-[30%] xl:w-[23%]"}
         bg-white rounded-2xl overflow-hidden
         border border-neutral-100
         shadow-sm hover:shadow-xl
         card-lift
         relative
         cursor-pointer
+        active:scale-[0.98] active:shadow-md
+        ${className}
       `}
     >
       {/* Top action bar */}
       <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
-        <button
+<button
           onClick={handleWishlist}
           aria-label="Add to wishlist"
-          className={`w-9 h-9 rounded-full bg-white/90 backdrop-blur shadow-md flex items-center justify-center transition ${
+          className={`w-11 h-11 rounded-full bg-white/90 backdrop-blur shadow-md flex items-center justify-center transition ${
             wishlisted ? "text-red-500" : "text-neutral-500 hover:text-red-500 hover:bg-white"
           }`}
         >
-          <FaHeart className="text-sm" />
+          <FaHeart className="text-base" />
         </button>
       </div>
 
@@ -151,7 +153,7 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
               handleAdd();
               e.currentTarget.blur();
             }}
-            className="flex-1 bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm hover:shadow-md"
+className="flex-1 bg-[var(--brand-600)] hover:bg-[var(--brand-700)] active:scale-[0.97] text-white min-h-[44px] rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm hover:shadow-md"
           >
             <FaShoppingCart className="text-xs" />
             Add
@@ -165,7 +167,7 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default" })
               handleBuy();
               e.currentTarget.blur();
             }}
-            className="px-3 border border-[var(--brand-600)] text-[var(--brand-700)] rounded-lg text-sm font-semibold hover:bg-[var(--brand-50)] transition flex items-center gap-1.5"
+            className="px-4 min-h-[44px] border border-[var(--brand-600)] text-[var(--brand-700)] rounded-lg text-sm font-semibold hover:bg-[var(--brand-50)] active:scale-[0.97] transition flex items-center gap-1.5"
             aria-label="Buy now"
           >
             <FaBolt className="text-xs" />

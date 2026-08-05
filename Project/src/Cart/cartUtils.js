@@ -9,13 +9,20 @@ const readNumber = (value, fallback = 0) => {
 
 export function normalizeCartItem(item) {
   if (!item) return null;
-  const id = item.id ?? item.productId ?? item._id;
-  if (id == null) return null;
+  const rawId = item.id ?? item.cartItemId ?? item.productId ?? item._id;
+  if (rawId == null) return null;
+
+  const productId =
+    item.productId ??
+    item.baseProductId ??
+    item._id ??
+    (typeof rawId === "string" && rawId.includes("::") ? rawId.split("::")[0] : rawId);
 
   const stock = readNumber(item.stock ?? item.maxQty ?? item.availableStock ?? item.inventory, 15);
 
   return {
-    id: String(id),
+    id: String(rawId),
+    productId: productId != null ? String(productId) : undefined,
     name: item.name ?? "",
     image: item.image ?? item.productImage ?? "",
     price: readNumber(item.price ?? item.currentPrice ?? 0),
@@ -33,6 +40,7 @@ export function normalizeCartItem(item) {
     deliveryLabel: item.deliveryLabel ?? "",
     stock,
     packInfo: item.packInfo ?? item.variantLabel ?? "",
+    variantKey: item.variantKey ?? "",
     isKentProduct: Boolean(item.isKentProduct),
   };
 }

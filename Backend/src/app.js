@@ -18,6 +18,7 @@ import notificationRoutes from "./routes/notification.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import exportRoutes from "./routes/export.routes.js";
+import bannerRoutes from "./routes/banner.routes.js";
 
 
 
@@ -81,6 +82,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/export", exportRoutes);
+app.use("/api/banners", bannerRoutes);
 
 export default app;
 

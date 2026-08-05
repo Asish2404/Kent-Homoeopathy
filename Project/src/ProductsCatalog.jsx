@@ -300,10 +300,10 @@ const ProductsCatalog = () => {
             </p>
           </div>
 
-          <div className="w-full md:w-auto">
-            <div className="flex gap-3 items-stretch">
+<div className="w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch">
               {/* Search */}
-              <div className="flex items-center gap-2 bg-white border border-neutral-200 rounded-xl px-3 py-2.5 shadow-sm w-full md:w-[340px]">
+              <div className="flex items-center gap-2 bg-white border border-neutral-200 rounded-xl px-3 py-2.5 shadow-sm w-full md:w-[340px] min-h-[44px]">
                 <FiSearch className="text-neutral-400" />
                 <input
                   value={query}
@@ -317,7 +317,7 @@ const ProductsCatalog = () => {
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value)}
-                className="bg-white border border-neutral-200 rounded-xl px-3 py-2.5 shadow-sm text-sm text-neutral-800"
+                className="bg-white border border-neutral-200 rounded-xl px-3 py-2.5 shadow-sm text-sm text-neutral-800 min-h-[44px]"
                 aria-label="Sort"
               >
                 <option value="relevance">Sort: Relevance</option>
@@ -722,10 +722,10 @@ const ProductsCatalog = () => {
                                     )}
                                   </div>
 
-                                  <div className="hidden sm:flex items-center gap-2">
+<div className="hidden sm:flex items-center gap-2">
                                     <button
                                       type="button"
-                                      className={`w-9 h-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center transition ${
+                                      className={`w-11 h-11 rounded-full border border-neutral-200 bg-white flex items-center justify-center transition ${
                                         cart.isWishlisted?.(p.id) ? "text-red-500" : "text-neutral-400 hover:text-red-500"
                                       }`}
                                       onClick={(e) => {
@@ -740,10 +740,10 @@ const ProductsCatalog = () => {
                                   </div>
                                 </div>
 
-                                <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
+<div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
                                   <button
                                     type="button"
-                                    className="btn-primary py-2 px-3 text-xs font-bold rounded-lg shadow-sm hover:shadow-md"
+                                    className="btn-primary min-h-[44px] py-2 px-4 text-sm font-bold rounded-lg shadow-sm hover:shadow-md active:scale-[0.97]"
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
@@ -755,7 +755,7 @@ const ProductsCatalog = () => {
 
                                   <button
                                     type="button"
-                                    className="btn-outline py-2 px-3 text-xs font-bold rounded-lg hover:bg-[var(--brand-50)]"
+                                    className="btn-outline min-h-[44px] py-2 px-4 text-sm font-bold rounded-lg hover:bg-[var(--brand-50)] active:scale-[0.97]"
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
@@ -770,7 +770,7 @@ const ProductsCatalog = () => {
 
                                   <button
                                     type="button"
-                                    className={`sm:hidden w-9 h-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center transition ${
+                                    className={`sm:hidden w-11 h-11 rounded-full border border-neutral-200 bg-white flex items-center justify-center transition ${
                                       cart.isWishlisted?.(p.id) ? "text-red-500" : "text-neutral-400 hover:text-red-500"
                                     }`}
                                     onClick={(e) => {

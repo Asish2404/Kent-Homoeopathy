@@ -89,6 +89,8 @@ function normalizeProduct(raw) {
     : (raw.potenciesSimple && raw.potenciesSimple.length > 0
         ? raw.potenciesSimple.map((p) => typeof p === "string" ? { value: p } : p)
         : []);
+  const variantPotencies = variantList.flatMap((variant) => Array.isArray(variant?.potencies) ? variant.potencies : []);
+  const allPotencies = potencyList.length > 0 ? potencyList : variantPotencies;
 
   // Discount % calculation
   let discountPct = 0;
@@ -126,8 +128,8 @@ function normalizeProduct(raw) {
     availabilityText: inStock ? "In stock" : "Out of stock",
     deliveryETA: raw.deliveryETA || raw.delivery || "24 hrs",
     deliveryInfo: `Delivery in ${raw.deliveryETA || raw.delivery || "24 hrs"}`,
-    potencies: Array.isArray(raw.potencies) && raw.potencies.length > 0 ? raw.potencies.map((p) => typeof p === "string" ? p : (p?.value || "")) : [potency],
-    potencyObjects: potencyList,
+    potencies: allPotencies.length > 0 ? allPotencies.map((p) => typeof p === "string" ? p : (p?.value || "")) : [potency],
+    potencyObjects: allPotencies,
     sizes,
     variants: variantList,
     shortDescription: description,
@@ -329,15 +331,22 @@ const next = [product, ...existing.filter((p) => p._id !== product._id)].slice(0
   }, [product, displaySelectedSize]);
 
   // Selected potency object (for price/stock/sku updates)
+  const availablePotencies = useMemo(() => {
+    if (Array.isArray(selectedVariant?.potencies) && selectedVariant.potencies.length > 0) {
+      return selectedVariant.potencies;
+    }
+    return product?.potencyObjects || [];
+  }, [product, selectedVariant]);
+
   const selectedPotencyObj = useMemo(() => {
-    const list = product?.potencyObjects || [];
+    const list = availablePotencies || [];
     if (!list || list.length === 0) return null;
     return (
       list.find((p) => String(p?.value || "") === String(displaySelectedPotency || "")) ||
       list[0] ||
       null
     );
-  }, [product, displaySelectedPotency]);
+  }, [availablePotencies, displaySelectedPotency]);
 
   const activePrice = Number(
     selectedVariant?.discount_price ??
@@ -373,9 +382,12 @@ const next = [product, ...existing.filter((p) => p._id !== product._id)].slice(0
 
   const addCurrentToCart = () => {
     if (!product) return;
+    const cartVariantKey = [displaySelectedSize, displaySelectedPotency].filter(Boolean).join(" · ");
+    const cartItemId = cartVariantKey ? `${product.id}::${cartVariantKey}` : product.id;
     cart.addToCart(
       {
-        id: product.id,
+        id: cartItemId,
+        productId: product.id,
         name: product.name,
         image: product.image,
         price: activePrice,
@@ -385,6 +397,7 @@ const next = [product, ...existing.filter((p) => p._id !== product._id)].slice(0
         stock: activeStock || product.stock,
         packInfo: selectedPackInfo,
         sku: activeSku,
+        variantKey: cartVariantKey,
       },
       quantity
     );
@@ -818,22 +831,22 @@ const next = [product, ...existing.filter((p) => p._id !== product._id)].slice(0
               <p className="text-neutral-600 mb-6 leading-relaxed">{product.description}</p>
 
               {/* Potency */}
-              {product.potencies && product.potencies.length > 0 && (
+              {availablePotencies && availablePotencies.length > 0 && (
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-neutral-800 mb-3">Potency</label>
                   <div className="flex flex-wrap gap-2">
-                    {product.potencies.map((potency) => (
+                    {availablePotencies.map((potency) => (
                       <button
-                        key={potency}
-                        onClick={() => setSelectedPotency(potency)}
+                        key={potency?.value || potency}
+                        onClick={() => setSelectedPotency(potency?.value || potency)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm transition
                                     ${
-                                      displaySelectedPotency === potency
+                                      displaySelectedPotency === (potency?.value || potency)
                                         ? "bg-[var(--brand-600)] text-white shadow-md shadow-[var(--brand-600)]/30"
                                         : "bg-white text-neutral-700 border border-neutral-200 hover:border-[var(--brand-300)] hover:text-[var(--brand-700)]"
                                     }`}
                       >
-                        {potency}
+                        {potency?.value || potency}
                       </button>
                     ))}
                   </div>
