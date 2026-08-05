@@ -44,6 +44,7 @@ import { ProductDetailSkeleton } from "../components/LoadingSkeleton";
 import api from "../services/api";
 import comboOffers from "./ComboOffer";
 import reviews from "./Review";
+import FrequentlyBoughtTogether from "./FrequentlyBoughtTogether";
 
 /**
  * Normalize backend product response to the shape expected by the UI.
@@ -176,6 +177,7 @@ gst: raw.gst ?? (raw.gstIncluded === true ? raw.gst : 0),
     // Spread any extra fields for cart compatibility
     mrp: mrp,
     price: price,
+    frequentlyBoughtWith: Array.isArray(raw.frequentlyBoughtWith) ? raw.frequentlyBoughtWith : [],
   };
 }
 
@@ -1222,18 +1224,11 @@ const next = [product, ...existing.filter((p) => p._id !== product._id)].slice(0
             </div>
           </section>
 
-          {/* Frequently Bought Together */}
-          <section className="mb-12 md:mb-16">
-            <div className="mb-8">
-              <span className="section-eyebrow">Complete your routine</span>
-              <h2 className="section-title mt-3">Frequently Bought Together</h2>
-            </div>
-            <div className="flex gap-5 overflow-x-auto scroll-smooth no-scrollbar pb-2 -mx-2 px-2">
-              {heartCare.slice(0, 4).map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-          </section>
+          <FrequentlyBoughtTogether
+            currentProduct={product}
+            linkedProducts={product?.frequentlyBoughtWith || []}
+            cart={cart}
+          />
 
           {/* Recently Viewed */}
           {recentlyViewed.length > 1 && (

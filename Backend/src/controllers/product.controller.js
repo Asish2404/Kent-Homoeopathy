@@ -54,7 +54,12 @@ export const getProductById = async (req, res) => {
 
         const { id } = req.params;
 
-        const product = await Product.findById(id).populate("category");
+        const product = await Product.findById(id)
+            .populate("category")
+            .populate({
+                path: "frequentlyBoughtWith",
+                select: "product_name product_image discount_price mrp_price discountPercent",
+            });
 
         if (!product) {
             return res.status(404).json({
@@ -65,7 +70,7 @@ export const getProductById = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            product
+            product: withComputedPricing(product)
         });
 
     } catch (error) {
