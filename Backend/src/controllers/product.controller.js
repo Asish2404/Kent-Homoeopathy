@@ -84,10 +84,55 @@ export const createProduct = async (req, res) => {
             country_of_origin,
             shelf_life,
             suitable_age_group,
-            prescription_required,
+prescription_required,
             potency,
             faq,
-            isKentProduct
+            isKentProduct,
+            // ===== Advanced Premium Product Fields =====
+            medicine_type,
+            sku,
+            barcode,
+            hsn_code,
+            tags,
+            net_quantity,
+            weight,
+            composition,
+            gst,
+            gst_included,
+            profit_margin,
+            potencies,
+            how_it_works,
+            uses,
+            warnings,
+            contraindications,
+            drug_interactions,
+            expiry,
+            license_number,
+            pack_contents,
+            min_stock,
+            max_stock,
+            low_stock_alert,
+            out_of_stock,
+            availability,
+            warehouse,
+            thumbnail_images,
+            gallery_images,
+            zoom_image,
+            seo_title,
+            seo_description,
+            seo_keywords,
+            slug,
+            canonical_url,
+            og_image,
+            featured,
+            best_seller,
+            trending,
+            recommended,
+            new_arrival,
+            home_page,
+            hide_product,
+            draft,
+            sold_count
         } = req.body;
 
         // Validation
@@ -141,8 +186,54 @@ export const createProduct = async (req, res) => {
         if (shelf_life !== undefined) productData.shelf_life = shelf_life;
         if (suitable_age_group !== undefined) productData.suitable_age_group = suitable_age_group;
         if (prescription_required !== undefined) productData.prescription_required = prescription_required;
-        if (potency !== undefined) productData.potency = potency;
+if (potency !== undefined) productData.potency = potency;
         if (faq !== undefined) productData.faq = faq;
+
+        // ===== Advanced Premium Product Fields =====
+        if (medicine_type !== undefined) productData.medicine_type = medicine_type;
+        if (sku !== undefined) productData.sku = sku;
+        if (barcode !== undefined) productData.barcode = barcode;
+        if (hsn_code !== undefined) productData.hsn_code = hsn_code;
+        if (tags !== undefined) productData.tags = tags;
+        if (net_quantity !== undefined) productData.net_quantity = net_quantity;
+        if (weight !== undefined) productData.weight = weight;
+        if (composition !== undefined) productData.composition = composition;
+        if (gst !== undefined) productData.gst = gst;
+        if (gst_included !== undefined) productData.gst_included = gst_included;
+        if (profit_margin !== undefined) productData.profit_margin = profit_margin;
+        if (potencies !== undefined) productData.potencies = potencies;
+        if (how_it_works !== undefined) productData.how_it_works = how_it_works;
+        if (uses !== undefined) productData.uses = uses;
+        if (warnings !== undefined) productData.warnings = warnings;
+        if (contraindications !== undefined) productData.contraindications = contraindications;
+        if (drug_interactions !== undefined) productData.drug_interactions = drug_interactions;
+        if (expiry !== undefined) productData.expiry = expiry;
+        if (license_number !== undefined) productData.license_number = license_number;
+        if (pack_contents !== undefined) productData.pack_contents = pack_contents;
+        if (min_stock !== undefined) productData.min_stock = min_stock;
+        if (max_stock !== undefined) productData.max_stock = max_stock;
+        if (low_stock_alert !== undefined) productData.low_stock_alert = low_stock_alert;
+        if (out_of_stock !== undefined) productData.out_of_stock = out_of_stock;
+        if (availability !== undefined) productData.availability = availability;
+        if (warehouse !== undefined) productData.warehouse = warehouse;
+        if (thumbnail_images !== undefined) productData.thumbnail_images = thumbnail_images;
+        if (gallery_images !== undefined) productData.gallery_images = gallery_images;
+        if (zoom_image !== undefined) productData.zoom_image = zoom_image;
+        if (seo_title !== undefined) productData.seo_title = seo_title;
+        if (seo_description !== undefined) productData.seo_description = seo_description;
+        if (seo_keywords !== undefined) productData.seo_keywords = seo_keywords;
+        if (slug !== undefined) productData.slug = slug;
+        if (canonical_url !== undefined) productData.canonical_url = canonical_url;
+        if (og_image !== undefined) productData.og_image = og_image;
+        if (featured !== undefined) productData.featured = featured;
+        if (best_seller !== undefined) productData.best_seller = best_seller;
+        if (trending !== undefined) productData.trending = trending;
+        if (recommended !== undefined) productData.recommended = recommended;
+        if (new_arrival !== undefined) productData.new_arrival = new_arrival;
+        if (home_page !== undefined) productData.home_page = home_page;
+        if (hide_product !== undefined) productData.hide_product = hide_product;
+        if (draft !== undefined) productData.draft = draft;
+        if (sold_count !== undefined) productData.sold_count = sold_count;
 
         const product = await Product.create(productData);
 

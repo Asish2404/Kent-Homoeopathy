@@ -46,6 +46,52 @@ const emptyProductForm = {
   prescription_required: false,
   potency: "",
   faq: [],
+  // ===== Advanced Premium Product Fields =====
+  medicine_type: "",
+  sku: "",
+  barcode: "",
+  hsn_code: "",
+  tags: [],
+  net_quantity: "",
+  weight: "",
+  composition: [],
+  gst: "0",
+  gst_included: true,
+  profit_margin: "0",
+  potencies: [],
+  how_it_works: [],
+  uses: [],
+  warnings: [],
+  contraindications: [],
+  drug_interactions: [],
+  expiry: "",
+  license_number: "",
+  pack_contents: "",
+  min_stock: "0",
+  max_stock: "0",
+  low_stock_alert: "0",
+  out_of_stock: false,
+  availability: "in_stock",
+  warehouse: "",
+  thumbnail_images: [],
+  gallery_images: [],
+  zoom_image: "",
+  seo_title: "",
+  seo_description: "",
+  seo_keywords: "",
+  slug: "",
+  canonical_url: "",
+  og_image: "",
+  featured: false,
+  best_seller: false,
+  trending: false,
+  recommended: false,
+  new_arrival: false,
+  home_page: false,
+  hide_product: false,
+  draft: false,
+  publish: false,
+  sold_count: "",
 };
 
 const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
@@ -87,12 +133,69 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
         prescription_required: product.prescription_required || false,
         potency: product.potency || "",
         faq: Array.isArray(product.faq) ? product.faq : [],
+        medicine_type: product.medicine_type || "",
+        sku: product.sku || "",
+        barcode: product.barcode || "",
+        hsn_code: product.hsn_code || "",
+        tags: Array.isArray(product.tags) ? product.tags : [],
+        net_quantity: product.net_quantity || "",
+        weight: product.weight || "",
+        composition: Array.isArray(product.composition) ? product.composition : [],
+        gst: product.gst ?? "0",
+        gst_included: product.gst_included !== false,
+        profit_margin: product.profit_margin ?? "0",
+        potencies: Array.isArray(product.potencies) ? product.potencies : [],
+        how_it_works: Array.isArray(product.how_it_works) ? product.how_it_works : [],
+        uses: Array.isArray(product.uses) ? product.uses : [],
+        warnings: Array.isArray(product.warnings) ? product.warnings : [],
+        contraindications: Array.isArray(product.contraindications) ? product.contraindications : [],
+        drug_interactions: Array.isArray(product.drug_interactions) ? product.drug_interactions : [],
+        expiry: product.expiry || "",
+        license_number: product.license_number || "",
+        pack_contents: product.pack_contents || "",
+        min_stock: product.min_stock ?? "0",
+        max_stock: product.max_stock ?? "0",
+        low_stock_alert: product.low_stock_alert ?? "0",
+        out_of_stock: product.out_of_stock || false,
+        availability: product.availability || "in_stock",
+        warehouse: product.warehouse || "",
+        thumbnail_images: Array.isArray(product.thumbnail_images) ? product.thumbnail_images : [],
+        gallery_images: Array.isArray(product.gallery_images) ? product.gallery_images : [],
+        zoom_image: product.zoom_image || "",
+        seo_title: product.seo_title || "",
+        seo_description: product.seo_description || "",
+        seo_keywords: product.seo_keywords || "",
+        slug: product.slug || "",
+        canonical_url: product.canonical_url || "",
+        og_image: product.og_image || "",
+        featured: product.featured || false,
+        best_seller: product.best_seller || false,
+        trending: product.trending || false,
+        recommended: product.recommended || false,
+        new_arrival: product.new_arrival || false,
+        home_page: product.home_page || false,
+        hide_product: product.hide_product || false,
+        draft: product.draft || false,
+        publish: product.publish || false,
+        sold_count: product.sold_count ?? "",
       });
     } else {
       setForm({ ...emptyProductForm });
     }
     setErrors({});
   }, [product]);
+
+  // Auto-calc discount & savings
+  const mrpNum = Number(form.mrp_price) || 0;
+  const priceNum = Number(form.discount_price) || 0;
+  const discountPct = mrpNum > 0 && priceNum > 0 && mrpNum > priceNum
+    ? Math.round(((mrpNum - priceNum) / mrpNum) * 100)
+    : 0;
+  const amountSaved = mrpNum > priceNum ? mrpNum - priceNum : 0;
+  const gstVal = Number(form.gst) || 0;
+  const profitMargin = gstVal > 0
+    ? Math.round(((mrpNum - priceNum) / mrpNum) * 100)
+    : discountPct;
 
   const validate = () => {
     const e = {};
@@ -101,16 +204,42 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
     if (!form.brand.trim()) e.brand = "Brand is required";
     if (!form.short_description.trim()) e.short_description = "Short description is required";
     if (!form.detailed_description.trim()) e.detailed_description = "Detailed description is required";
-    if (!form.mrp_price || Number(form.mrp_price) <= 0) e.mrp_price = "MRP must be positive";
-    if (!form.discount_price || Number(form.discount_price) <= 0) e.discount_price = "Discount price must be positive";
+    if (form.mrp_price === "" || Number(form.mrp_price) < 0) e.mrp_price = "MRP must be non-negative";
+    if (form.discount_price === "" || Number(form.discount_price) < 0) e.discount_price = "Selling price must be non-negative";
     if (!form.category) e.category = "Category is required";
-    if (Number(form.discount_price) > Number(form.mrp_price)) e.discount_price = "Discount price cannot exceed MRP";
+    if (Number(form.discount_price) > Number(form.mrp_price)) e.discount_price = "Selling price cannot exceed MRP";
+    if (Number(form.stock) < 0) e.stock = "Stock cannot be negative";
+
+    // Duplicate variant size check
+    const sizes = (form.variants || []).map((v) => String(v.size || "").trim().toLowerCase()).filter(Boolean);
+    if (new Set(sizes).size !== sizes.length) e.variants = "Duplicate variant sizes are not allowed";
+
+    // Duplicate potency check
+    const potences = (form.potencies || []).map((p) => String(p.value || "").trim().toLowerCase()).filter(Boolean);
+    if (new Set(potences).size !== potences.length) e.potencies = "Duplicate potencies are not allowed";
+
+    // Image URL validation
+    for (const [field, label] of [["product_image", "Main image"], ["zoom_image", "Zoom image"]]) {
+      const val = form[field];
+      if (val && !/^https?:\/\/.+/.test(val)) {
+        e[field] = `${label} must be a valid URL`;
+      }
+    }
+    for (const f of ["extra_images", "thumbnail_images", "gallery_images"]) {
+      for (const url of form[f] || []) {
+        if (url && !/^https?:\/\/.+/.test(url)) {
+          e[f] = "Image URLs must be valid http(s) links";
+          break;
+        }
+      }
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleChange = (field) => (e) => {
-    const isCheckbox = field === "isKentProduct" || field === "prescription_required";
+    const isCheckbox = ["isKentProduct", "prescription_required", "gst_included", "out_of_stock", "featured", "best_seller", "trending", "recommended", "new_arrival", "home_page", "hide_product", "draft", "publish"].includes(field);
     const value = isCheckbox ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -126,6 +255,15 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
   };
   const listTextValue = (field) => (Array.isArray(form[field]) ? form[field] : []).join("\n");
 
+  // Dynamic array item manager (for arrays of objects with one text field)
+  const handleArrayItem = (field, idx, e) => {
+    const items = [...(form[field] || [])];
+    items[idx] = e.target.value;
+    setForm((prev) => ({ ...prev, [field]: items }));
+  };
+  const addArrayItem = (field) => setForm((prev) => ({ ...prev, [field]: [...(prev[field] || []), ""] }));
+  const removeArrayItem = (field, idx) => setForm((prev) => ({ ...prev, [field]: (prev[field] || []).filter((_, i) => i !== idx) }));
+
   // Variants manager
   const handleVariantChange = (idx, key) => (e) => {
     setForm((prev) => {
@@ -137,12 +275,31 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
   const addVariant = () =>
     setForm((prev) => ({
       ...prev,
-      variants: [...(prev.variants || []), { size: "", mrp_price: "", discount_price: "", stock: "" }],
+      variants: [...(prev.variants || []), { size: "", unit: "ml", mrp_price: "", discount_price: "", stock: "", sku: "", barcode: "", weight: "", status: "active" }],
     }));
   const removeVariant = (idx) =>
     setForm((prev) => ({
       ...prev,
       variants: (prev.variants || []).filter((_, i) => i !== idx),
+    }));
+
+  // Potency manager
+  const handlePotencyChange = (idx, key) => (e) => {
+    setForm((prev) => {
+      const potencies = [...(prev.potencies || [])];
+      potencies[idx] = { ...(potencies[idx] || {}), [key]: e.target.value };
+      return { ...prev, potencies };
+    });
+  };
+  const addPotency = () =>
+    setForm((prev) => ({
+      ...prev,
+      potencies: [...(prev.potencies || []), { value: "", mrp_price: "", discount_price: "", stock: "", sku: "" }],
+    }));
+  const removePotency = (idx) =>
+    setForm((prev) => ({
+      ...prev,
+      potencies: (prev.potencies || []).filter((_, i) => i !== idx),
     }));
 
   // FAQ manager
@@ -169,84 +326,113 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
     if (!validate()) return;
     const payload = {
       ...form,
-      quantity: form.quantity ? Number(form.quantity) : undefined,
-      mrp_price: Number(form.mrp_price),
-      discount_price: Number(form.discount_price),
+      quantity: form.quantity !== "" ? Number(form.quantity) : undefined,
+      mrp_price: Number(form.mrp_price) || 0,
+      discount_price: Number(form.discount_price) || 0,
       stock: Number(form.stock) || 0,
       rating: form.rating !== "" ? Number(form.rating) : undefined,
       review_count: form.review_count !== "" ? Number(form.review_count) : undefined,
-      variants: (form.variants || []).map((v) => ({
-        size: v.size,
-        mrp_price: Number(v.mrp_price) || 0,
-        discount_price: Number(v.discount_price) || 0,
-        stock: Number(v.stock) || 0,
-      })),
+      gst: Number(form.gst) || 0,
+      sold_count: form.sold_count !== "" ? Number(form.sold_count) : undefined,
+      min_stock: Number(form.min_stock) || 0,
+      max_stock: Number(form.max_stock) || 0,
+      low_stock_alert: Number(form.low_stock_alert) || 0,
+      variants: (form.variants || [])
+        .filter((v) => v.size)
+        .map((v) => ({
+          size: v.size,
+          unit: v.unit || "ml",
+          mrp_price: Number(v.mrp_price) || 0,
+          discount_price: Number(v.discount_price) || 0,
+          stock: Number(v.stock) || 0,
+          sku: v.sku || "",
+          barcode: v.barcode || "",
+          weight: v.weight || "",
+          status: v.status || "active",
+        })),
+      potencies: (form.potencies || [])
+        .filter((p) => p.value)
+        .map((p) => ({
+          value: p.value,
+          mrp_price: Number(p.mrp_price) || 0,
+          discount_price: Number(p.discount_price) || 0,
+          stock: Number(p.stock) || 0,
+          sku: p.sku || "",
+        })),
     };
     await onSave(payload);
   };
 
+  const inputCls = (field) => `border ${errors[field] ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`;
+  const labelCls = "text-xs font-bold text-neutral-700 block mb-1";
+
+  const SectionHeader = ({ title, subtitle }) => (
+    <div className="pt-5 border-t border-neutral-100 mt-5">
+      <div className="text-sm font-extrabold text-neutral-900">{title}</div>
+      {subtitle && <div className="text-xs text-neutral-400 mt-0.5">{subtitle}</div>}
+    </div>
+  );
+
+  const ToggleCheckbox = ({ field, label }) => (
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={form[field]}
+        onChange={handleChange(field)}
+        className="w-4 h-4 accent-[var(--brand-600)]"
+      />
+      <span className="text-sm font-semibold text-neutral-700">{label}</span>
+    </label>
+  );
+
+  const DynamicList = ({ field, label, placeholder }) => (
+    <div>
+      <label className={labelCls}>{label}</label>
+      <div className="space-y-2">
+        {(form[field] || []).map((item, idx) => (
+          <div key={idx} className="flex gap-2">
+            <input
+              value={item}
+              onChange={(e) => handleArrayItem(field, idx, e)}
+              className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm flex-1"
+              placeholder={placeholder}
+            />
+            <button type="button" onClick={() => removeArrayItem(field, idx)} className="text-red-500 hover:text-red-700 text-xs font-bold px-2">✕</button>
+          </div>
+        ))}
+        <button type="button" onClick={() => addArrayItem(field)} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add {label.toLowerCase()}</button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-neutral-200">
+      <div className="bg-white rounded-3xl shadow-xl w-full max-w-4xl mx-4 max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-neutral-200 sticky top-0 bg-white z-10">
           <div className="text-lg font-extrabold text-neutral-900">{isEdit ? "Edit Product" : "Add Product"}</div>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-2xl leading-none">&times;</button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          {/* ===== BASIC INFORMATION ===== */}
+          <SectionHeader title="Basic Information" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="text-xs font-bold text-neutral-700 block mb-1">Product Name *</label>
-              <input value={form.product_name} onChange={handleChange("product_name")} className={`border ${errors.product_name ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`} placeholder="Product name" />
+            <div>
+              <label className={labelCls}>Product Name *</label>
+              <input value={form.product_name} onChange={handleChange("product_name")} className={inputCls("product_name")} placeholder="Product name" />
               {errors.product_name && <div className="text-xs text-red-600 mt-1">{errors.product_name}</div>}
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-neutral-700 block mb-1">Image URL *</label>
-              <input value={form.product_image} onChange={handleChange("product_image")} className={`border ${errors.product_image ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`} placeholder="https://..." />
-              {errors.product_image && <div className="text-xs text-red-600 mt-1">{errors.product_image}</div>}
+              <label className={labelCls}>Latin Name</label>
+              <input value={form.latin_name} onChange={handleChange("latin_name")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Belladonna" />
             </div>
             <div>
-              <label className="text-xs font-bold text-neutral-700 block mb-1">Brand *</label>
-              <input value={form.brand} onChange={handleChange("brand")} className={`border ${errors.brand ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`} placeholder="Brand name" />
+              <label className={labelCls}>Brand *</label>
+              <input value={form.brand} onChange={handleChange("brand")} className={inputCls("brand")} placeholder="Brand name" />
               {errors.brand && <div className="text-xs text-red-600 mt-1">{errors.brand}</div>}
             </div>
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-neutral-700 block mb-1">Short Description *</label>
-            <textarea value={form.short_description} onChange={handleChange("short_description")} rows={2} className={`border ${errors.short_description ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`} placeholder="Brief description" />
-            {errors.short_description && <div className="text-xs text-red-600 mt-1">{errors.short_description}</div>}
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-neutral-700 block mb-1">Detailed Description *</label>
-            <textarea value={form.detailed_description} onChange={handleChange("detailed_description")} rows={3} className={`border ${errors.detailed_description ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`} placeholder="Full product details" />
-            {errors.detailed_description && <div className="text-xs text-red-600 mt-1">{errors.detailed_description}</div>}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs font-bold text-neutral-700 block mb-1">MRP *</label>
-              <input type="number" min="0" value={form.mrp_price} onChange={handleChange("mrp_price")} className={`border ${errors.mrp_price ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`} placeholder="0" />
-              {errors.mrp_price && <div className="text-xs text-red-600 mt-1">{errors.mrp_price}</div>}
-            </div>
-            <div>
-              <label className="text-xs font-bold text-neutral-700 block mb-1">Discount Price *</label>
-              <input type="number" min="0" value={form.discount_price} onChange={handleChange("discount_price")} className={`border ${errors.discount_price ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`} placeholder="0" />
-              {errors.discount_price && <div className="text-xs text-red-600 mt-1">{errors.discount_price}</div>}
-            </div>
-            <div>
-              <label className="text-xs font-bold text-neutral-700 block mb-1">Stock</label>
-              <input type="number" min="0" value={form.stock} onChange={handleChange("stock")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="0" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="text-xs font-bold text-neutral-700 block mb-1">Category *</label>
-              <select value={form.category} onChange={handleChange("category")} className={`border ${errors.category ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`}>
+              <label className={labelCls}>Category *</label>
+              <select value={form.category} onChange={handleChange("category")} className={inputCls("category")}>
                 <option value="">Select category</option>
                 {categories.map((cat) => (
                   <option key={cat._id} value={cat._id}>{cat.category_name || cat.name || cat._id}</option>
@@ -255,162 +441,344 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
               {errors.category && <div className="text-xs text-red-600 mt-1">{errors.category}</div>}
             </div>
             <div>
-              <label className="text-xs font-bold text-neutral-700 block mb-1">Quantity</label>
-              <input type="number" min="0" value={form.quantity} onChange={handleChange("quantity")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="0" />
+              <label className={labelCls}>Medicine Type</label>
+              <input value={form.medicine_type} onChange={handleChange("medicine_type")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Drops, Tablets, Ointment" />
             </div>
             <div>
-              <label className="text-xs font-bold text-neutral-700 block mb-1">Pack</label>
-              <input value={form.pack} onChange={handleChange("pack")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 10x10" />
+              <label className={labelCls}>Potency (single)</label>
+              <input value={form.potency} onChange={handleChange("potency")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 30C" />
+            </div>
+            <div>
+              <label className={labelCls}>SKU</label>
+              <input value={form.sku} onChange={handleChange("sku")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. KNT-001" />
+            </div>
+            <div>
+              <label className={labelCls}>Barcode</label>
+              <input value={form.barcode} onChange={handleChange("barcode")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="EAN/UPC" />
+            </div>
+            <div>
+              <label className={labelCls}>HSN Code</label>
+              <input value={form.hsn_code} onChange={handleChange("hsn_code")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 3003" />
+            </div>
+            <div>
+              <label className={labelCls}>Net Quantity</label>
+              <input value={form.net_quantity} onChange={handleChange("net_quantity")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 30ml" />
+            </div>
+            <div>
+              <label className={labelCls}>Weight</label>
+              <input value={form.weight} onChange={handleChange("weight")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 50g" />
             </div>
           </div>
 
+          <div>
+            <label className={labelCls}>Short Description *</label>
+            <textarea value={form.short_description} onChange={handleChange("short_description")} rows={2} className={inputCls("short_description")} placeholder="Brief description" />
+            {errors.short_description && <div className="text-xs text-red-600 mt-1">{errors.short_description}</div>}
+          </div>
+          <div>
+            <label className={labelCls}>Detailed Description *</label>
+            <textarea value={form.detailed_description} onChange={handleChange("detailed_description")} rows={3} className={inputCls("detailed_description")} placeholder="Full product details" />
+            {errors.detailed_description && <div className="text-xs text-red-600 mt-1">{errors.detailed_description}</div>}
+          </div>
+          <div>
+            <label className={labelCls}>Tags (one per line)</label>
+            <textarea rows={2} value={listTextValue("tags")} onChange={handleListText("tags")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"immunity\nayurvedic"} />
+          </div>
+
+          {/* ===== PRICING ===== */}
+          <SectionHeader title="Pricing" subtitle="Auto-calculates discount, savings and profit margin" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className={labelCls}>MRP *</label>
+              <input type="number" min="0" value={form.mrp_price} onChange={handleChange("mrp_price")} className={inputCls("mrp_price")} placeholder="0" />
+              {errors.mrp_price && <div className="text-xs text-red-600 mt-1">{errors.mrp_price}</div>}
+            </div>
+            <div>
+              <label className={labelCls}>Selling Price *</label>
+              <input type="number" min="0" value={form.discount_price} onChange={handleChange("discount_price")} className={inputCls("discount_price")} placeholder="0" />
+              {errors.discount_price && <div className="text-xs text-red-600 mt-1">{errors.discount_price}</div>}
+            </div>
+            <div>
+              <label className={labelCls}>GST (%)</label>
+              <input type="number" min="0" value={form.gst} onChange={handleChange("gst")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="0" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-sm">
+              <div className="text-xs text-emerald-700 font-bold">Discount %</div>
+              <div className="text-lg font-extrabold text-emerald-700">{discountPct}%</div>
+            </div>
+            <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-sm">
+              <div className="text-xs text-amber-700 font-bold">Savings</div>
+              <div className="text-lg font-extrabold text-amber-700">₹{amountSaved.toFixed(2)}</div>
+            </div>
+            <div className="p-3 bg-[var(--brand-50)] border border-[var(--brand-100)] rounded-xl text-sm">
+              <div className="text-xs text-[var(--brand-700)] font-bold">Profit Margin</div>
+              <div className="text-lg font-extrabold text-[var(--brand-700)]">{profitMargin}%</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <ToggleCheckbox field="gst_included" label="GST Included in price" />
+          </div>
+
+          {/* ===== VARIANT MANAGER ===== */}
+          <SectionHeader title="Variant Manager" subtitle="Manage unlimited pack sizes (10ml, 30ml, 100ml...)" />
+          {errors.variants && <div className="text-xs text-red-600">{errors.variants}</div>}
+          <div className="flex items-center justify-between mb-2">
+            <label className={labelCls}>Variants</label>
+            <button type="button" onClick={addVariant} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add Variant</button>
+          </div>
+          {(form.variants || []).length === 0 && (
+            <p className="text-xs text-neutral-400 mb-2">No variants added. Main product price/stock will be used.</p>
+          )}
+          {(form.variants || []).map((v, idx) => (
+            <div key={idx} className="border border-neutral-100 rounded-2xl p-3 mb-2 grid grid-cols-2 sm:grid-cols-4 gap-2 items-center">
+              <input value={v.size || ""} onChange={handleVariantChange(idx, "size")} placeholder="Pack Size" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.unit || ""} onChange={handleVariantChange(idx, "unit")} placeholder="Unit (ml/g)" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.net_quantity || ""} onChange={handleVariantChange(idx, "net_quantity")} placeholder="Net Qty" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={v.mrp_price || ""} onChange={handleVariantChange(idx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={v.discount_price || ""} onChange={handleVariantChange(idx, "discount_price")} placeholder="Price" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={v.stock || ""} onChange={handleVariantChange(idx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.sku || ""} onChange={handleVariantChange(idx, "sku")} placeholder="SKU" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.barcode || ""} onChange={handleVariantChange(idx, "barcode")} placeholder="Barcode" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.weight || ""} onChange={handleVariantChange(idx, "weight")} placeholder="Weight" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <select value={v.status || "active"} onChange={handleVariantChange(idx, "status")} className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button type="button" onClick={() => removeVariant(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold justify-self-end">Remove</button>
+            </div>
+          ))}
+
+          {/* ===== POTENCY MANAGER ===== */}
+          <SectionHeader title="Potency Manager" subtitle="Manage unlimited potencies (3CH, 6CH, 30CH, 200CH...)" />
+          {errors.potencies && <div className="text-xs text-red-600">{errors.potencies}</div>}
+          <div className="flex items-center justify-between mb-2">
+            <label className={labelCls}>Potencies</label>
+            <button type="button" onClick={addPotency} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add Potency</button>
+          </div>
+          {(form.potencies || []).length === 0 && (
+            <p className="text-xs text-neutral-400 mb-2">No potencies added. The single potency field will be used.</p>
+          )}
+          {(form.potencies || []).map((p, idx) => (
+            <div key={idx} className="border border-neutral-100 rounded-2xl p-3 mb-2 grid grid-cols-2 sm:grid-cols-5 gap-2 items-center">
+              <input value={p.value || ""} onChange={handlePotencyChange(idx, "value")} placeholder="Potency (30CH)" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={p.mrp_price || ""} onChange={handlePotencyChange(idx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={p.discount_price || ""} onChange={handlePotencyChange(idx, "discount_price")} placeholder="Price" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={p.stock || ""} onChange={handlePotencyChange(idx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={p.sku || ""} onChange={handlePotencyChange(idx, "sku")} placeholder="SKU" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <button type="button" onClick={() => removePotency(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold justify-self-end">Remove</button>
+            </div>
+          ))}
+
+          {/* ===== INVENTORY ===== */}
+          <SectionHeader title="Inventory" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className={labelCls}>Current Stock</label>
+              <input type="number" min="0" value={form.stock} onChange={handleChange("stock")} className={inputCls("stock")} placeholder="0" />
+              {errors.stock && <div className="text-xs text-red-600 mt-1">{errors.stock}</div>}
+            </div>
+            <div>
+              <label className={labelCls}>Minimum Stock</label>
+              <input type="number" min="0" value={form.min_stock} onChange={handleChange("min_stock")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="0" />
+            </div>
+            <div>
+              <label className={labelCls}>Maximum Stock</label>
+              <input type="number" min="0" value={form.max_stock} onChange={handleChange("max_stock")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="0" />
+            </div>
+            <div>
+              <label className={labelCls}>Low Stock Alert Threshold</label>
+              <input type="number" min="0" value={form.low_stock_alert} onChange={handleChange("low_stock_alert")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="0" />
+            </div>
+            <div>
+              <label className={labelCls}>Availability</label>
+              <select value={form.availability} onChange={handleChange("availability")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm">
+                <option value="in_stock">In Stock</option>
+                <option value="low_stock">Low Stock</option>
+                <option value="out_of_stock">Out of Stock</option>
+                <option value="preorder">Pre-order</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Warehouse</label>
+              <input value={form.warehouse} onChange={handleChange("warehouse")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Warehouse A" />
+            </div>
+          </div>
+          <div className="flex items-center gap-4 flex-wrap">
+            <ToggleCheckbox field="out_of_stock" label="Out of Stock" />
+          </div>
+
+          {/* ===== IMAGES ===== */}
+          <SectionHeader title="Images" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Main Image *</label>
+              <input value={form.product_image} onChange={handleChange("product_image")} className={inputCls("product_image")} placeholder="https://..." />
+              {errors.product_image && <div className="text-xs text-red-600 mt-1">{errors.product_image}</div>}
+              {form.product_image && (
+                <img src={form.product_image} alt="preview" className="mt-2 w-20 h-20 rounded-xl object-cover border border-neutral-200" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+              )}
+            </div>
+            <div>
+              <label className={labelCls}>Zoom Image</label>
+              <input value={form.zoom_image} onChange={handleChange("zoom_image")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="https://..." />
+              {errors.zoom_image && <div className="text-xs text-red-600 mt-1">{errors.zoom_image}</div>}
+            </div>
+          </div>
+          <div>
+            <label className={labelCls}>Extra Images (one per line)</label>
+            <textarea rows={2} value={listTextValue("extra_images")} onChange={handleListText("extra_images")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"https://...image2.jpg\nhttps://...image3.jpg"} />
+            {errors.extra_images && <div className="text-xs text-red-600 mt-1">{errors.extra_images}</div>}
+          </div>
+          <div>
+            <label className={labelCls}>Thumbnail Images (one per line)</label>
+            <textarea rows={2} value={listTextValue("thumbnail_images")} onChange={handleListText("thumbnail_images")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"https://...thumb1.jpg\nhttps://...thumb2.jpg"} />
+            {errors.thumbnail_images && <div className="text-xs text-red-600 mt-1">{errors.thumbnail_images}</div>}
+          </div>
+          <div>
+            <label className={labelCls}>Gallery Images (one per line)</label>
+            <textarea rows={2} value={listTextValue("gallery_images")} onChange={handleListText("gallery_images")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"https://...gallery1.jpg\nhttps://...gallery2.jpg"} />
+            {errors.gallery_images && <div className="text-xs text-red-600 mt-1">{errors.gallery_images}</div>}
+          </div>
+
+          {/* ===== PRODUCT DETAILS ===== */}
+          <SectionHeader title="Product Details" subtitle="All fields are optional and can be added/removed dynamically" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <DynamicList field="benefits" label="Benefits" placeholder="e.g. Relieves fever" />
+            <DynamicList field="ingredients" label="Ingredients" placeholder="e.g. Belladonna 30C" />
+            <DynamicList field="composition" label="Composition" placeholder="e.g. Active ingredient" />
+            <DynamicList field="uses" label="Uses" placeholder="e.g. For headaches" />
+            <DynamicList field="how_it_works" label="How It Works" placeholder="e.g. Stimulates natural healing" />
+            <div>
+              <label className={labelCls}>Dosage</label>
+              <input value={form.dosage} onChange={handleChange("dosage")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 3-4 drops, 3x daily" />
+            </div>
+            <DynamicList field="usage" label="How to Use" placeholder="e.g. Take 3 drops in water" />
+            <DynamicList field="side_effects" label="Side Effects" placeholder="e.g. None known" />
+            <DynamicList field="precautions" label="Precautions" placeholder="e.g. Keep out of reach of children" />
+            <DynamicList field="warnings" label="Warnings" placeholder="e.g. Avoid during pregnancy" />
+            <DynamicList field="contraindications" label="Contraindications" placeholder="e.g. Not for children under 2" />
+            <DynamicList field="drug_interactions" label="Drug Interactions" placeholder="e.g. Avoid with beta-blockers" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Storage Instructions</label>
+              <input value={form.storage_instructions} onChange={handleChange("storage_instructions")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Store in a cool dry place" />
+            </div>
+            <div>
+              <label className={labelCls}>Shelf Life</label>
+              <input value={form.shelf_life} onChange={handleChange("shelf_life")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 36 months" />
+            </div>
+            <div>
+              <label className={labelCls}>Expiry</label>
+              <input value={form.expiry} onChange={handleChange("expiry")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 12/2027" />
+            </div>
+            <div>
+              <label className={labelCls}>Manufacturer</label>
+              <input value={form.manufacturer_info} onChange={handleChange("manufacturer_info")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Dr. Kent Homoeopathy" />
+            </div>
+            <div>
+              <label className={labelCls}>Country of Origin</label>
+              <input value={form.country_of_origin} onChange={handleChange("country_of_origin")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. India" />
+            </div>
+            <div>
+              <label className={labelCls}>License Number</label>
+              <input value={form.license_number} onChange={handleChange("license_number")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. MH-12345" />
+            </div>
+            <div>
+              <label className={labelCls}>Suitable Age Group</label>
+              <input value={form.suitable_age_group} onChange={handleChange("suitable_age_group")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Adults & Children 2+" />
+            </div>
+            <div>
+              <label className={labelCls}>Pack Contents</label>
+              <input value={form.pack_contents} onChange={handleChange("pack_contents")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 1 bottle of 30ml" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 flex-wrap">
+            <ToggleCheckbox field="prescription_required" label="Prescription Required" />
+          </div>
+
+          {/* Rating / Reviews / Sold */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div>
+              <label className={labelCls}>Rating (0-5)</label>
+              <input type="number" step="0.1" min="0" max="5" value={form.rating} onChange={handleChange("rating")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 4.6" />
+            </div>
+            <div>
+              <label className={labelCls}>Review Count</label>
+              <input type="number" min="0" value={form.review_count} onChange={handleChange("review_count")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 128" />
+            </div>
+            <div>
+              <label className={labelCls}>Sold Count</label>
+              <input type="number" min="0" value={form.sold_count} onChange={handleChange("sold_count")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 1000" />
+            </div>
+          </div>
+
+          {/* ===== FAQ ===== */}
+          <SectionHeader title="FAQ" />
+          <div className="flex items-center justify-between mb-2">
+            <label className={labelCls}>FAQs</label>
+            <button type="button" onClick={addFaq} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add FAQ</button>
+          </div>
+          {(form.faq || []).length === 0 && <p className="text-xs text-neutral-400 mb-2">No FAQs added yet.</p>}
+          {(form.faq || []).map((f, idx) => (
+            <div key={idx} className="border border-neutral-100 rounded-2xl p-3 mb-3 space-y-2">
+              <input value={f.question || ""} onChange={handleFaqChange(idx, "question")} placeholder="Question" className="w-full border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <textarea rows={2} value={f.answer || ""} onChange={handleFaqChange(idx, "answer")} placeholder="Answer" className="w-full border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <button type="button" onClick={() => removeFaq(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold">Remove FAQ</button>
+            </div>
+          ))}
+
+          {/* ===== SEO ===== */}
+          <SectionHeader title="SEO" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>SEO Title</label>
+              <input value={form.seo_title} onChange={handleChange("seo_title")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="Meta title" />
+            </div>
+            <div>
+              <label className={labelCls}>Slug</label>
+              <input value={form.slug} onChange={handleChange("slug")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. belladonna-30c" />
+            </div>
+            <div>
+              <label className={labelCls}>Canonical URL</label>
+              <input value={form.canonical_url} onChange={handleChange("canonical_url")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="https://..." />
+            </div>
+            <div>
+              <label className={labelCls}>Open Graph Image</label>
+              <input value={form.og_image} onChange={handleChange("og_image")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="https://..." />
+            </div>
+            <div>
+              <label className={labelCls}>SEO Description</label>
+              <textarea rows={2} value={form.seo_description} onChange={handleChange("seo_description")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="Meta description" />
+            </div>
+            <div>
+              <label className={labelCls}>SEO Keywords</label>
+              <textarea rows={2} value={form.seo_keywords} onChange={handleChange("seo_keywords")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="comma, separated, keywords" />
+            </div>
+          </div>
+
+          {/* ===== PRODUCT STATUS ===== */}
+          <SectionHeader title="Product Status" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <ToggleCheckbox field="featured" label="Featured" />
+            <ToggleCheckbox field="best_seller" label="Best Seller" />
+            <ToggleCheckbox field="trending" label="Trending" />
+            <ToggleCheckbox field="recommended" label="Recommended" />
+            <ToggleCheckbox field="new_arrival" label="New Arrival" />
+            <ToggleCheckbox field="home_page" label="Home Page" />
+            <ToggleCheckbox field="hide_product" label="Hide Product" />
+            <ToggleCheckbox field="draft" label="Draft" />
+            <ToggleCheckbox field="publish" label="Publish" />
+          </div>
           <div className="flex items-center gap-3">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked={form.isKentProduct} onChange={handleChange("isKentProduct")} className="sr-only peer" />
-              <div className="w-9 h-5 bg-neutral-300 rounded-full peer peer-checked:bg-brand-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-            </label>
-            <span className="text-sm font-bold text-neutral-700">Kent Product</span>
+            <ToggleCheckbox field="isKentProduct" label="Kent Product" />
           </div>
 
-          {/* ==== ADVANCED FIELDS ==== */}
-          <div className="pt-4 border-t border-neutral-100">
-            <div className="text-xs font-extrabold uppercase tracking-wider text-neutral-400 mb-4">Advanced Product Details</div>
-
-            {/* Latin name / Potency / Dosage */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Latin Name</label>
-                <input value={form.latin_name} onChange={handleChange("latin_name")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Belladonna" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Potency</label>
-                <input value={form.potency} onChange={handleChange("potency")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 30C, 200C" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Dosage</label>
-                <input value={form.dosage} onChange={handleChange("dosage")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 3-4 drops, 3x daily" />
-              </div>
-            </div>
-
-            {/* Rating / Reviews / Age group / Shelf life */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Rating (0-5)</label>
-                <input type="number" step="0.1" min="0" max="5" value={form.rating} onChange={handleChange("rating")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 4.6" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Review Count</label>
-                <input type="number" min="0" value={form.review_count} onChange={handleChange("review_count")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 128" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Suitable Age Group</label>
-                <input value={form.suitable_age_group} onChange={handleChange("suitable_age_group")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Adults & Children 2+" />
-              </div>
-            </div>
-
-            {/* Prescription toggle */}
-            <div className="flex items-center gap-3 mt-4">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" checked={form.prescription_required} onChange={handleChange("prescription_required")} className="sr-only peer" />
-                <div className="w-9 h-5 bg-neutral-300 rounded-full peer peer-checked:bg-brand-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-              </label>
-              <span className="text-sm font-bold text-neutral-700">Prescription Required</span>
-            </div>
-
-            {/* Benefits / Ingredients / Usage (newline-separated) */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Benefits (one per line)</label>
-                <textarea rows={4} value={listTextValue("benefits")} onChange={handleListText("benefits")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"Relieves fever\nBoosts immunity"} />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Ingredients (one per line)</label>
-                <textarea rows={4} value={listTextValue("ingredients")} onChange={handleListText("ingredients")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"Belladonna 30C\nAconite 30C"} />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Usage Instructions (one per line)</label>
-                <textarea rows={4} value={listTextValue("usage")} onChange={handleListText("usage")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"Take 3 drops in 1/4 cup water\nRepeat 3 times daily"} />
-              </div>
-            </div>
-
-            {/* Side effects / Precautions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Side Effects (one per line)</label>
-                <textarea rows={3} value={listTextValue("side_effects")} onChange={handleListText("side_effects")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"None known\nConsult doctor if symptoms persist"} />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Precautions (one per line)</label>
-                <textarea rows={3} value={listTextValue("precautions")} onChange={handleListText("precautions")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"Keep out of reach of children\nStore away from strong odours"} />
-              </div>
-            </div>
-
-            {/* Storage / Manufacturer / Origin / Shelf life */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Storage Instructions</label>
-                <input value={form.storage_instructions} onChange={handleChange("storage_instructions")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Store in a cool dry place" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Shelf Life</label>
-                <input value={form.shelf_life} onChange={handleChange("shelf_life")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. 36 months" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Manufacturer Info</label>
-                <input value={form.manufacturer_info} onChange={handleChange("manufacturer_info")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. Dr. Kent Homoeopathy Pvt. Ltd." />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-neutral-700 block mb-1">Country of Origin</label>
-                <input value={form.country_of_origin} onChange={handleChange("country_of_origin")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder="e.g. India" />
-              </div>
-            </div>
-
-            {/* Extra images */}
-            <div className="mt-4">
-              <label className="text-xs font-bold text-neutral-700 block mb-1">Extra Images (one URL per line)</label>
-              <textarea rows={2} value={listTextValue("extra_images")} onChange={handleListText("extra_images")} className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm" placeholder={"https://...image2.jpg\nhttps://...image3.jpg"} />
-            </div>
-
-            {/* Variant Manager */}
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-neutral-700 block">Variants (pack sizes, potencies)</label>
-                <button type="button" onClick={addVariant} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add Variant</button>
-              </div>
-              {(form.variants || []).length === 0 && (
-                <p className="text-xs text-neutral-400 mb-2">No variants added. The main product price/stock will be used.</p>
-              )}
-              {(form.variants || []).map((v, idx) => (
-                <div key={idx} className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-center border border-neutral-100 rounded-2xl p-2 mb-2">
-                  <input value={v.size || ""} onChange={handleVariantChange(idx, "size")} placeholder="Variant size" className="col-span-2 sm:col-span-1 border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input type="number" value={v.mrp_price || ""} onChange={handleVariantChange(idx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input type="number" value={v.discount_price || ""} onChange={handleVariantChange(idx, "discount_price")} placeholder="Price" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input type="number" value={v.stock || ""} onChange={handleVariantChange(idx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <button type="button" onClick={() => removeVariant(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold justify-self-end">Remove</button>
-                </div>
-              ))}
-            </div>
-
-            {/* FAQ Manager */}
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-neutral-700 block">FAQs</label>
-                <button type="button" onClick={addFaq} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add FAQ</button>
-              </div>
-              {(form.faq || []).length === 0 && (
-                <p className="text-xs text-neutral-400 mb-2">No FAQs added yet.</p>
-              )}
-              {(form.faq || []).map((f, idx) => (
-                <div key={idx} className="border border-neutral-100 rounded-2xl p-3 mb-3 space-y-2">
-                  <input value={f.question || ""} onChange={handleFaqChange(idx, "question")} placeholder="Question" className="w-full border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <textarea rows={2} value={f.answer || ""} onChange={handleFaqChange(idx, "answer")} placeholder="Answer" className="w-full border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <button type="button" onClick={() => removeFaq(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold">Remove FAQ</button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-2 border-t border-neutral-100">
             <button type="button" onClick={onClose} className="btn-outline px-5 py-3" disabled={saving}>Cancel</button>
             <button type="submit" className="btn-primary px-5 py-3" disabled={saving}>
               {saving ? "Saving..." : isEdit ? "Update Product" : "Add Product"}
@@ -622,7 +990,7 @@ const Products = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full">
-                <thead className="text-left text-xs text-neutral-500">
+<thead className="text-left text-xs text-neutral-500">
                   <tr>
                     <th className="font-bold py-3">Product</th>
                     <th className="font-bold py-3">Category</th>
@@ -725,4 +1093,3 @@ const Products = () => {
 };
 
 export default Products;
-
