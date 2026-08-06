@@ -320,13 +320,13 @@ export default function Cart() {
                               <span className="text-[11px] font-bold text-emerald-700">{item.discount}% discount applied on this item</span>
                             </div>
                           )}
-<div className="flex gap-3 sm:gap-4 p-4 sm:p-5">
+                          <div className="flex gap-4 p-5">
                             <div className="flex-shrink-0 flex flex-col items-center gap-2">
-                              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center">
+                              <div className="w-24 h-24 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center">
                                 <img
                                   src={item.image}
                                   alt={item.name}
-                                  className="w-16 h-16 sm:w-20 sm:h-20 object-contain mix-blend-multiply"
+                                  className="w-20 h-20 object-contain mix-blend-multiply"
                                   loading="lazy"
                                 />
                               </div>

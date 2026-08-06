@@ -22,7 +22,6 @@ const emptyProductForm = {
   quantity: "",
   pack: "",
   mrp_price: "",
-  discountPercent: "",
   discount_price: "",
   stock: "0",
   category: "",
@@ -102,32 +101,6 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
 
   useEffect(() => {
     if (product) {
-      const incomingVariants = Array.isArray(product.variants) ? product.variants : [];
-      const flatPotencies = Array.isArray(product.potencies) ? product.potencies : [];
-      const variants = incomingVariants.length > 0
-        ? incomingVariants.map((variant, index) => ({
-            ...variant,
-            potencies: Array.isArray(variant.potencies)
-              ? variant.potencies
-              : index === 0
-                ? flatPotencies
-                : [],
-          }))
-        : [{
-            size: product.pack || "",
-            unit: "ml",
-            net_quantity: product.net_quantity || "",
-            mrp_price: product.mrp_price ?? "",
-            discount_price: product.discount_price ?? "",
-            discountPercent: product.discountPercent ?? "",
-            stock: product.stock ?? "0",
-            sku: product.sku || "",
-            barcode: product.barcode || "",
-            weight: product.weight || "",
-            status: "active",
-            potencies: flatPotencies,
-          }];
-
       setForm({
         product_name: product.product_name || "",
         product_image: product.product_image || "",
@@ -137,12 +110,11 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
         quantity: product.quantity ?? "",
         pack: product.pack || "",
         mrp_price: product.mrp_price ?? "",
-        discountPercent: product.discountPercent ?? "",
         discount_price: product.discount_price ?? "",
         stock: product.stock ?? "0",
         category: product.category?._id || product.category || "",
         isKentProduct: product.isKentProduct || false,
-        variants,
+        variants: Array.isArray(product.variants) ? product.variants : [],
         benefits: Array.isArray(product.benefits) ? product.benefits : [],
         ingredients: Array.isArray(product.ingredients) ? product.ingredients : [],
         usage: Array.isArray(product.usage) ? product.usage : [],
@@ -172,6 +144,7 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
         gst: product.gst ?? "0",
         gst_included: product.gst_included !== false,
         profit_margin: product.profit_margin ?? "0",
+        potencies: Array.isArray(product.potencies) ? product.potencies : [],
         how_it_works: Array.isArray(product.how_it_works) ? product.how_it_works : [],
         uses: Array.isArray(product.uses) ? product.uses : [],
         warnings: Array.isArray(product.warnings) ? product.warnings : [],
@@ -217,7 +190,7 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
   const priceNum = Number(form.discount_price) || 0;
   const discountPct = mrpNum > 0 && priceNum > 0 && mrpNum > priceNum
     ? Math.round(((mrpNum - priceNum) / mrpNum) * 100)
-    : Number(form.discountPercent) || 0;
+    : 0;
   const amountSaved = mrpNum > priceNum ? mrpNum - priceNum : 0;
   const gstVal = Number(form.gst) || 0;
   const profitMargin = gstVal > 0
@@ -231,7 +204,10 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
     if (!form.brand.trim()) e.brand = "Brand is required";
     if (!form.short_description.trim()) e.short_description = "Short description is required";
     if (!form.detailed_description.trim()) e.detailed_description = "Detailed description is required";
+    if (form.mrp_price === "" || Number(form.mrp_price) < 0) e.mrp_price = "MRP must be non-negative";
+    if (form.discount_price === "" || Number(form.discount_price) < 0) e.discount_price = "Selling price must be non-negative";
     if (!form.category) e.category = "Category is required";
+    if (Number(form.discount_price) > Number(form.mrp_price)) e.discount_price = "Selling price cannot exceed MRP";
     if (Number(form.stock) < 0) e.stock = "Stock cannot be negative";
 
     // Duplicate variant size check
@@ -239,8 +215,7 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
     if (new Set(sizes).size !== sizes.length) e.variants = "Duplicate variant sizes are not allowed";
 
     // Duplicate potency check
-    const potencies = (form.variants || []).flatMap((variant) => Array.isArray(variant.potencies) ? variant.potencies : []);
-    const potences = potencies.map((p) => String(p.value || "").trim().toLowerCase()).filter(Boolean);
+    const potences = (form.potencies || []).map((p) => String(p.value || "").trim().toLowerCase()).filter(Boolean);
     if (new Set(potences).size !== potences.length) e.potencies = "Duplicate potencies are not allowed";
 
     // Image URL validation
@@ -266,30 +241,7 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
   const handleChange = (field) => (e) => {
     const isCheckbox = ["isKentProduct", "prescription_required", "gst_included", "out_of_stock", "featured", "best_seller", "trending", "recommended", "new_arrival", "home_page", "hide_product", "draft", "publish"].includes(field);
     const value = isCheckbox ? e.target.checked : e.target.value;
-    setForm((prev) => {
-      const next = { ...prev, [field]: value };
-      const mrp = Number(field === "mrp_price" ? value : prev.mrp_price) || 0;
-      const price = Number(field === "discount_price" ? value : prev.discount_price) || 0;
-      const discountPercent = Number(field === "discountPercent" ? value : prev.discountPercent) || 0;
-
-      if (field === "discountPercent" && mrp > 0) {
-        next.discount_price = String(Math.max(0, Math.round(mrp - (mrp * discountPercent) / 100)));
-      }
-
-      if (field === "discount_price" && mrp > 0 && price > 0) {
-        next.discountPercent = String(Math.max(0, Math.round(((mrp - price) / mrp) * 100)));
-      }
-
-      if (field === "mrp_price" && mrp > 0) {
-        if (discountPercent > 0) {
-          next.discount_price = String(Math.max(0, Math.round(mrp - (mrp * discountPercent) / 100)));
-        } else if (price > 0) {
-          next.discountPercent = String(Math.max(0, Math.round(((mrp - price) / mrp) * 100)));
-        }
-      }
-
-      return next;
-    });
+    setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
@@ -323,39 +275,32 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
   const addVariant = () =>
     setForm((prev) => ({
       ...prev,
-      variants: [...(prev.variants || []), { size: "", unit: "ml", net_quantity: "", mrp_price: "", discount_price: "", discountPercent: "", stock: "", sku: "", barcode: "", weight: "", status: "active", potencies: [] }],
+      variants: [...(prev.variants || []), { size: "", unit: "ml", mrp_price: "", discount_price: "", stock: "", sku: "", barcode: "", weight: "", status: "active" }],
     }));
   const removeVariant = (idx) =>
     setForm((prev) => ({
       ...prev,
       variants: (prev.variants || []).filter((_, i) => i !== idx),
     }));
-  const handleVariantPotencyChange = (variantIdx, potencyIdx, key) => (e) => {
+
+  // Potency manager
+  const handlePotencyChange = (idx, key) => (e) => {
     setForm((prev) => {
-      const variants = [...(prev.variants || [])];
-      const currentVariant = { ...(variants[variantIdx] || {}) };
-      const potencies = [...(currentVariant.potencies || [])];
-      potencies[potencyIdx] = { ...(potencies[potencyIdx] || {}), [key]: e.target.value };
-      variants[variantIdx] = { ...currentVariant, potencies };
-      return { ...prev, variants };
+      const potencies = [...(prev.potencies || [])];
+      potencies[idx] = { ...(potencies[idx] || {}), [key]: e.target.value };
+      return { ...prev, potencies };
     });
   };
-  const addVariantPotency = (variantIdx) =>
-    setForm((prev) => {
-      const variants = [...(prev.variants || [])];
-      const currentVariant = { ...(variants[variantIdx] || {}) };
-      currentVariant.potencies = [...(currentVariant.potencies || []), { value: "", mrp_price: "", discount_price: "", discountPercent: "", stock: "", sku: "" }];
-      variants[variantIdx] = currentVariant;
-      return { ...prev, variants };
-    });
-  const removeVariantPotency = (variantIdx, potencyIdx) =>
-    setForm((prev) => {
-      const variants = [...(prev.variants || [])];
-      const currentVariant = { ...(variants[variantIdx] || {}) };
-      currentVariant.potencies = (currentVariant.potencies || []).filter((_, i) => i !== potencyIdx);
-      variants[variantIdx] = currentVariant;
-      return { ...prev, variants };
-    });
+  const addPotency = () =>
+    setForm((prev) => ({
+      ...prev,
+      potencies: [...(prev.potencies || []), { value: "", mrp_price: "", discount_price: "", stock: "", sku: "" }],
+    }));
+  const removePotency = (idx) =>
+    setForm((prev) => ({
+      ...prev,
+      potencies: (prev.potencies || []).filter((_, i) => i !== idx),
+    }));
 
   // FAQ manager
   const handleFaqChange = (idx, key) => (e) => {
@@ -384,7 +329,6 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
       quantity: form.quantity !== "" ? Number(form.quantity) : undefined,
       mrp_price: Number(form.mrp_price) || 0,
       discount_price: Number(form.discount_price) || 0,
-      discountPercent: form.discountPercent !== "" ? Number(form.discountPercent) : undefined,
       stock: Number(form.stock) || 0,
       rating: form.rating !== "" ? Number(form.rating) : undefined,
       review_count: form.review_count !== "" ? Number(form.review_count) : undefined,
@@ -398,36 +342,23 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
         .map((v) => ({
           size: v.size,
           unit: v.unit || "ml",
-          net_quantity: v.net_quantity || "",
           mrp_price: Number(v.mrp_price) || 0,
           discount_price: Number(v.discount_price) || 0,
-          discountPercent: Number(v.discountPercent) || 0,
           stock: Number(v.stock) || 0,
           sku: v.sku || "",
           barcode: v.barcode || "",
           weight: v.weight || "",
           status: v.status || "active",
-          potencies: (v.potencies || [])
-            .filter((p) => p.value)
-            .map((p) => ({
-              value: p.value,
-              mrp_price: Number(p.mrp_price) || 0,
-              discount_price: Number(p.discount_price) || 0,
-              discountPercent: Number(p.discountPercent) || 0,
-              stock: Number(p.stock) || 0,
-              sku: p.sku || "",
-            })),
         })),
-      potencies: (form.variants || []).flatMap((v) => (v.potencies || [])
+      potencies: (form.potencies || [])
         .filter((p) => p.value)
         .map((p) => ({
           value: p.value,
           mrp_price: Number(p.mrp_price) || 0,
           discount_price: Number(p.discount_price) || 0,
-          discountPercent: Number(p.discountPercent) || 0,
           stock: Number(p.stock) || 0,
           sku: p.sku || "",
-        }))),
+        })),
     };
     await onSave(payload);
   };
@@ -558,16 +489,14 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
           <SectionHeader title="Pricing" subtitle="Auto-calculates discount, savings and profit margin" />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className={labelCls}>MRP</label>
+              <label className={labelCls}>MRP *</label>
               <input type="number" min="0" value={form.mrp_price} onChange={handleChange("mrp_price")} className={inputCls("mrp_price")} placeholder="0" />
+              {errors.mrp_price && <div className="text-xs text-red-600 mt-1">{errors.mrp_price}</div>}
             </div>
             <div>
-              <label className={labelCls}>Discount %</label>
-              <input type="number" min="0" max="100" value={form.discountPercent} onChange={handleChange("discountPercent")} className={inputCls("discountPercent")} placeholder="0" />
-            </div>
-            <div>
-              <label className={labelCls}>Selling Price</label>
+              <label className={labelCls}>Selling Price *</label>
               <input type="number" min="0" value={form.discount_price} onChange={handleChange("discount_price")} className={inputCls("discount_price")} placeholder="0" />
+              {errors.discount_price && <div className="text-xs text-red-600 mt-1">{errors.discount_price}</div>}
             </div>
             <div>
               <label className={labelCls}>GST (%)</label>
@@ -603,45 +532,42 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
             <p className="text-xs text-neutral-400 mb-2">No variants added. Main product price/stock will be used.</p>
           )}
           {(form.variants || []).map((v, idx) => (
-            <div key={idx} className="border border-neutral-100 rounded-2xl p-3 mb-3 space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-center">
-                <input value={v.size || ""} onChange={handleVariantChange(idx, "size")} placeholder="Pack Size" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <input value={v.unit || ""} onChange={handleVariantChange(idx, "unit")} placeholder="Unit (ml/g)" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <input value={v.net_quantity || ""} onChange={handleVariantChange(idx, "net_quantity")} placeholder="Net Qty" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <input type="number" value={v.mrp_price || ""} onChange={handleVariantChange(idx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <input type="number" value={v.discountPercent || ""} onChange={handleVariantChange(idx, "discountPercent")} placeholder="Discount %" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <input type="number" value={v.discount_price || ""} onChange={handleVariantChange(idx, "discount_price")} placeholder="Price" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <input type="number" value={v.stock || ""} onChange={handleVariantChange(idx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <input value={v.sku || ""} onChange={handleVariantChange(idx, "sku")} placeholder="SKU" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <input value={v.barcode || ""} onChange={handleVariantChange(idx, "barcode")} placeholder="Barcode" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <input value={v.weight || ""} onChange={handleVariantChange(idx, "weight")} placeholder="Weight" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                <select value={v.status || "active"} onChange={handleVariantChange(idx, "status")} className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-                <button type="button" onClick={() => removeVariant(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold justify-self-end">Remove</button>
-              </div>
+            <div key={idx} className="border border-neutral-100 rounded-2xl p-3 mb-2 grid grid-cols-2 sm:grid-cols-4 gap-2 items-center">
+              <input value={v.size || ""} onChange={handleVariantChange(idx, "size")} placeholder="Pack Size" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.unit || ""} onChange={handleVariantChange(idx, "unit")} placeholder="Unit (ml/g)" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.net_quantity || ""} onChange={handleVariantChange(idx, "net_quantity")} placeholder="Net Qty" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={v.mrp_price || ""} onChange={handleVariantChange(idx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={v.discount_price || ""} onChange={handleVariantChange(idx, "discount_price")} placeholder="Price" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={v.stock || ""} onChange={handleVariantChange(idx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.sku || ""} onChange={handleVariantChange(idx, "sku")} placeholder="SKU" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.barcode || ""} onChange={handleVariantChange(idx, "barcode")} placeholder="Barcode" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={v.weight || ""} onChange={handleVariantChange(idx, "weight")} placeholder="Weight" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <select value={v.status || "active"} onChange={handleVariantChange(idx, "status")} className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button type="button" onClick={() => removeVariant(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold justify-self-end">Remove</button>
+            </div>
+          ))}
 
-              <div className="rounded-2xl bg-neutral-50 border border-neutral-100 p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-neutral-700">Variant Potencies</span>
-                  <button type="button" onClick={() => addVariantPotency(idx)} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add Potency</button>
-                </div>
-                {(v.potencies || []).length === 0 && <p className="text-xs text-neutral-400">Add potencies for this pack size.</p>}
-                <div className="space-y-2">
-                  {(v.potencies || []).map((p, potencyIdx) => (
-                    <div key={potencyIdx} className="grid grid-cols-2 sm:grid-cols-6 gap-2 items-center">
-                      <input value={p.value || ""} onChange={handleVariantPotencyChange(idx, potencyIdx, "value")} placeholder="Potency" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                      <input type="number" value={p.mrp_price || ""} onChange={handleVariantPotencyChange(idx, potencyIdx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                      <input type="number" value={p.discountPercent || ""} onChange={handleVariantPotencyChange(idx, potencyIdx, "discountPercent")} placeholder="Discount %" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                      <input type="number" value={p.discount_price || ""} onChange={handleVariantPotencyChange(idx, potencyIdx, "discount_price")} placeholder="Price" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                      <input type="number" value={p.stock || ""} onChange={handleVariantPotencyChange(idx, potencyIdx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                      <input value={p.sku || ""} onChange={handleVariantPotencyChange(idx, potencyIdx, "sku")} placeholder="SKU" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                      <button type="button" onClick={() => removeVariantPotency(idx, potencyIdx)} className="text-red-500 hover:text-red-700 text-xs font-bold sm:col-span-6 justify-self-end">Remove</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {/* ===== POTENCY MANAGER ===== */}
+          <SectionHeader title="Potency Manager" subtitle="Manage unlimited potencies (3CH, 6CH, 30CH, 200CH...)" />
+          {errors.potencies && <div className="text-xs text-red-600">{errors.potencies}</div>}
+          <div className="flex items-center justify-between mb-2">
+            <label className={labelCls}>Potencies</label>
+            <button type="button" onClick={addPotency} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add Potency</button>
+          </div>
+          {(form.potencies || []).length === 0 && (
+            <p className="text-xs text-neutral-400 mb-2">No potencies added. The single potency field will be used.</p>
+          )}
+          {(form.potencies || []).map((p, idx) => (
+            <div key={idx} className="border border-neutral-100 rounded-2xl p-3 mb-2 grid grid-cols-2 sm:grid-cols-5 gap-2 items-center">
+              <input value={p.value || ""} onChange={handlePotencyChange(idx, "value")} placeholder="Potency (30CH)" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={p.mrp_price || ""} onChange={handlePotencyChange(idx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={p.discount_price || ""} onChange={handlePotencyChange(idx, "discount_price")} placeholder="Price" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input type="number" value={p.stock || ""} onChange={handlePotencyChange(idx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <input value={p.sku || ""} onChange={handlePotencyChange(idx, "sku")} placeholder="SKU" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
+              <button type="button" onClick={() => removePotency(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold justify-self-end">Remove</button>
             </div>
           ))}
 

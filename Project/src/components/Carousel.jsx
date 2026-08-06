@@ -133,12 +133,8 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     [current]
   );
 
-return (
-    <section
-      className="w-full overflow-hidden relative"
-      aria-roledescription="carousel"
-      aria-label="Featured promotions"
-    >
+  return (
+    <section className="w-full overflow-hidden relative">
       <div
         className="relative touch-pan-x"
         onMouseEnter={() => setIsHovered(true)}
@@ -152,13 +148,8 @@ return (
             className="flex transition-transform duration-700 ease-out will-change-transform"
             style={{ transform: translateValue }}
           >
-            {slides.map((slide, index) => (
-              <SlideCard
-                key={slide.id}
-                slide={slide}
-                index={index}
-                active={index === current}
-              />
+            {slides.map((slide) => (
+              <SlideCard key={slide.id} slide={slide} />
             ))}
           </div>
         </div>

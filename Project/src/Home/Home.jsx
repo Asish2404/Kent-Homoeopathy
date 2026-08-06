@@ -10,7 +10,6 @@ import {
 import { FiArrowRight, FiHeadphones, FiAward } from "react-icons/fi";
 import Carousel from "../components/Carousel";
 import ProductSlider from "../components/ProductSlider";
-import OffersSection from "../components/OffersSection";
 import Statistics from "../components/Statistics";
 import slides from "../data/Slides";
 import { useNavigate } from "react-router-dom";
@@ -81,11 +80,11 @@ const Home = () => {
       {/* Hero Carousel */}
       <Carousel slides={slides} />
 
-{/* Services strip */}
-      <section className="relative -mt-10 sm:-mt-12 z-10 px-4">
+      {/* Services strip */}
+      <section className="relative -mt-12 z-10 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl border border-neutral-100
-                          p-4 sm:p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                          p-5 md:p-6 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {services.map((s, i) => (
               <button
                 key={i}
@@ -147,8 +146,8 @@ const Home = () => {
                 onClick={() =>
                   navigate(tag.id === "all" ? "/Products" : `/Products?category=${tag.id}`)
                 }
-className={`
-                  px-5 min-h-[44px] inline-flex items-center rounded-full text-sm font-medium cursor-pointer transition
+                className={`
+                  px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer transition
                   ${
                     i === 0
                       ? "bg-[var(--brand-600)] text-white shadow-md shadow-[var(--brand-600)]/30"
@@ -170,8 +169,6 @@ className={`
           bgClass="bg-transparent"
         />
       </section>
-
-      <OffersSection />
 
       {/* Statistics */}
       <Statistics />

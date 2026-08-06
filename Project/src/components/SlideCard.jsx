@@ -18,7 +18,7 @@ const CTA_ROUTES = {
   "Consult Now": "/Consult",
 };
 
-const SlideCard = React.memo(({ slide, active = false }) => {
+const SlideCard = React.memo(({ slide }) => {
   const navigate = useNavigate();
   const placeholderImg =
     "https://images.unsplash.com/photo-1580281658628-93a3e2c21cbf?q=80&w=2000&auto=format&fit=crop";
@@ -35,19 +35,12 @@ const SlideCard = React.memo(({ slide, active = false }) => {
   };
 
   return (
-    // Only the active slide is eager-loaded; off-screen slides lazy-load.
-    // Fixed aspect-ratio (via padding) prevents layout shift (CLS) on load.
-    <div
-      className="relative w-full shrink-0 bg-white"
-      style={{ aspectRatio: "auto 360 / 480" }}
-    >
+    <div className="relative w-full h-[78vh] md:h-[90vh] shrink-0 bg-white">
       {/* Background Image */}
       <img
         src={imgSrc}
         alt={slide.title}
-        loading={active ? "eager" : "lazy"}
-        width="1600"
-        height="900"
+        loading="lazy"
         decoding="async"
         referrerPolicy="no-referrer"
         onError={() => setImgSrc(placeholderImg)}

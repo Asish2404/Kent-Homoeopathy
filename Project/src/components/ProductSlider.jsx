@@ -29,10 +29,10 @@ const ProductSlider = ({
   };
 
   return (
-<section className={`py-12 sm:py-16 md:py-20 ${bgClass}`}>
+    <section className={`py-16 md:py-20 ${bgClass}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-end justify-between gap-6 mb-6 md:mb-10">
+        <div className="flex items-end justify-between gap-6 mb-8 md:mb-10">
           <div>
             <span className="section-eyebrow">{subtitle || "Curated for you"}</span>
             <h2 className="section-title mt-3">{title}</h2>
@@ -61,7 +61,7 @@ const ProductSlider = ({
         <div className="relative">
           <div
             ref={sliderRef}
-className="flex gap-4 sm:gap-5 overflow-x-auto scroll-smooth no-scrollbar pb-4 pl-2 pr-2"
+            className="flex gap-5 overflow-x-auto scroll-smooth no-scrollbar pb-4 pl-2 pr-2"
           >
             {products.map((p) => (
               <ProductCard key={p.id} product={p} />

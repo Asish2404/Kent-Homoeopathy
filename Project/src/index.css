@@ -75,72 +75,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Mobile-first base font size — never below readable 16px on small screens */
-html {
-  font-size: 16px;
-}
-
 body {
   scroll-behavior: smooth;
   overflow-x: hidden;
-  /* Prevent iOS input zoom + horizontal bleed on small screens */
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-/* ===========================================================
-   Mobile-first responsive base
-   =========================================================== */
-:root {
-  /* Comfortable mobile tap target (Apple/Android a11y standard = 44px) */
-  --tap-target: 44px;
-  --section-gap-mobile: 3.5rem;
-}
-
-/* Images/media never overflow their container (prevents horizontal scroll) */
-img,
-svg,
-video,
-canvas,
-iframe {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Minimum touch target for interactive elements on coarse pointers */
-@media (pointer: coarse) {
-  button,
-  a,
-  [role="button"],
-  select,
-  .btn-primary,
-  .btn-outline {
-    min-height: var(--tap-target);
-  }
-}
-
-/* Ensure 1-col stacking on the smallest screens, scale up across breakpoints.
-   Base styles are mobile-first: larger breakpoints build on top. */
-@media (min-width: 640px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-@media (min-width: 1024px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-/* Prevent text cut-off and cramped sections on 360–768px viewports */
-@media (max-width: 767px) {
-  .section-title {
-    font-size: 1.6rem;
-  }
-  .section-subtitle {
-    font-size: 0.95rem;
-  }
 }
 
 ::selection {

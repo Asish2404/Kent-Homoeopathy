@@ -333,13 +333,7 @@ const buildCartItemsFromBody = (bodyItems) => {
     if (!Array.isArray(bodyItems) || bodyItems.length === 0) return null;
     return bodyItems.map((item) => ({
         product: {
-            _id: (() => {
-                const rawId = item.productId || item.baseProductId || item.id;
-                if (typeof rawId === "string" && rawId.includes("::")) {
-                    return rawId.split("::")[0];
-                }
-                return rawId;
-            })(),
+            _id: item.id || item.productId,
             product_name: item.name || "",
             product_image: item.image || "",
             mrp_price: Number(item.mrp || 0),
