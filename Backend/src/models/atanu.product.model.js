@@ -53,14 +53,6 @@ const productSchema = new mongoose.Schema(
         stock: { type: Number, default: 0 },
         category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
         isKentProduct: { type: Boolean, default: false },
-        frequentlyBoughtWith: {
-            type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-            default: [],
-            validate: {
-                validator: (value) => Array.isArray(value) && value.length <= 3,
-                message: "frequentlyBoughtWith can have at most 3 products",
-            },
-        },
 
         // New optional fields for premium product experience
         variants: [variantSchema],
