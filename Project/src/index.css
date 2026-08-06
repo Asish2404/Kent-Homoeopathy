@@ -258,6 +258,29 @@ body {
   border-radius: 4px;
 }
 
+/* ===========================================================
+   Safe-area insets (display notch / rounded corners support)
+   Applied to fixed/sticky elements on mobile only.
+   =========================================================== */
+.safe-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+.safe-left {
+  padding-left: max(env(safe-area-inset-left), 0px);
+}
+.safe-right {
+  padding-right: max(env(safe-area-inset-right), 0px);
+}
+
+/* Scrollable mobile drawers/bottom-sheets should add bottom safe-area
+   inside their scroll container so content is never hidden. */
+.safe-scroll-pad {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+
 /* Serif utility class used by Cart, Checkout, OrderSuccess */
 .serif {
   font-family: "Plus Jakarta Sans", "Inter", serif;

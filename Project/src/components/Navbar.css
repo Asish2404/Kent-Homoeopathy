@@ -152,9 +152,15 @@
 .mobile-drawer {
     position: absolute;
     left: 0;
-    top: 0;
-    bottom: 0;
+    top: var(--navbar-height, 0px);
+    height: calc(100dvh - var(--navbar-height, 0px));
     width: min(82vw, 320px);
     max-width: 320px;
     z-index: 10;
+    overflow: hidden;
+}
+
+/* Drawer header safe-area support for notched devices */
+.mobile-drawer-header {
+    padding-top: max(1rem, calc(env(safe-area-inset-top) + 0.5rem));
 }

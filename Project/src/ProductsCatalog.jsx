@@ -856,7 +856,7 @@ const resetFilters = () => {
               </button>
             </div>
 
-            <div className="products-filter-scrollbar p-5 space-y-7 overflow-y-auto flex-1">
+<div className="products-filter-scrollbar p-5 space-y-7 overflow-y-auto flex-1 safe-scroll-pad">
               {/* Category */}
               <div>
                 <div className="font-semibold text-neutral-900 mb-3">Category</div>

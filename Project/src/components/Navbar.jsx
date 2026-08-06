@@ -28,7 +28,8 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const profileRef = useRef(null);
+const profileRef = useRef(null);
+  const navbarRef = useRef(null);
   const navigate = useNavigate();
 
   // Centralized auth state (admin + customer) backed by localStorage.
@@ -49,11 +50,28 @@ const readUser = () => {
 
 
 
-  // Subtle shadow on scroll
+// Subtle shadow on scroll
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Measure the actual navbar height and expose it as --navbar-height.
+  // Used by the mobile drawer to position itself exactly below the navbar.
+  useEffect(() => {
+    const navbar = navbarRef.current;
+    if (!navbar) return;
+
+    const update = () => {
+      const h = navbar.offsetHeight;
+      document.documentElement.style.setProperty("--navbar-height", `${h}px`);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(navbar);
+    return () => ro.disconnect();
   }, []);
 
 // Close profile dropdown on outside click
@@ -118,8 +136,9 @@ const readUser = () => {
         </span>
       </div>
 
-      {/* Navbar */}
+{/* Navbar */}
       <div
+        ref={navbarRef}
         className={`w-full bg-[var(--neutral-900)]/95 backdrop-blur-md sticky top-0 z-50 transition-all duration-300
                     ${scrolled ? "shadow-xl py-2" : "shadow-md py-2"}`}
       >
@@ -420,8 +439,8 @@ const readUser = () => {
                        menuOpen ? "translate-x-0" : "-translate-x-full"
                      }`}
         >
-          {/* Drawer header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+{/* Drawer header */}
+          <div className="mobile-drawer-header flex items-center justify-between px-5 py-4 border-b border-white/10">
             <div className="flex items-center gap-3">
               <img
                 src={KentLogo}
@@ -445,8 +464,8 @@ const readUser = () => {
             </button>
           </div>
 
-          {/* Drawer content */}
-          <div className="flex-1 overflow-y-auto flex flex-col gap-1 px-4 py-4">
+{/* Drawer content (scrollable) */}
+          <div className="flex-1 overflow-y-auto overscroll-contain flex flex-col gap-1 px-4 py-4">
             {/* Mobile search (full width) */}
             <div className="w-full h-[44px] mb-3">
               <SearchBox
@@ -515,14 +534,17 @@ const readUser = () => {
               <FiPhone />
               Call Us
             </a>
+          </div>
 
+          {/* Drawer footer — always visible (Logout / Login always accessible) */}
+          <div className="shrink-0 border-t border-white/10 bg-[var(--neutral-900)] px-4 pt-3 pb-[max(calc(env(safe-area-inset-bottom)/2),0.75rem)]">
             {user ? (
-              <div className="flex flex-col gap-3 mt-2 pt-4 border-t border-white/10">
+              <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <img
                     src={`https://ui-avatars.com/api/?name=${user.user_name}&background=22c55e&color=fff&bold=true`}
                     alt="avatar"
-                    className="w-12 h-12 rounded-full ring-2 ring-[var(--brand-400)]"
+                    className="w-11 h-11 rounded-full ring-2 ring-[var(--brand-400)]"
                   />
                   <div className="min-w-0">
                     <p className="text-white font-semibold truncate">{user.user_name}</p>
@@ -530,31 +552,40 @@ const readUser = () => {
                   </div>
                 </div>
 
-                <NavLink
-                  to={isAdmin ? "/admin" : "/Profile"}
-                  onClick={() => setMenuOpen(false)}
-                  className="w-full text-center btn-primary py-2.5"
-                >
-                  {isAdmin ? "My Account" : "My Profile"}
-                </NavLink>
+                <div className="flex gap-2">
+                  <NavLink
+                    to={isAdmin ? "/admin" : "/Profile"}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex-1 text-center btn-primary py-2.5 text-sm"
+                  >
+                    {isAdmin ? "My Account" : "My Profile"}
+                  </NavLink>
 
-                <button
-                  onClick={handleLogout}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-semibold transition"
-                >
-                  Logout
-                </button>
+                  <button
+                    onClick={handleLogout}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-semibold transition text-sm"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
             ) : (
               !isAdmin ? (
                 <NavLink
                   to="/Login"
                   onClick={() => setMenuOpen(false)}
-                  className="btn-primary py-3 mt-2 justify-center"
+                  className="btn-primary py-3 justify-center"
                 >
                   Login / Sign Up
                 </NavLink>
-              ) : null
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-semibold transition text-sm"
+                >
+                  Logout
+                </button>
+              )
             )}
           </div>
         </div>

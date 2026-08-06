@@ -407,7 +407,7 @@ function Consult() {
                 </div>
               </div>
 
-              <div className="flex flex-1 flex-col p-6 md:p-7">
+<div className="flex flex-1 flex-col p-5 md:p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-2xl font-bold text-slate-900">{doc.name}</h3>
@@ -415,9 +415,9 @@ function Consult() {
                   </div>
                 </div>
 
-                <p className="mt-4 text-sm leading-7 text-slate-500">{doc.qualification}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-500">{doc.qualification}</p>
 
-                <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-slate-600">
+                <div className="mt-4 grid grid-cols-2 gap-2.5 text-sm text-slate-600">
                   <div className="rounded-2xl bg-slate-50 p-3">
                     <span className="mb-1 block text-xs uppercase tracking-[0.24em] text-slate-400">Experience</span>
                     {doc.experience}
@@ -432,7 +432,7 @@ function Consult() {
                   </div>
                 </div>
 
-                <div className="mt-5 flex items-center justify-between text-sm text-slate-600">
+                <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
                   <span className="inline-flex items-center gap-1.5">
                     <Clock3 size={16} className="text-green-600" />
                     {doc.availableToday ? "Available Today 09:00 AM – 05:00 PM" : "Available Tomorrow 10:00 AM – 04:00 PM"}
@@ -442,7 +442,7 @@ function Consult() {
                   </span>
                 </div>
 
-                <div className="mt-6 grid grid-cols-2 gap-3">
+                <div className="mt-5 grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     className="w-full rounded-2xl bg-green-600 py-3.5 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700"

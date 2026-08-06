@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -52,8 +52,19 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const adminName = window.localStorage.getItem("userName") || "Administrator";
 
-  const [mobileOpen, setMobileOpen] = useState(false);
+const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+
+  // Lock body scroll while the admin mobile drawer is open
+  useEffect(() => {
+    if (mobileOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [mobileOpen]);
 
   const sidebar = useMemo(
     () => (
@@ -81,7 +92,7 @@ const AdminLayout = () => {
           ))}
         </nav>
 
-        <div className="px-3 pb-4">
+<div className="px-3 pb-4 safe-bottom">
           <button
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 transition"
             onClick={() => {
@@ -115,7 +126,7 @@ const AdminLayout = () => {
             className="absolute inset-0 bg-neutral-900/40"
             onClick={() => setMobileOpen(false)}
           />
-<div className="absolute left-0 top-0 bottom-0 w-[min(82vw,320px)] bg-white border-r border-neutral-200 shadow-lg overflow-hidden">
+<div className="absolute left-0 top-0 bottom-0 w-[min(82vw,320px)] bg-white border-r border-neutral-200 shadow-lg overflow-hidden safe-left">
             {sidebar}
           </div>
         </div>

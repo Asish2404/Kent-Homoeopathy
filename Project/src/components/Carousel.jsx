@@ -20,9 +20,6 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
   const touchEndY = useRef(0);
   const autoplayRef = useRef(null);
 
-  // Prevent vertical scroll only when user intent is clearly horizontal
-  const shouldBlockVerticalScrollRef = useRef(false);
-
   const total = slides.length;
 
   const nextSlide = useCallback(() => {
@@ -59,9 +56,17 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [nextSlide, prevSlide]);
 
-  // swipe logic (mobile-friendly)
+  // ------------------------------------------------------------------
+  // Touch / swipe handling
+  //
+  // IMPORTANT: We NEVER block vertical scrolling here. The container uses
+  // `touch-pan-y` (`touch-action: pan-y`), so vertical gestures scroll the
+  // page natively (like Amazon / Flipkart). Horizontal gestures are detected
+  // via JS and used to change slides. No `preventDefault` is called, so the
+  // browser is free to handle vertical scrolling naturally.
+  // ------------------------------------------------------------------
   const minSwipeDistance = 50;
-  const minIntentDistance = 12; // how much movement to consider intent
+  const minIntentDistance = 12; // movement required to lock gesture intent
 
   const onTouchStart = (e) => {
     const t = e.targetTouches[0];
@@ -69,8 +74,6 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     touchStartY.current = t.clientY;
     touchEndX.current = t.clientX;
     touchEndY.current = t.clientY;
-
-    shouldBlockVerticalScrollRef.current = false;
     setTouching(true);
   };
 
@@ -78,29 +81,6 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     const t = e.targetTouches[0];
     touchEndX.current = t.clientX;
     touchEndY.current = t.clientY;
-
-    const dx = touchEndX.current - touchStartX.current;
-    const dy = touchEndY.current - touchStartY.current;
-
-    // Determine if this gesture is predominantly horizontal.
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-
-    if (absDx < minIntentDistance) {
-      shouldBlockVerticalScrollRef.current = false;
-      return;
-    }
-
-    // Horizontal intent dominates vertical intent.
-    const isHorizontalIntent = absDx > absDy;
-    shouldBlockVerticalScrollRef.current = isHorizontalIntent;
-
-    if (shouldBlockVerticalScrollRef.current) {
-      // When horizontal swipe is intended, prevent vertical scroll-jank.
-      // `passive: false` is required for preventDefault to work; React attaches listeners non-passively on touch.
-      e.preventDefault();
-    }
-
   };
 
   const onTouchEnd = () => {
@@ -117,8 +97,10 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     const absDx = Math.abs(dx);
     const absDy = Math.abs(dy);
 
-    // If it's mostly vertical, do not change slides.
-    const isHorizontalIntent = absDx > absDy;
+    // Only treat as a slide swipe when the gesture is predominantly
+    // horizontal AND exceeds the minimum distance. Vertical gestures are
+    // intentionally ignored so the page can scroll.
+    const isHorizontalIntent = absDx > absDy && absDx > minIntentDistance;
     if (!isHorizontalIntent) return;
 
     if (absDx < minSwipeDistance) return;
@@ -126,7 +108,6 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
     if (dx < 0) nextSlide(); // swipe left
     if (dx > 0) prevSlide(); // swipe right
   };
-
 
   const translateValue = useMemo(
     () => `translateX(-${current * 100}%)`,
@@ -136,7 +117,7 @@ export default function Carousel({ slides, autoplayInterval = 4000 }) {
   return (
     <section className="w-full overflow-hidden relative">
       <div
-        className="relative touch-pan-x"
+        className="relative touch-pan-y"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onTouchStart={onTouchStart}

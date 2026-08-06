@@ -246,11 +246,11 @@ const Contact = () => {
                 </div>
               </div>
 
-              {/* Floating chip */}
+{/* Floating chip */}
               <div
-                className="absolute -top-4 -left-4 bg-white rounded-2xl shadow-xl
+                className="absolute -top-4 left-0 sm:-left-4 bg-white rounded-2xl shadow-xl
                            p-3 pr-4 flex items-center gap-2 border border-neutral-100
-                           animate-float"
+                           animate-float max-w-[calc(100%-1rem)]"
               >
                 <div className="w-9 h-9 rounded-xl bg-[var(--brand-100)] text-[var(--brand-700)] flex items-center justify-center">
                   <FaLeaf />
