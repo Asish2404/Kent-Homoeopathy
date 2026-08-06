@@ -34,9 +34,9 @@ const Footer = () => {
 
   return (
     <footer className="bg-[var(--neutral-900)] text-neutral-300 mt-auto w-full">
-      {/* Trust strip */}
+{/* Trust strip */}
       <div className="border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             { icon: <FaTruck />, title: "Free Delivery", sub: "On orders above ₹499" },
             { icon: <FaShieldAlt />, title: "100% Genuine", sub: "Verified medicines only" },
@@ -60,15 +60,15 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Newsletter (premium card) */}
+{/* Newsletter (premium card) */}
       <div className="bg-gradient-to-r from-[var(--brand-700)] to-[var(--brand-900)]">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 py-10 md:py-12 flex justify-center">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-10 md:py-12 flex justify-center">
           <SubscribeCard />
         </div>
       </div>
 
       {/* Main grid */}
-      <div className="max-w-7xl mx-auto px-6 md:px-10 py-14 md:py-16
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-14 md:py-16
                       grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
         {/* Brand */}
         <div className="lg:col-span-2">
@@ -196,10 +196,10 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom bar */}
+{/* Bottom bar */}
       <div className="border-t border-white/10">
         <div
-          className="max-w-7xl mx-auto px-6 md:px-10 py-6
+          className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6
                      flex flex-col md:flex-row justify-between items-center
                      gap-4 text-center md:text-left"
         >
