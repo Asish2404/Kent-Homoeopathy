@@ -80,36 +80,15 @@ const Contact = () => {
     reset,
   } = useForm();
 
-const [submitted, setSubmitted] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
 
-  const onSubmit = async (data) => {
-    setSubmitting(true);
-    setSubmitError("");
-    try {
-      // Wire to the backend contact endpoint (POST /api/contact).
-      const { default: api } = await import("../services/api");
-      await api.post("/contact", {
-        fullName: data.name,
-        email: data.email,
-        phoneNumber: data.phone,
-        subject: data.subject,
-        message: data.message,
-        inquiryType: "General Inquiry",
-      });
-      setSubmitted(true);
-      reset();
-      setTimeout(() => setSubmitted(false), 4500);
-    } catch (err) {
-      setSubmitError(
-        err?.response?.data?.message ||
-          "Something went wrong. Please try again or call us directly."
-      );
-    } finally {
-      setSubmitting(false);
-    }
+  const onSubmit = (data) => {
+    // Original behaviour preserved — log to console.
+    console.log(data);
+    setSubmitted(true);
+    reset();
+    setTimeout(() => setSubmitted(false), 4500);
   };
 
 
@@ -366,7 +345,7 @@ const [submitted, setSubmitted] = useState(false);
               </div>
             </div>
 
-{submitted && (
+            {submitted && (
               <div
                 className="mt-6 mb-2 p-4 rounded-xl
                            bg-[var(--brand-50)] border border-[var(--brand-200)]
@@ -379,21 +358,6 @@ const [submitted, setSubmitted] = useState(false);
                   <p className="text-sm opacity-80">
                     Our team will reach out to you shortly.
                   </p>
-                </div>
-              </div>
-            )}
-
-            {submitError && (
-              <div
-                className="mt-6 mb-2 p-4 rounded-xl
-                           bg-red-50 border border-red-200
-                           text-red-700
-                           flex items-center gap-3 animate-fade-in"
-              >
-                <FaCheckCircle className="text-xl shrink-0 text-red-500" />
-                <div>
-                  <p className="font-semibold">Couldn't send your message</p>
-                  <p className="text-sm opacity-80">{submitError}</p>
                 </div>
               </div>
             )}
@@ -458,22 +422,9 @@ const [submitted, setSubmitted] = useState(false);
               </div>
 
               <div className="md:col-span-2 flex flex-col sm:flex-row items-center gap-3 mt-2">
-<button
-                  type="submit"
-                  disabled={submitting}
-                  className="btn-primary w-full sm:w-auto px-8 py-3.5 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {submitting ? (
-                    <>
-                      <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <FaPaperPlane className="text-sm" />
-                      Send Message
-                    </>
-                  )}
+                <button type="submit" className="btn-primary w-full sm:w-auto px-8 py-3.5">
+                  <FaPaperPlane className="text-sm" />
+                  Send Message
                 </button>
                 <p className="text-xs text-neutral-500 sm:ml-auto">
                   By submitting, you agree to our{" "}
