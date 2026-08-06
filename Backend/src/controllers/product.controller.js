@@ -56,6 +56,10 @@ const normalizeProductPayload = (body = {}) => {
         if (allowedFields.includes(key)) payload[key] = value;
     }
 
+    if (payload.product_image !== undefined && typeof payload.product_image === "string") {
+        payload.product_image = payload.product_image.trim();
+    }
+
     if (payload.variants !== undefined) {
         payload.variants = normalizeVariants(payload.variants);
     }

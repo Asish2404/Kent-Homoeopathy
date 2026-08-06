@@ -77,6 +77,26 @@ const computeSellingPrice = (mrp, discountPct) => {
   return Math.max(0, m - (m * d) / 100);
 };
 
+const IMAGE_MODE_UPLOAD = "upload";
+const IMAGE_MODE_URL = "url";
+
+const inferImageMode = (value) => {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return IMAGE_MODE_UPLOAD;
+  return trimmed.startsWith("data:image/") ? IMAGE_MODE_UPLOAD : IMAGE_MODE_URL;
+};
+
+const isValidImageUrl = (value) => {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return false;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
   const [form, setForm] = useState(() => ({
     ...emptyProductForm,
@@ -102,7 +122,11 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
       : {}),
   }));
   const [errors, setErrors] = useState({});
+  const [imageMode, setImageMode] = useState(() => inferImageMode(product?.product_image));
+  const [imageUrlInput, setImageUrlInput] = useState(() => product?.product_image || "");
+  const [imageMessage, setImageMessage] = useState("");
   const fileInputRef = useRef(null);
+  const urlInputRef = useRef(null);
   const isEdit = !!product;
 
   const validate = () => {
@@ -143,21 +167,71 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
+  const clearImageSelection = (nextMode = imageMode) => {
+    setImageMode(nextMode);
+    setImageUrlInput("");
+    setImageMessage("");
+    setForm((prev) => ({ ...prev, product_image: "" }));
+    setErrors((prev) => ({ ...prev, product_image: undefined }));
+  };
+
+  const handleImageModeChange = (nextMode) => {
+    if (nextMode === imageMode) return;
+    clearImageSelection(nextMode);
+  };
+
   const handleImagePick = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type) && !/\.(jpe?g|png|webp)$/i.test(file.name)) {
+      setImageMessage("Please choose a JPG, PNG, or WEBP image.");
+      setErrors((prev) => ({ ...prev, product_image: "Please choose a JPG, PNG, or WEBP image." }));
+      e.target.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       const result = typeof reader.result === "string" ? reader.result : "";
+      setImageMode(IMAGE_MODE_UPLOAD);
+      setImageUrlInput("");
+      setImageMessage("");
       setForm((prev) => ({ ...prev, product_image: result }));
       if (errors.product_image) setErrors((prev) => ({ ...prev, product_image: undefined }));
     };
     reader.onerror = () => {
+      setImageMessage("Unable to read selected image.");
       setErrors((prev) => ({ ...prev, product_image: "Unable to read selected image" }));
     };
     reader.readAsDataURL(file);
     e.target.value = "";
+  };
+
+  const handleImageUrlChange = (e) => {
+    const value = e.target.value;
+    setImageUrlInput(value);
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setImageMessage("Enter an image URL to preview it.");
+      setForm((prev) => ({ ...prev, product_image: "" }));
+      setErrors((prev) => ({ ...prev, product_image: undefined }));
+      return;
+    }
+
+    if (!isValidImageUrl(trimmed)) {
+      setImageMessage("Please enter a valid image URL.");
+      setForm((prev) => ({ ...prev, product_image: "" }));
+      setErrors((prev) => ({ ...prev, product_image: "Please enter a valid image URL." }));
+      return;
+    }
+
+    setImageMode(IMAGE_MODE_URL);
+    setImageMessage("");
+    setForm((prev) => ({ ...prev, product_image: trimmed }));
+    if (errors.product_image) setErrors((prev) => ({ ...prev, product_image: undefined }));
   };
 
   // ---- Variant manager ----
@@ -281,34 +355,92 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
           </div>
 
           {/* ===== PRODUCT IMAGE (single) ===== */}
-          <SectionHeader title="Product Image" subtitle="Each product has one primary image. Upload, preview, replace or clear it." />
-          <div>
+          <SectionHeader title="Product Image" subtitle="Choose one image for the product using either a local file or a direct URL." />
+          <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
             <label className={labelCls}>Product Image *</label>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
-            <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-outline px-4 py-3">
-                Upload Image
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm">
+              <button
+                type="button"
+                onClick={() => handleImageModeChange(IMAGE_MODE_UPLOAD)}
+                className={`flex-1 min-w-37.5 rounded-xl px-4 py-3 text-sm font-semibold transition ${imageMode === IMAGE_MODE_UPLOAD ? "bg-(--brand-600) text-white shadow" : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100"}`}
+              >
+                Upload from Device
               </button>
-              {form.product_image && (
-                <>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-outline px-4 py-3">
-                    Replace
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm((prev) => ({ ...prev, product_image: "" }))}
-                    className="btn-outline px-4 py-3 text-red-600"
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
+              <button
+                type="button"
+                onClick={() => handleImageModeChange(IMAGE_MODE_URL)}
+                className={`flex-1 min-w-37.5 rounded-xl px-4 py-3 text-sm font-semibold transition ${imageMode === IMAGE_MODE_URL ? "bg-(--brand-600) text-white shadow" : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100"}`}
+              >
+                Upload via Image URL
+              </button>
             </div>
-            <div className="text-xs text-neutral-500 mt-2">PNG, JPG, WEBP are supported. The image is stored as a single preview-ready asset for the product.</div>
-            {errors.product_image && <div className="text-xs text-red-600 mt-1">{errors.product_image}</div>}
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImagePick} className="hidden" />
+
+            {imageMode === IMAGE_MODE_UPLOAD ? (
+              <div className="mt-4 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-outline px-4 py-3">
+                    Choose Image
+                  </button>
+                  {form.product_image && (
+                    <>
+                      <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-outline px-4 py-3">
+                        Replace Image
+                      </button>
+                      <button type="button" onClick={() => clearImageSelection(IMAGE_MODE_UPLOAD)} className="btn-outline px-4 py-3 text-red-600">
+                        Remove Image
+                      </button>
+                    </>
+                  )}
+                </div>
+                <div className="text-xs text-neutral-500">Supported formats: JPG, PNG, WEBP.</div>
+              </div>
+            ) : (
+              <div className="mt-4 space-y-3">
+                <input
+                  ref={urlInputRef}
+                  value={imageUrlInput}
+                  onChange={handleImageUrlChange}
+                  type="url"
+                  placeholder="https://example.com/product-image.jpg"
+                  className={inputCls("product_image")}
+                />
+                <div className="text-xs text-neutral-500">Enter a direct image URL and preview it live before saving.</div>
+              </div>
+            )}
+
+            {errors.product_image && <div className="text-xs text-red-600 mt-3">{errors.product_image}</div>}
+            {imageMessage && !errors.product_image && <div className="text-xs text-amber-600 mt-3">{imageMessage}</div>}
+
             {form.product_image && (
-              <div className="mt-3 flex items-start gap-3">
-                <img src={form.product_image} alt="preview" className="w-24 h-24 rounded-xl object-cover border border-neutral-200" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+              <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div className="text-sm font-semibold text-neutral-800">Image Preview</div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => (imageMode === IMAGE_MODE_URL ? urlInputRef.current?.focus() : fileInputRef.current?.click())}
+                      className="btn-outline px-3 py-2 text-sm"
+                    >
+                      Replace Image
+                    </button>
+                    <button type="button" onClick={() => clearImageSelection(imageMode)} className="btn-outline px-3 py-2 text-sm text-red-600">
+                      Remove Image
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <img
+                    src={form.product_image}
+                    alt="preview"
+                    className="w-24 h-24 rounded-xl object-cover border border-neutral-200"
+                    onError={() => setImageMessage("This image could not be loaded. Please try a different URL or file.")}
+                  />
+                  <div className="text-xs text-neutral-500 leading-5">
+                    <div className="font-semibold text-neutral-700">Stored image</div>
+                    <div>This product will use a single image asset.</div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
