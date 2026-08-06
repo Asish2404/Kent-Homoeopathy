@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
@@ -12,6 +12,25 @@ const statusVariant = (status) => {
   if (s === "out of stock") return "danger";
   return "neutral";
 };
+
+const SectionHeader = ({ title, subtitle }) => (
+  <div className="pt-5 border-t border-neutral-100 mt-5">
+    <div className="text-sm font-extrabold text-neutral-900">{title}</div>
+    {subtitle && <div className="text-xs text-neutral-400 mt-0.5">{subtitle}</div>}
+  </div>
+);
+
+const ToggleCheckbox = ({ label, checked, onChange }) => (
+  <label className="flex items-center gap-2 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      className="w-4 h-4 accent-(--brand-600)"
+    />
+    <span className="text-sm font-semibold text-neutral-700">{label}</span>
+  </label>
+);
 
 const emptyProductForm = {
   product_name: "",
@@ -59,37 +78,32 @@ const computeSellingPrice = (mrp, discountPct) => {
 };
 
 const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
-  const [form, setForm] = useState({ ...emptyProductForm });
+  const [form, setForm] = useState(() => ({
+    ...emptyProductForm,
+    ...(product
+      ? {
+          product_name: product.product_name || "",
+          product_image: product.product_image || "",
+          brand: product.brand || "",
+          short_description: product.short_description || "",
+          detailed_description: product.detailed_description || "",
+          category: product.category?._id || product.category || "",
+          medicine_type: product.medicine_type || "",
+          isKentProduct: product.isKentProduct || false,
+          variants: Array.isArray(product.variants) && product.variants.length > 0 ? product.variants : [],
+          featured: product.featured || false,
+          new_arrival: product.new_arrival || false,
+          trending: product.trending || false,
+          best_seller: product.best_seller || false,
+          top_pick: product.top_pick || false,
+          hide_product: product.hide_product || false,
+          draft: product.draft || false,
+        }
+      : {}),
+  }));
   const [errors, setErrors] = useState({});
+  const fileInputRef = useRef(null);
   const isEdit = !!product;
-
-  useEffect(() => {
-    if (product) {
-      setForm({
-        product_name: product.product_name || "",
-        product_image: product.product_image || "",
-        brand: product.brand || "",
-        short_description: product.short_description || "",
-        detailed_description: product.detailed_description || "",
-        category: product.category?._id || product.category || "",
-        medicine_type: product.medicine_type || "",
-        isKentProduct: product.isKentProduct || false,
-        variants: Array.isArray(product.variants) && product.variants.length > 0
-          ? product.variants
-          : [],
-        featured: product.featured || false,
-        new_arrival: product.new_arrival || false,
-        trending: product.trending || false,
-        best_seller: product.best_seller || false,
-        top_pick: product.top_pick || false,
-        hide_product: product.hide_product || false,
-        draft: product.draft || false,
-      });
-    } else {
-      setForm({ ...emptyProductForm });
-    }
-    setErrors({});
-  }, [product]);
 
   const validate = () => {
     const e = {};
@@ -113,9 +127,9 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
       }
     }
 
-    // Image URL validation
-    if (form.product_image && !/^https?:\/\/.+/.test(form.product_image)) {
-      e.product_image = "Image must be a valid URL";
+    // Accept either a remote URL or a locally uploaded image.
+    if (form.product_image && !/^(https?:\/\/|data:image\/)/.test(form.product_image)) {
+      e.product_image = "Image must be a valid URL or uploaded image";
     }
 
     setErrors(e);
@@ -127,6 +141,23 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
     const value = isCheckbox ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const handleImagePick = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      setForm((prev) => ({ ...prev, product_image: result }));
+      if (errors.product_image) setErrors((prev) => ({ ...prev, product_image: undefined }));
+    };
+    reader.onerror = () => {
+      setErrors((prev) => ({ ...prev, product_image: "Unable to read selected image" }));
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   // ---- Variant manager ----
@@ -201,25 +232,6 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
   const inputCls = (field) => `border ${errors[field] ? "border-red-400" : "border-neutral-200"} rounded-2xl px-4 py-3 outline-none w-full text-sm`;
   const labelCls = "text-xs font-bold text-neutral-700 block mb-1";
 
-  const SectionHeader = ({ title, subtitle }) => (
-    <div className="pt-5 border-t border-neutral-100 mt-5">
-      <div className="text-sm font-extrabold text-neutral-900">{title}</div>
-      {subtitle && <div className="text-xs text-neutral-400 mt-0.5">{subtitle}</div>}
-    </div>
-  );
-
-  const ToggleCheckbox = ({ field, label }) => (
-    <label className="flex items-center gap-2 cursor-pointer">
-      <input
-        type="checkbox"
-        checked={form[field]}
-        onChange={handleChange(field)}
-        className="w-4 h-4 accent-[var(--brand-600)]"
-      />
-      <span className="text-sm font-semibold text-neutral-700">{label}</span>
-    </label>
-  );
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-3xl shadow-xl w-full max-w-4xl mx-4 max-h-[92vh] overflow-y-auto">
@@ -271,19 +283,32 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
           {/* ===== PRODUCT IMAGE (single) ===== */}
           <SectionHeader title="Product Image" subtitle="Each product has one primary image. Upload, preview, replace or clear it." />
           <div>
-            <label className={labelCls}>Image URL *</label>
-            <input value={form.product_image} onChange={handleChange("product_image")} className={inputCls("product_image")} placeholder="https://..." />
+            <label className={labelCls}>Product Image *</label>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-outline px-4 py-3">
+                Upload Image
+              </button>
+              {form.product_image && (
+                <>
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-outline px-4 py-3">
+                    Replace
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, product_image: "" }))}
+                    className="btn-outline px-4 py-3 text-red-600"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="text-xs text-neutral-500 mt-2">PNG, JPG, WEBP are supported. The image is stored as a single preview-ready asset for the product.</div>
             {errors.product_image && <div className="text-xs text-red-600 mt-1">{errors.product_image}</div>}
             {form.product_image && (
               <div className="mt-3 flex items-start gap-3">
                 <img src={form.product_image} alt="preview" className="w-24 h-24 rounded-xl object-cover border border-neutral-200" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-                <button
-                  type="button"
-                  onClick={() => setForm((prev) => ({ ...prev, product_image: "" }))}
-                  className="text-xs font-bold text-red-500 hover:text-red-700 mt-1"
-                >
-                  Remove image
-                </button>
               </div>
             )}
           </div>
@@ -296,7 +321,7 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
           {errors.variants && <div className="text-xs text-red-600">{errors.variants}</div>}
           <div className="flex items-center justify-between mb-2">
             <label className={labelCls}>Variants</label>
-            <button type="button" onClick={addVariant} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add Variant</button>
+            <button type="button" onClick={addVariant} className="text-xs font-bold text-(--brand-700) hover:text-(--brand-800)">+ Add Variant</button>
           </div>
           {(form.variants || []).length === 0 && (
             <p className="text-xs text-neutral-400 mb-2">No variants added yet. Add at least one variant to set pricing and stock.</p>
@@ -326,11 +351,11 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
                     <div className="text-sm font-extrabold text-emerald-700">₹{selling.toFixed(2)}</div>
                   </div>
                   <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
-                    <input type="checkbox" checked={v.out_of_stock || false} onChange={handleVariantChange(idx, "out_of_stock")} className="w-4 h-4 accent-[var(--brand-600)]" />
+                    <input type="checkbox" checked={v.out_of_stock || false} onChange={handleVariantChange(idx, "out_of_stock")} className="w-4 h-4 accent-(--brand-600)" />
                     Out of Stock
                   </label>
                   <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
-                    <input type="checkbox" checked={v.not_available || false} onChange={handleVariantChange(idx, "not_available")} className="w-4 h-4 accent-[var(--brand-600)]" />
+                    <input type="checkbox" checked={v.not_available || false} onChange={handleVariantChange(idx, "not_available")} className="w-4 h-4 accent-(--brand-600)" />
                     Not Available
                   </label>
                 </div>
@@ -341,19 +366,19 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
           {/* ===== HOMEPAGE SECTIONS ===== */}
           <SectionHeader title="Homepage Sections" subtitle="A product can appear in multiple homepage sections." />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <ToggleCheckbox field="featured" label="Featured" />
-            <ToggleCheckbox field="new_arrival" label="New Arrival" />
-            <ToggleCheckbox field="trending" label="Trending" />
-            <ToggleCheckbox field="best_seller" label="Best Seller" />
-            <ToggleCheckbox field="top_pick" label="Top Pick of the Day" />
+            <ToggleCheckbox label="Featured" checked={form.featured} onChange={handleChange("featured")} />
+            <ToggleCheckbox label="New Arrival" checked={form.new_arrival} onChange={handleChange("new_arrival")} />
+            <ToggleCheckbox label="Trending" checked={form.trending} onChange={handleChange("trending")} />
+            <ToggleCheckbox label="Best Seller" checked={form.best_seller} onChange={handleChange("best_seller")} />
+            <ToggleCheckbox label="Top Pick of the Day" checked={form.top_pick} onChange={handleChange("top_pick")} />
           </div>
 
           {/* ===== PRODUCT STATUS ===== */}
           <SectionHeader title="Product Status" />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <ToggleCheckbox field="isKentProduct" label="Kent Product" />
-            <ToggleCheckbox field="hide_product" label="Hide Product" />
-            <ToggleCheckbox field="draft" label="Draft" />
+            <ToggleCheckbox label="Kent Product" checked={form.isKentProduct} onChange={handleChange("isKentProduct")} />
+            <ToggleCheckbox label="Hide Product" checked={form.hide_product} onChange={handleChange("hide_product")} />
+            <ToggleCheckbox label="Draft" checked={form.draft} onChange={handleChange("draft")} />
           </div>
 
           <div className="flex justify-end gap-3 pt-2 border-t border-neutral-100">
@@ -377,7 +402,7 @@ const DeleteConfirmModal = ({ product, onClose, onConfirm, deleting }) => (
       </div>
       <div className="flex justify-end gap-3">
         <button onClick={onClose} className="btn-outline px-4 py-3" disabled={deleting}>Cancel</button>
-        <button onClick={() => onConfirm(product._id)} className="btn-outline px-4 py-3 !text-red-600 !border-red-300 hover:!bg-red-50" disabled={deleting}>
+        <button onClick={() => onConfirm(product._id)} className="btn-outline px-4 py-3 text-red-600! border-red-300! hover:bg-red-50!" disabled={deleting}>
           {deleting ? "Deleting..." : "Delete"}
         </button>
       </div>
@@ -422,7 +447,11 @@ const Products = () => {
   }, []);
 
   useEffect(() => {
-    loadProducts();
+    const timeoutId = window.setTimeout(() => {
+      void loadProducts();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [loadProducts]);
 
   const filtered = useMemo(() => {
@@ -500,7 +529,7 @@ const Products = () => {
     <div className="space-y-6">
       {/* Notification toast */}
       {notification && (
-        <div className={`fixed top-4 right-4 z-[100] px-5 py-3 rounded-2xl shadow-lg text-sm font-bold text-white ${notification.type === "success" ? "bg-green-600" : "bg-red-600"}`}>
+        <div className={`fixed top-4 right-4 z-100 px-5 py-3 rounded-2xl shadow-lg text-sm font-bold text-white ${notification.type === "success" ? "bg-green-600" : "bg-red-600"}`}>
           {notification.message}
         </div>
       )}
@@ -650,6 +679,7 @@ const Products = () => {
 
       {showModal && (
         <ProductModal
+          key={editProduct?._id || "new-product"}
           product={editProduct}
           categories={categories}
           onClose={() => { setShowModal(false); setEditProduct(null); }}

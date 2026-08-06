@@ -1,17 +1,5 @@
-<<<<<<< HEAD
-import { useState, useEffect, useMemo } from "react";
-import {
-  FaLeaf,
-  FaUserMd,
-  FaFlask,
-  FaTruck,
-  FaShieldAlt,
-  FaStethoscope,
-  FaCheckCircle,
-} from "react-icons/fa";
-=======
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { FaUserMd, FaStethoscope, FaCheckCircle } from "react-icons/fa";
->>>>>>> 87868b16acca662e8da9d7ea29990b6614a35fb6
 import { FiArrowRight, FiHeadphones, FiAward } from "react-icons/fi";
 import Carousel from "../components/Carousel";
 import HomeServiceStrip from "../components/HomeServiceStrip";
@@ -23,23 +11,12 @@ import ProductSlider from "../components/ProductSlider";
 import Statistics from "../components/Statistics";
 import slides from "../data/Slides";
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
 import api from "../services/api";
-=======
-import { featuredProducts, allCategories } from "../data/products";
-import {
-  categories,
-  healthConcerns,
-  brands,
-  homeServices,
-} from "../data/homepage";
->>>>>>> 87868b16acca662e8da9d7ea29990b6614a35fb6
+import { categories as homepageCategories, healthConcerns, brands, homeServices } from "../data/homepage";
 
 const Home = () => {
   const navigate = useNavigate();
 
-<<<<<<< HEAD
-// Dynamic homepage product sections + automatic discount collections.
   const [sections, setSections] = useState({
     featured: [],
     new_arrivals: [],
@@ -52,7 +29,6 @@ const Home = () => {
     off70: [],
   });
 
-  // Convert a backend product to the ProductCard shape expected by the UI.
   const toCard = (p) => {
     const mrp = Number(p.mrp_price || p.mrp || 0);
     const price = Number(p.discount_price || p.price || p.selling_price || 0);
@@ -70,15 +46,7 @@ const Home = () => {
       reviews: Number(p.review_count || firstVariant?.review_count || 0),
       image: p.product_image,
       discount: discountPct > 0 ? `-${discountPct}%` : undefined,
-      badge: p.best_seller
-        ? "Bestseller"
-        : p.new_arrival
-          ? "New"
-          : p.featured
-            ? "Featured"
-            : p.top_pick
-              ? "Top Pick"
-              : undefined,
+      badge: p.best_seller ? "Best Seller" : p.new_arrival ? "New" : p.featured ? "Featured" : p.top_pick ? "Top Pick" : undefined,
       categoryTitle: p.category?.category_name || p.category || "Products",
       brand: p.brand,
       isInStock: Number(p.stock || 0) > 0,
@@ -88,46 +56,44 @@ const Home = () => {
     };
   };
 
-  const fetchSection = async (section) => {
+  const fetchSection = useCallback(async (section) => {
     try {
       const res = await api.get("/products", { params: { section, limit: 12 } });
       return (res.data?.products || []).map(toCard);
     } catch {
       return [];
     }
-  };
+  }, []);
 
-  const fetchDiscount = async (discount) => {
+  const fetchDiscount = useCallback(async (discount) => {
     try {
       const res = await api.get("/products", { params: { discount, limit: 12 } });
       return (res.data?.products || []).map(toCard);
     } catch {
       return [];
     }
-  };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [featured, new_arrivals, trending, best_sellers, top_picks, off20, off30, off50, off70] =
-        await Promise.all([
-          fetchSection("featured"),
-          fetchSection("new_arrivals"),
-          fetchSection("trending"),
-          fetchSection("best_sellers"),
-          fetchSection("top_picks"),
-          fetchDiscount("20"),
-          fetchDiscount("30"),
-          fetchDiscount("50"),
-          fetchDiscount("70"),
-        ]);
-if (!cancelled) {
+      const [featured, new_arrivals, trending, best_sellers, top_picks, off20, off30, off50, off70] = await Promise.all([
+        fetchSection("featured"),
+        fetchSection("new_arrivals"),
+        fetchSection("trending"),
+        fetchSection("best_sellers"),
+        fetchSection("top_picks"),
+        fetchDiscount("20"),
+        fetchDiscount("30"),
+        fetchDiscount("50"),
+        fetchDiscount("70"),
+      ]);
+      if (!cancelled) {
         setSections({ featured, new_arrivals, trending, best_sellers, top_picks, off20, off30, off50, off70 });
       }
     })();
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchDiscount, fetchSection]);
 
   const featuredProducts = sections.featured;
   const discountSections = useMemo(
@@ -145,39 +111,6 @@ if (!cancelled) {
   const bestSellersSection = sections.best_sellers;
   const topPicksSection = sections.top_picks;
 
-  const services = [
-    {
-      icon: <FaLeaf />,
-      title: "Genuine Medicines",
-      desc: "100% authentic homoeopathy",
-      link: "/Products",
-      color: "from-[var(--brand-500)] to-[var(--brand-700)]",
-    },
-    {
-      icon: <FaUserMd />,
-      title: "Expert Consultation",
-      desc: "Talk to certified doctors",
-      link: "/Consult",
-      color: "from-emerald-500 to-emerald-700",
-    },
-    {
-      icon: <FaFlask />,
-      title: "Home Lab Tests",
-      desc: "Book accurate tests at home",
-      link: "/Labtest",
-      color: "from-teal-500 to-teal-700",
-    },
-    {
-      icon: <FaTruck />,
-      title: "Fast Delivery",
-      desc: "Doorstep in 24 hours",
-      link: "/Products",
-      color: "from-[var(--brand-600)] to-emerald-700",
-    },
-  ];
-
-=======
->>>>>>> 87868b16acca662e8da9d7ea29990b6614a35fb6
   const whyChooseUs = [
     {
       icon: <FaUserMd />,
@@ -221,10 +154,9 @@ if (!cancelled) {
         />
       </section>
 
-<<<<<<< HEAD
-{/* Statistics */}
+      {/* Statistics */}
       <Statistics />
-=======
+
       {/* Shop by Category */}
       <section className="py-6">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
@@ -235,32 +167,24 @@ if (!cancelled) {
                 Shop by <span className="brand-gradient-text">Category</span>
               </h2>
             </div>
-            <button
-              onClick={() => navigate("/Products")}
-              className="btn-outline group hidden sm:inline-flex"
-            >
+            <button onClick={() => navigate("/Products")} className="btn-outline group hidden sm:inline-flex">
               View All
               <FiArrowRight className="transition-transform group-hover:translate-x-1" />
             </button>
           </div>
 
-          {categories.length > 0 ? (
+          {homepageCategories.length > 0 ? (
             <div className="flex gap-3 overflow-x-auto scroll-smooth no-scrollbar pb-2">
-              {categories.map((c) => (
+              {homepageCategories.map((c) => (
                 <CategoryTile key={c.id} category={c} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-neutral-400">
-              Categories coming soon.
-            </div>
+            <div className="text-center py-8 text-neutral-400">Categories coming soon.</div>
           )}
 
           <div className="flex justify-center mt-4 sm:hidden">
-            <button
-              onClick={() => navigate("/Products")}
-              className="btn-outline group"
-            >
+            <button onClick={() => navigate("/Products")} className="btn-outline group">
               View All
               <FiArrowRight className="transition-transform group-hover:translate-x-1" />
             </button>
@@ -283,9 +207,7 @@ if (!cancelled) {
           {brands.length > 0 ? (
             <BrandLogoStrip brands={brands} />
           ) : (
-            <div className="text-center py-8 text-neutral-400">
-              Brands coming soon.
-            </div>
+            <div className="text-center py-8 text-neutral-400">Brands coming soon.</div>
           )}
         </div>
       </section>
@@ -299,9 +221,7 @@ if (!cancelled) {
               <h2 className="section-title mt-2">
                 Health <span className="brand-gradient-text">Concern</span>
               </h2>
-              <p className="section-subtitle mt-2">
-                Shop by disease / concern
-              </p>
+              <p className="section-subtitle mt-2">Shop by disease / concern</p>
             </div>
           </div>
 
@@ -312,9 +232,7 @@ if (!cancelled) {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-neutral-400">
-              Health concerns coming soon.
-            </div>
+            <div className="text-center py-8 text-neutral-400">Health concerns coming soon.</div>
           )}
         </div>
       </section>
@@ -323,7 +241,6 @@ if (!cancelled) {
       <section className="pt-2 pb-6">
         <PromoBannerCarousel />
       </section>
->>>>>>> 87868b16acca662e8da9d7ea29990b6614a35fb6
 
       {/* New Arrivals */}
       {newArrivalsSection.length > 0 && (
