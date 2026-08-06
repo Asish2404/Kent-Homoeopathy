@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useCartContext } from "../Cart/CartContext";
 import KentLogo from "../assets/Kent.png";
@@ -57,22 +58,48 @@ const readUser = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Measure the actual navbar height and expose it as --navbar-height.
-  // Used by the mobile drawer to position itself exactly below the navbar.
-  useEffect(() => {
+// Measure the bottom edge of the sticky navbar and expose it as --navbar-height.
+  // Because the navbar is sticky, its bottom edge at the current scroll position
+  // equals the bottom of the *entire fixed header* (announcement bar + navbar at
+  // the top of the page, or just the navbar once scrolled). The mobile drawer
+  // uses this value to position itself exactly below the header.
+  const measureHeader = () => {
     const navbar = navbarRef.current;
     if (!navbar) return;
+    const h = navbar.getBoundingClientRect().bottom;
+    document.documentElement.style.setProperty("--navbar-height", `${h}px`);
 
-    const update = () => {
-      const h = navbar.offsetHeight;
-      document.documentElement.style.setProperty("--navbar-height", `${h}px`);
+    // --- Diagnostic logging (remove after visual verification) ---
+    console.log("Navbar height (bottom):", h);
+    console.log(
+      "CSS var --navbar-height:",
+      getComputedStyle(document.documentElement).getPropertyValue("--navbar-height")
+    );
+    // --------------------------------------------------------------
+  };
+
+  useEffect(() => {
+    measureHeader();
+
+    const onResize = () => measureHeader();
+    const onOrientation = () => {
+      // Re-measure after the orientation change has settled.
+      setTimeout(measureHeader, 100);
     };
 
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(navbar);
-    return () => ro.disconnect();
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onOrientation);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onOrientation);
+    };
   }, []);
+
+  // Re-measure right before the drawer opens so the value is always correct
+  // for the current scroll position / layout.
+  useEffect(() => {
+    if (menuOpen) measureHeader();
+  }, [menuOpen]);
 
 // Close profile dropdown on outside click
   useEffect(() => {
@@ -128,8 +155,9 @@ const readUser = () => {
 
   return (
     <>
-      {/* Announcement bar (subtle healthcare accent) */}
-      <div className="w-full bg-[var(--brand-700)] text-white text-xs sm:text-sm py-2 px-4 text-center">
+{/* Announcement bar (subtle healthcare accent) — part of the fixed header,
+          stays above the drawer backdrop */}
+      <div className="relative z-50 w-full bg-[var(--brand-700)] text-white text-xs sm:text-sm py-2 px-4 text-center">
         <span className="inline-flex items-center gap-2">
           <FaLeaf className="text-[var(--brand-300)]" />
           Free delivery on orders above ₹499 · 100% Genuine Medicines
@@ -416,12 +444,15 @@ const readUser = () => {
         </div>
       </div>
 
-{/* Mobile drawer menu */}
-      <div
-        className={`lg:hidden fixed inset-0 z-40 transition ${
-          menuOpen ? "" : "pointer-events-none"
-        }`}
-      >
+{/* Mobile drawer menu — rendered via portal to document.body so it is
+          positioned relative to the viewport, unaffected by any transformed or
+          relatively positioned ancestor. */}
+      {createPortal(
+        <div
+          className={`lg:hidden fixed inset-0 z-40 transition ${
+            menuOpen ? "" : "pointer-events-none"
+          }`}
+        >
         {/* Backdrop */}
         <div
           className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
@@ -587,9 +618,11 @@ const readUser = () => {
                 </button>
               )
             )}
-          </div>
+</div>
         </div>
-      </div>
+      </div>,
+      document.body
+    )}
     </>
   );
 };

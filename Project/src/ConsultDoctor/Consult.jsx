@@ -360,7 +360,7 @@ function Consult() {
           </div>
         </div>
 
-<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {filteredDoctors.map((doc) => (
             <div
               key={doc.id}
@@ -407,7 +407,7 @@ function Consult() {
                 </div>
               </div>
 
-<div className="flex flex-1 flex-col p-5 md:p-6">
+              <div className="flex flex-1 flex-col p-5 md:p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-2xl font-bold text-slate-900">{doc.name}</h3>
@@ -445,17 +445,7 @@ function Consult() {
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    className="w-full rounded-2xl bg-green-600 py-3.5 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700"
-                    onClick={() => {
-                      setSelectedDoctor(doc);
-                      document.getElementById("book-appointment")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                  >
-                    Consult Now
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-green-200 hover:bg-slate-50"
+                    className="w-full  rounded-2xl bg-green-600 py-3.5 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700"
                     onClick={() => {
                       setSelectedDoctor(doc);
                       document.getElementById("book-appointment")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -463,6 +453,16 @@ function Consult() {
                   >
                     Book Appointment
                   </button>
+                  {/* <button
+                    type="button"
+                    className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-green-200 hover:bg-slate-50"
+                    onClick={() => {
+                      setSelectedDoctor(doc);
+                      document.getElementById("book-appointment")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                  >
+                    Consult Now
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -495,11 +495,10 @@ function Consult() {
                 <div className="mb-8 grid gap-4 md:grid-cols-2">
                   <button
                     onClick={() => setMode("visit")}
-                    className={`group flex items-center justify-center gap-2 rounded-2xl border py-5 font-semibold transition ${
-                      mode === "visit"
-                        ? "border-green-700 bg-green-700 text-white shadow-xl shadow-green-200"
-                        : "border-green-200 bg-white text-slate-700 hover:bg-green-50"
-                    }`}
+                    className={`group flex items-center justify-center gap-2 rounded-2xl border py-5 font-semibold transition ${mode === "visit"
+                      ? "border-green-700 bg-green-700 text-white shadow-xl shadow-green-200"
+                      : "border-green-200 bg-white text-slate-700 hover:bg-green-50"
+                      }`}
                   >
                     <UserRound className="transition-transform group-hover:scale-110" size={18} />
                     In-Person Visit
@@ -507,11 +506,10 @@ function Consult() {
 
                   <button
                     onClick={() => setMode("online")}
-                    className={`group flex items-center justify-center gap-2 rounded-2xl border py-5 font-semibold transition ${
-                      mode === "online"
-                        ? "border-green-700 bg-green-700 text-white shadow-xl shadow-green-200"
-                        : "border-green-200 bg-white text-slate-700 hover:bg-green-50"
-                    }`}
+                    className={`group flex items-center justify-center gap-2 rounded-2xl border py-5 font-semibold transition ${mode === "online"
+                      ? "border-green-700 bg-green-700 text-white shadow-xl shadow-green-200"
+                      : "border-green-200 bg-white text-slate-700 hover:bg-green-50"
+                      }`}
                   >
                     <Video className="transition-transform group-hover:scale-110" size={18} />
                     Online Consultation

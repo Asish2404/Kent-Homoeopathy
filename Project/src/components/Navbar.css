@@ -150,7 +150,7 @@
    Mobile Slide-in Drawer
    ============================== */
 .mobile-drawer {
-    position: absolute;
+    position: fixed;
     left: 0;
     top: var(--navbar-height, 0px);
     height: calc(100dvh - var(--navbar-height, 0px));
