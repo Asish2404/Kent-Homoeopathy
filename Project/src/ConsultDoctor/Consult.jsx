@@ -360,18 +360,18 @@ function Consult() {
           </div>
         </div>
 
-        <div className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
+<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {filteredDoctors.map((doc) => (
             <div
               key={doc.id}
-              className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-slate-100 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition card-lift"
+              className="group flex h-auto flex-col overflow-hidden rounded-[30px] border border-slate-100 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition card-lift"
             >
               <div className="relative">
                 <img
                   src={doc.image}
                   alt={doc.name}
                   loading="lazy"
-                  className="h-72 w-full object-cover sm:h-80"
+                  className="aspect-[4/3] w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
                 <div className="absolute left-4 top-4 flex items-center gap-2">

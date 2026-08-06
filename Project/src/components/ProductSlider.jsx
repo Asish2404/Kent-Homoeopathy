@@ -28,8 +28,8 @@ const ProductSlider = ({
     sliderRef.current?.scrollBy({ left: offset, behavior: "smooth" });
   };
 
-  return (
-    <section className={`py-16 md:py-20 ${bgClass}`}>
+return (
+    <section className={`py-16 md:py-20 ${bgClass} overflow-hidden`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-end justify-between gap-6 mb-8 md:mb-10">

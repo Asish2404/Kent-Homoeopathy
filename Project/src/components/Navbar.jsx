@@ -56,7 +56,7 @@ const readUser = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close profile dropdown on outside click
+// Close profile dropdown on outside click
   useEffect(() => {
     const onClick = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -66,6 +66,14 @@ const readUser = () => {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  // Lock body scroll while the mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   const navStyle = ({ isActive }) =>
     `navbarLink ${isActive ? "navbarLinkActive" : ""}`;
@@ -116,20 +124,20 @@ const readUser = () => {
                     ${scrolled ? "shadow-xl py-2" : "shadow-md py-2"}`}
       >
         <div className="max-w-[1440px] mx-auto pl-3 xs:pl-4 sm:pl-6 lg:pl-6 pr-3 xs:pr-4 sm:pr-6 lg:pr-8">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:gap-3 w-full min-w-0">
+<div className="flex items-center gap-2 sm:gap-3 w-full min-w-0">
             {/* Logo + Branding */}
             <button
               type="button"
               className="flex items-center gap-2 cursor-pointer group focus:outline-none flex-shrink-0 min-w-0"
               onClick={() => navigate("/")}
             >
-              <img
+<img
                 src={KentLogo}
                 alt="Kent Homoeopharmacy"
-                className="bg-white w-12 h-12 sm:w-14 sm:h-14 rounded-md border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
+                className="bg-white w-10 h-10 lg:w-14 lg:h-14 rounded-md border border-white/20 shadow-lg shadow-[var(--brand-700)]/30 object-cover"
               />
 
-              <div className="hidden sm:flex flex-col leading-none">
+              <div className="hidden lg:flex flex-col leading-none">
                 <p className="text-white text-base sm:text-lg font-bold tracking-tight whitespace-nowrap">
                   DR. KENT
                 </p>
@@ -140,10 +148,10 @@ const readUser = () => {
             </button>
 
             {/* Shared universal search */}
-            <div className="min-w-0 justify-self-stretch">
-              <div className="w-full max-w-[300px] lg:max-w-[320px] mx-auto min-w-0">
+            <div className="min-w-0 flex-1">
+              <div className="w-full max-w-none lg:max-w-[320px] mx-auto min-w-0">
                 <SearchBox
-                  className="relative h-[40px] w-full bg-[#F8FAFC] rounded-[14px] border border-[#E5E7EB] shadow-sm transition-all duration-250 hover:border-[var(--brand-300)] focus-within:border-[var(--brand-500)] focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]"
+                  className="relative h-[40px] w-full min-w-0 bg-[#F8FAFC] rounded-[14px] border border-[#E5E7EB] shadow-sm transition-all duration-250 hover:border-[var(--brand-300)] focus-within:border-[var(--brand-500)] focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]"
                   placeholder="Search medicines, doctors..."
                   ariaLabel="Universal Search"
                   onSearch={handleSearch}
@@ -389,123 +397,168 @@ const readUser = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {menuOpen && (
+{/* Mobile drawer menu */}
+      <div
+        className={`lg:hidden fixed inset-0 z-40 transition ${
+          menuOpen ? "" : "pointer-events-none"
+        }`}
+      >
+        {/* Backdrop */}
         <div
-          className="lg:hidden fixed top-[88px] left-0 w-full
-                     bg-[var(--neutral-900)]/98 backdrop-blur-lg
-                     flex flex-col items-stretch gap-2 py-6 px-4
-                     shadow-2xl z-40 transition-all duration-200
-                     max-h-[calc(100vh-88px)] overflow-y-auto"
+          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
+            menuOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setMenuOpen(false)}
+        />
+
+{/* Drawer */}
+        <div
+          className={`mobile-drawer
+                     bg-[var(--neutral-900)] shadow-2xl
+                     flex flex-col
+                     transition-transform duration-300 ease-out ${
+                       menuOpen ? "translate-x-0" : "-translate-x-full"
+                     }`}
         >
-          {/* Mobile search (full width) */}
-          <div className="w-full h-[44px]">
-            <SearchBox
-              className="relative h-full w-full bg-[#F8FAFC] rounded-[14px] border border-[#E5E7EB] shadow-sm transition-all duration-250 focus-within:border-[var(--brand-500)] focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]"
-              placeholder="Search medicines, doctors..."
-              ariaLabel="Universal Search"
-              onSearch={handleSearch}
-            />
+          {/* Drawer header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <img
+                src={KentLogo}
+                alt="Kent"
+                className="bg-white w-10 h-10 rounded-md object-cover"
+              />
+              <div className="leading-none">
+                <p className="text-white font-bold text-sm tracking-tight">DR. KENT</p>
+                <p className="text-[var(--brand-300)] text-[10px] tracking-[3px] font-semibold">
+                  HOMOEO PHARMACY
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+            >
+              <HiX className="text-xl" />
+            </button>
           </div>
 
-          <NavLink
-            to="/"
-            onClick={() => setMenuOpen(false)}
-            className={navStyle}
-          >
-            Home
-          </NavLink>
+          {/* Drawer content */}
+          <div className="flex-1 overflow-y-auto flex flex-col gap-1 px-4 py-4">
+            {/* Mobile search (full width) */}
+            <div className="w-full h-[44px] mb-3">
+              <SearchBox
+                className="relative h-full w-full bg-[#F8FAFC] rounded-[14px] border border-[#E5E7EB] shadow-sm transition-all duration-250 focus-within:border-[var(--brand-500)] focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]"
+                placeholder="Search medicines, doctors..."
+                ariaLabel="Universal Search"
+                onSearch={handleSearch}
+              />
+            </div>
 
-
-          <NavLink
-            to="/Labtest"
-            onClick={() => setMenuOpen(false)}
-            className={navStyle}
-          >
-            Lab Test
-          </NavLink>
-
-              <NavLink
-                to="/Consult"
-                onClick={() => setMenuOpen(false)}
-                className={navStyle}
-              >
-                Book Appointment
-              </NavLink>
-
-          <NavLink
-            to="/Products"
-            onClick={() => setMenuOpen(false)}
-            className={navStyle}
-          >
-            Products
-          </NavLink>
-
-          <NavLink
-            to="/Contact"
-            onClick={() => setMenuOpen(false)}
-            className={navStyle}
-          >
-            Contact Us
-          </NavLink>
-
-          {/* Admin Dashboard inside hamburger only for admins */}
-          {isAdmin ? (
             <NavLink
-              to="/admin"
+              to="/"
               onClick={() => setMenuOpen(false)}
               className={navStyle}
             >
-              Admin Dashboard
+              Home
             </NavLink>
-          ) : null}
 
-          <a
-            href="tel:08910863893"
-            className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white py-3 rounded-xl font-semibold transition"
-          >
-            <FiPhone />
-            Call Us
-          </a>
+            <NavLink
+              to="/Labtest"
+              onClick={() => setMenuOpen(false)}
+              className={navStyle}
+            >
+              Lab Test
+            </NavLink>
 
-          {user ? (
-            <div className="flex flex-col items-center gap-3 mt-2 pt-4 border-t border-white/10">
-              {/* Keep Wishlist/Cart as icons (outside), so no extra links here */}
-              <img
-                src={`https://ui-avatars.com/api/?name=${user.user_name}&background=22c55e&color=fff&bold=true`}
-                alt="avatar"
-                className="w-16 h-16 rounded-full ring-2 ring-[var(--brand-400)]"
-              />
-              <p className="text-white font-semibold">{user.user_name}</p>
+            <NavLink
+              to="/Consult"
+              onClick={() => setMenuOpen(false)}
+              className={navStyle}
+            >
+              Book Appointment
+            </NavLink>
 
+            <NavLink
+              to="/Products"
+              onClick={() => setMenuOpen(false)}
+              className={navStyle}
+            >
+              Products
+            </NavLink>
+
+            <NavLink
+              to="/Contact"
+              onClick={() => setMenuOpen(false)}
+              className={navStyle}
+            >
+              Contact Us
+            </NavLink>
+
+            {/* Admin Dashboard inside hamburger only for admins */}
+            {isAdmin ? (
               <NavLink
-                to={isAdmin ? "/admin" : "/Profile"}
+                to="/admin"
                 onClick={() => setMenuOpen(false)}
-                className="w-full text-center btn-primary py-2.5"
+                className={navStyle}
               >
-                {isAdmin ? "My Account" : "My Profile"}
+                Admin Dashboard
               </NavLink>
+            ) : null}
 
-              <button
-                onClick={handleLogout}
-                className="w-full bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-semibold transition"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            !isAdmin ? (
-              <NavLink
-                to="/Login"
-                onClick={() => setMenuOpen(false)}
-                className="btn-primary py-3 mt-2 justify-center"
-              >
-                Login / Sign Up
-              </NavLink>
-            ) : null
-          )}
+            <a
+              href="tel:08910863893"
+              className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white py-3 rounded-xl font-semibold transition"
+            >
+              <FiPhone />
+              Call Us
+            </a>
+
+            {user ? (
+              <div className="flex flex-col gap-3 mt-2 pt-4 border-t border-white/10">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={`https://ui-avatars.com/api/?name=${user.user_name}&background=22c55e&color=fff&bold=true`}
+                    alt="avatar"
+                    className="w-12 h-12 rounded-full ring-2 ring-[var(--brand-400)]"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-white font-semibold truncate">{user.user_name}</p>
+                    <p className="text-[11px] text-neutral-400 truncate">{user.email}</p>
+                  </div>
+                </div>
+
+                <NavLink
+                  to={isAdmin ? "/admin" : "/Profile"}
+                  onClick={() => setMenuOpen(false)}
+                  className="w-full text-center btn-primary py-2.5"
+                >
+                  {isAdmin ? "My Account" : "My Profile"}
+                </NavLink>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-semibold transition"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              !isAdmin ? (
+                <NavLink
+                  to="/Login"
+                  onClick={() => setMenuOpen(false)}
+                  className="btn-primary py-3 mt-2 justify-center"
+                >
+                  Login / Sign Up
+                </NavLink>
+              ) : null
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </>
   );
 };

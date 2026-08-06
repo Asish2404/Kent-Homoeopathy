@@ -115,7 +115,7 @@ const AdminLayout = () => {
             className="absolute inset-0 bg-neutral-900/40"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-80 bg-white border-r border-neutral-200 shadow-lg overflow-hidden">
+<div className="absolute left-0 top-0 bottom-0 w-[min(82vw,320px)] bg-white border-r border-neutral-200 shadow-lg overflow-hidden">
             {sidebar}
           </div>
         </div>

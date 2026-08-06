@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { FaHeart } from "react-icons/fa";
 import { HiOutlineSparkles } from "react-icons/hi2";
-import { FiSearch } from "react-icons/fi";
+import { FiSearch, FiFilter, FiX } from "react-icons/fi";
 import { allCategories } from "./data/products";
 import { useCartContext } from "./Cart/CartContext";
 import api from "./services/api";
@@ -121,7 +121,17 @@ const ProductsCatalog = () => {
     priceMaxOverall
   );
 
-  const [sortKey, setSortKey] = useState("relevance");
+const [sortKey, setSortKey] = useState("relevance");
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  const hasActiveFilters =
+    activeCategory !== "all" ||
+    availability !== "any" ||
+    brand !== "any" ||
+    minRating > 0 ||
+    consultRequired !== "any" ||
+    deliveryOption !== "any" ||
+    safeSelectedPriceMax < priceMaxOverall;
 
 
 
@@ -200,7 +210,7 @@ const ProductsCatalog = () => {
   }, [activeCategory, availability, allProducts, brand, consultRequired, deliveryOption, minRating, safeSelectedPriceMax, query, sortKey]);
 
 
-  const resetFilters = () => {
+const resetFilters = () => {
     setQuery("");
     setActiveCategory("all");
     setAvailability("any");
@@ -210,6 +220,21 @@ const ProductsCatalog = () => {
     setDeliveryOption("any");
     setSelectedPriceMax(priceMaxOverall);
     setSortKey("relevance");
+  };
+
+  // Lock body scroll while the mobile filter drawer is open
+  useEffect(() => {
+    if (filterOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [filterOpen]);
+
+  const closeMobileFilters = () => {
+    setFilterOpen(false);
   };
 
 
@@ -565,24 +590,33 @@ const ProductsCatalog = () => {
             </div>
           </aside>
 
-          {/* Product list */}
+{/* Product list */}
           <section>
-            {/* Mobile filters button (collapses sidebar in future); for now keep compact */}
+            {/* Mobile filters button */}
             <div className="md:hidden mb-4">
-              <div className="bg-white border border-neutral-100 rounded-2xl p-4 shadow-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-bold text-neutral-900">Filters</div>
-                    <div className="text-xs text-neutral-500">Use search and sorting above</div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={resetFilters}
-                    className="text-sm font-semibold text-[var(--brand-700)] hover:text-[var(--brand-800)]"
-                  >
-                    Clear
-                  </button>
-                </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen(true)}
+                  className="flex-1 flex items-center justify-center gap-2 bg-white border border-neutral-200 rounded-2xl px-4 py-3 shadow-sm font-semibold text-neutral-800 text-sm hover:bg-neutral-50 transition min-h-[48px]"
+                >
+<FiFilter className="text-base" />
+                  Filters
+                  {hasActiveFilters && (
+                    <span className="w-2 h-2 rounded-full bg-[var(--brand-600)]" />
+                  )}
+                </button>
+                <select
+                  value={sortKey}
+                  onChange={(e) => setSortKey(e.target.value)}
+                  className="flex-1 bg-white border border-neutral-200 rounded-2xl px-4 py-3 shadow-sm font-semibold text-neutral-800 text-sm cursor-pointer min-h-[48px]"
+                  aria-label="Sort"
+                >
+                  <option value="relevance">Sort: Relevance</option>
+                  <option value="price_low">Sort: Price (Low)</option>
+                  <option value="price_high">Sort: Price (High)</option>
+                  <option value="rating_high">Sort: Rating</option>
+                </select>
               </div>
             </div>
 
@@ -793,9 +827,232 @@ const ProductsCatalog = () => {
                 })
               )}
             </div>
-          </section>
+</section>
         </div>
       </div>
+
+      {/* Mobile Filters Drawer */}
+      {filterOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-neutral-900/50"
+            onClick={closeMobileFilters}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filters"
+            className="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-white rounded-t-3xl shadow-2xl flex flex-col"
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
+              <h2 className="text-lg font-bold text-neutral-900">Filters</h2>
+              <button
+                type="button"
+                onClick={closeMobileFilters}
+                className="w-9 h-9 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600 hover:bg-neutral-200 transition"
+                aria-label="Close filters"
+              >
+                <FiX className="text-lg" />
+              </button>
+            </div>
+
+            <div className="products-filter-scrollbar p-5 space-y-7 overflow-y-auto flex-1">
+              {/* Category */}
+              <div>
+                <div className="font-semibold text-neutral-900 mb-3">Category</div>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory("all")}
+                    className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                      activeCategory === "all"
+                        ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                        : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                    }`}
+                  >
+                    All
+                  </button>
+                  {categoriesForSidebar.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setActiveCategory(c.id)}
+                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                        activeCategory === c.id
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                      }`}
+                    >
+                      {c.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Range */}
+              <div>
+                <div className="font-semibold text-neutral-900 mb-3">Price</div>
+                <div className="text-sm text-neutral-500 mb-2">
+                  Up to ₹{safeSelectedPriceMax}
+                </div>
+                <input
+                  type="range"
+                  min={priceMin}
+                  max={priceMaxOverall}
+                  value={safeSelectedPriceMax}
+                  onChange={(e) => setSelectedPriceMax(Number(e.target.value))}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-neutral-500 mt-2">
+                  <span>₹{priceMin}</span>
+                  <span>₹{priceMaxOverall}</span>
+                </div>
+              </div>
+
+              {/* Availability */}
+              <div>
+                <div className="font-semibold text-neutral-900 mb-3">Availability</div>
+                <div className="space-y-2">
+                  {[
+                    { id: "any", label: "Any" },
+                    { id: "in_stock", label: "In stock" },
+                    { id: "out_of_stock", label: "Out of stock" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setAvailability(opt.id)}
+                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                        availability === opt.id
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Brand */}
+              <div>
+                <div className="font-semibold text-neutral-900 mb-3">Brand</div>
+                <div className="space-y-2">
+                  {[
+                    { id: "any", label: "Any" },
+                    { id: "Dr. Kent", label: "Dr. Kent" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setBrand(opt.id)}
+                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                        brand === opt.id
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rating */}
+              <div>
+                <div className="font-semibold text-neutral-900 mb-3">Rating</div>
+                <div className="space-y-2">
+                  {[
+                    { id: 0, label: "Any" },
+                    { id: 4.5, label: "4.5+" },
+                    { id: 4.0, label: "4.0+" },
+                    { id: 3.5, label: "3.5+" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setMinRating(opt.id)}
+                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                        minRating === opt.id
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Consultation */}
+              <div>
+                <div className="font-semibold text-neutral-900 mb-3">Consultation</div>
+                <div className="space-y-2">
+                  {[
+                    { id: "any", label: "Any" },
+                    { id: "required", label: "Required" },
+                    { id: "not_required", label: "Not required" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setConsultRequired(opt.id)}
+                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                        consultRequired === opt.id
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Delivery Options */}
+              <div>
+                <div className="font-semibold text-neutral-900 mb-3">Delivery Options</div>
+                <div className="space-y-2">
+                  {[
+                    { id: "any", label: "Any" },
+                    { id: "fast", label: "Fast delivery" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setDeliveryOption(opt.id)}
+                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                        deliveryOption === opt.id
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 px-5 py-4 border-t border-neutral-100 bg-white">
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="flex-1 btn-outline py-3 text-sm"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={closeMobileFilters}
+                className="flex-1 btn-primary py-3 text-sm"
+              >
+                Show Results ({results.length})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

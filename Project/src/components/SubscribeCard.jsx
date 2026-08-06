@@ -21,11 +21,11 @@ export default function SubscribeCard({ onSubscribe }) {
   return (
     <div className="w-full md:max-w-xl bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 md:p-6 flex items-center gap-4">
       <img src={Illustration} alt="health" className="bg-white hidden md:block w-20 h-20 rounded-lg object-cover z-50" />
-      <div className="flex-1">
+<div className="flex-1 min-w-0">
         <h4 className="text-white font-bold text-lg">Join our Wellness Newsletter</h4>
         <p className="text-[var(--brand-100)] text-sm">Premium health tips, early access to offers, and doctor insights.</p>
 
-        <form onSubmit={handleSubmit} className="mt-3 flex gap-2" aria-label="Subscribe to newsletter">
+        <form onSubmit={handleSubmit} className="mt-3 flex gap-2 flex-wrap" aria-label="Subscribe to newsletter">
           <label htmlFor="subscribe-email" className="sr-only">Email address</label>
           <input
             id="subscribe-email"
@@ -33,10 +33,10 @@ export default function SubscribeCard({ onSubscribe }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Your email address"
-            className="flex-1 bg-transparent outline-none text-white placeholder-white/60 px-4 py-2 rounded-lg border border-white/10"
+            className="flex-1 min-w-0 bg-transparent outline-none text-white placeholder-white/60 px-4 py-2 rounded-lg border border-white/10"
             aria-required="true"
           />
-          <button aria-label="Subscribe" type="submit" className="bg-white text-[var(--brand-700)] px-4 py-2 rounded-lg font-semibold hover:opacity-95">
+          <button aria-label="Subscribe" type="submit" className="bg-white text-[var(--brand-700)] px-4 py-2 rounded-lg font-semibold hover:opacity-95 shrink-0">
             {status || <FaArrowRight />}
           </button>
         </form>

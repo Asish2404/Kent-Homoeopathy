@@ -165,9 +165,9 @@ const Footer = () => {
             Contact Us
           </h3>
           <div className="space-y-4 text-sm text-neutral-400">
-            <div className="flex gap-3 items-start">
+<div className="flex gap-3 items-start">
               <FaMapMarkerAlt className="text-[var(--brand-400)] mt-1 shrink-0" />
-              <p>1st Floor,9, Barasat Rd,Above HDFC Bank,Burmah Shell Colony,Sodepur,Kolkata,West Bengal 700110</p>
+              <p className="min-w-0 break-words">1st Floor,9, Barasat Rd,Above HDFC Bank,Burmah Shell Colony,Sodepur,Kolkata,West Bengal 700110</p>
             </div>
 
             <div className="flex gap-3 items-center">

@@ -35,7 +35,7 @@ const SlideCard = React.memo(({ slide }) => {
   };
 
   return (
-    <div className="relative w-full h-[78vh] md:h-[90vh] shrink-0 bg-white">
+<div className="relative w-full h-[72vh] min-h-[460px] md:h-[90vh] shrink-0 bg-white">
       {/* Background Image */}
       <img
         src={imgSrc}

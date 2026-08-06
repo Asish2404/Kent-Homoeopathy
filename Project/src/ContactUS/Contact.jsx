@@ -265,10 +265,10 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* ============== CONTACT INFO CARDS ============== */}
-      <section className="relative -mt-8 md:-mt-12 z-10 px-4 hidden md:block">
+{/* ============== CONTACT INFO CARDS ============== */}
+      <section className="relative mt-8 md:mt-0 md:-mt-12 z-10 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             {contactCards.map((c, i) => {
               const Inner = (
                 <div
@@ -279,11 +279,14 @@ const Contact = () => {
                               hover:shadow-2xl card-lift h-full`}
                 >
                   <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/10" />
-                  <div
+<div
                     className="relative w-12 h-12 rounded-xl bg-white/15 backdrop-blur
                                flex items-center justify-center text-xl mb-4"
-                  >
-                    {c.icon}
+>
+                    {(() => {
+                      const IconComp = c.icon;
+                      return <IconComp />;
+                    })()}
                   </div>
                   <p className="text-xs font-semibold tracking-widest opacity-80 uppercase">
                     {c.title}

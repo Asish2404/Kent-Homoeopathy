@@ -145,3 +145,16 @@
         padding-right: 1rem
     }
 }
+
+/* ==============================
+   Mobile Slide-in Drawer
+   ============================== */
+.mobile-drawer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(82vw, 320px);
+    max-width: 320px;
+    z-index: 10;
+}
