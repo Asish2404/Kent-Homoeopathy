@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from "react";
 import {
   FaLeaf,
   FaUserMd,
@@ -13,13 +14,116 @@ import ProductSlider from "../components/ProductSlider";
 import Statistics from "../components/Statistics";
 import slides from "../data/Slides";
 import { useNavigate } from "react-router-dom";
-import {
-  featuredProducts,
-  allCategories,
-} from "../data/products";
+import api from "../services/api";
 
 const Home = () => {
   const navigate = useNavigate();
+
+// Dynamic homepage product sections + automatic discount collections.
+  const [sections, setSections] = useState({
+    featured: [],
+    new_arrivals: [],
+    trending: [],
+    best_sellers: [],
+    top_picks: [],
+    off20: [],
+    off30: [],
+    off50: [],
+    off70: [],
+  });
+
+  // Convert a backend product to the ProductCard shape expected by the UI.
+  const toCard = (p) => {
+    const mrp = Number(p.mrp_price || p.mrp || 0);
+    const price = Number(p.discount_price || p.price || p.selling_price || 0);
+    const firstVariant = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants[0] : null;
+    const vMrp = Number(firstVariant?.mrp_price || mrp);
+    const vPrice = Number(firstVariant?.selling_price || firstVariant?.discount_price || price);
+    const discountPct = vMrp > 0 && vPrice > 0 ? Math.round((1 - vPrice / vMrp) * 100) : 0;
+    return {
+      id: p._id,
+      _id: p._id,
+      name: p.product_name,
+      price: vPrice || price,
+      oldPrice: vMrp || mrp,
+      rating: Number(p.rating || firstVariant?.rating || 0),
+      reviews: Number(p.review_count || firstVariant?.review_count || 0),
+      image: p.product_image,
+      discount: discountPct > 0 ? `-${discountPct}%` : undefined,
+      badge: p.best_seller
+        ? "Bestseller"
+        : p.new_arrival
+          ? "New"
+          : p.featured
+            ? "Featured"
+            : p.top_pick
+              ? "Top Pick"
+              : undefined,
+      categoryTitle: p.category?.category_name || p.category || "Products",
+      brand: p.brand,
+      isInStock: Number(p.stock || 0) > 0,
+      stock: Number(p.stock || 0),
+      isKentProduct: Boolean(p.isKentProduct),
+      variants: p.variants || [],
+    };
+  };
+
+  const fetchSection = async (section) => {
+    try {
+      const res = await api.get("/products", { params: { section, limit: 12 } });
+      return (res.data?.products || []).map(toCard);
+    } catch {
+      return [];
+    }
+  };
+
+  const fetchDiscount = async (discount) => {
+    try {
+      const res = await api.get("/products", { params: { discount, limit: 12 } });
+      return (res.data?.products || []).map(toCard);
+    } catch {
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [featured, new_arrivals, trending, best_sellers, top_picks, off20, off30, off50, off70] =
+        await Promise.all([
+          fetchSection("featured"),
+          fetchSection("new_arrivals"),
+          fetchSection("trending"),
+          fetchSection("best_sellers"),
+          fetchSection("top_picks"),
+          fetchDiscount("20"),
+          fetchDiscount("30"),
+          fetchDiscount("50"),
+          fetchDiscount("70"),
+        ]);
+if (!cancelled) {
+        setSections({ featured, new_arrivals, trending, best_sellers, top_picks, off20, off30, off50, off70 });
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const featuredProducts = sections.featured;
+  const discountSections = useMemo(
+    () => [
+      { key: "off20", title: "20% OFF", subtitle: "Everyday savings", products: sections.off20 },
+      { key: "off30", title: "30% OFF", subtitle: "Popular picks at a steal", products: sections.off30 },
+      { key: "off50", title: "50% OFF", subtitle: "Big savings, genuine remedies", products: sections.off50 },
+      { key: "off70", title: "70% OFF", subtitle: "Unmissable deals", products: sections.off70 },
+    ].filter((s) => Array.isArray(s.products) && s.products.length > 0),
+    [sections]
+  );
+
+  const trendingSection = sections.trending;
+  const newArrivalsSection = sections.new_arrivals;
+  const bestSellersSection = sections.best_sellers;
+  const topPicksSection = sections.top_picks;
 
   const services = [
     {
@@ -170,18 +274,66 @@ const Home = () => {
         />
       </section>
 
-      {/* Statistics */}
+{/* Statistics */}
       <Statistics />
 
-      {/* Category product sections (reusable sliders) */}
-      {allCategories.map((cat, idx) => (
+      {/* New Arrivals */}
+      {newArrivalsSection.length > 0 && (
         <ProductSlider
-          key={cat.id}
-          title={cat.title}
-          subtitle={cat.subtitle}
-          products={cat.products}
-          onViewAll={() => navigate(`/Products?category=${cat.id}`)}
-          viewAllLabel={`View All ${cat.title}`}
+          title="New Arrivals"
+          subtitle="Fresh from the clinic"
+          products={newArrivalsSection}
+          onViewAll={() => navigate("/Products")}
+          viewAllLabel="View All New Arrivals"
+          bgClass="bg-white"
+        />
+      )}
+
+      {/* Trending Products */}
+      {trendingSection.length > 0 && (
+        <ProductSlider
+          title="Trending Now"
+          subtitle="Most loved this week"
+          products={trendingSection}
+          onViewAll={() => navigate("/Products")}
+          viewAllLabel="View All Trending"
+          bgClass="section-soft"
+        />
+      )}
+
+      {/* Best Sellers */}
+      {bestSellersSection.length > 0 && (
+        <ProductSlider
+          title="Best Sellers"
+          subtitle="Customer favourites"
+          products={bestSellersSection}
+          onViewAll={() => navigate("/Products")}
+          viewAllLabel="View All Best Sellers"
+          bgClass="bg-white"
+        />
+      )}
+
+      {/* Top Picks of the Day */}
+      {topPicksSection.length > 0 && (
+        <ProductSlider
+          title="Top Picks of the Day"
+          subtitle="Handpicked daily"
+          products={topPicksSection}
+          onViewAll={() => navigate("/Products")}
+          viewAllLabel="View All Top Picks"
+          bgClass="section-soft"
+        />
+      )}
+
+      {/* Automatic Discount Collections */}
+      {discountSections.map((sec, idx) => (
+        <ProductSlider
+          key={sec.key}
+          title={`${sec.title} OFF`}
+          subtitle={sec.subtitle}
+          products={sec.products}
+          onViewAll={() => navigate(`/Products?discount=${sec.key.replace("off", "")}`)}
+          viewAllLabel={`View All ${sec.title} OFF`}
           bgClass={idx % 2 === 0 ? "bg-white" : "section-soft"}
         />
       ))}

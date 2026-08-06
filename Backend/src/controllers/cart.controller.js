@@ -8,7 +8,48 @@ import {
     calculateGrandTotal,
 } from "../utils/cart.utils.js";
 
-// Add product to cart
+// Resolve the selected variant from the request body and product.
+// Returns null when the product has no variants (backward compatible) or
+// when using the top-level product price.
+const resolveSelectedVariant = (product, body) => {
+    const variants = Array.isArray(product?.variants) ? product.variants : [];
+
+    // Variant index provided directly
+    let idx = Number(body?.variant_index);
+    if (Number.isInteger(idx) && idx >= 0 && idx < variants.length) {
+        return { variant: variants[idx], index: idx };
+    }
+
+    // Variant _id provided
+    const variantId = body?.variant_id;
+    if (variantId) {
+        const foundIdx = variants.findIndex(
+            (v) => String(v?._id) === String(variantId)
+        );
+        if (foundIdx > -1) {
+            return { variant: variants[foundIdx], index: foundIdx };
+        }
+    }
+
+    // Match by size and/or potency
+    const size = body?.selected_size;
+    const potency = body?.selected_potency;
+    if (size || potency) {
+        const foundIdx = variants.findIndex(
+            (v) =>
+                (!size || String(v?.size || "") === String(size)) &&
+                (!potency || String(v?.potency || "") === String(potency))
+        );
+        if (foundIdx > -1) {
+            return { variant: variants[foundIdx], index: foundIdx };
+        }
+    }
+
+    // No variant match -> no variant selected
+    return null;
+};
+
+// Add product to cart (variant-aware)
 export const addToCart = async (req, res) => {
     try {
         const { productId, quantity } = req.body;
@@ -30,6 +71,17 @@ export const addToCart = async (req, res) => {
             });
         }
 
+        const selected = resolveSelectedVariant(product, req.body);
+        const variant = selected?.variant || null;
+
+        // Determine price: use variant selling_price when selected, else product price
+        const variantSellingPrice = variant
+            ? Number(variant.selling_price) || 0
+            : 0;
+        const variantMrp = variant ? Number(variant.mrp_price) || 0 : 0;
+        const sellingPrice = variantSellingPrice || Number(product.discount_price) || Number(product.price) || 0;
+        const mrpPrice = variantMrp || Number(product.mrp_price) || 0;
+
         let cart = await Cart.findOne({ user: userId });
         if (!cart) {
             cart = new Cart({
@@ -38,16 +90,33 @@ export const addToCart = async (req, res) => {
             });
         }
 
+        // Match same product + same variant (by variant_index) so the same
+        // variant increments quantity instead of creating a duplicate line.
         const itemIndex = cart.items.findIndex(
-            (item) => item.product.toString() === productId
+            (item) =>
+                item.product.toString() === productId &&
+                (selected
+                    ? Number(item.variant_index) === selected.index
+                    : !item.variant_index && item.variant_index !== 0)
         );
 
         if (itemIndex > -1) {
             cart.items[itemIndex].quantity += qty;
+            // refresh variant details & price
+            cart.items[itemIndex].selected_size = variant?.size || cart.items[itemIndex].selected_size || "";
+            cart.items[itemIndex].selected_potency = variant?.potency || "";
+            cart.items[itemIndex].selling_price = sellingPrice;
+            cart.items[itemIndex].mrp_price = mrpPrice;
         } else {
             cart.items.push({
                 product: productId,
                 quantity: qty,
+                variant_id: variant?._id ? String(variant._id) : "",
+                variant_index: selected ? selected.index : null,
+                selected_size: variant?.size || "",
+                selected_potency: variant?.potency || "",
+                selling_price: sellingPrice,
+                mrp_price: mrpPrice,
             });
         }
 
@@ -104,11 +173,11 @@ export const getCart = async (req, res) => {
     }
 };
 
-// Update cart quantity
+// Update cart quantity (variant-aware)
 export const updateCartQuantity = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { productId, quantity } = req.body;
+        const { productId, quantity, variant_index } = req.body;
 
         const qty = Number(quantity);
         if (!productId) {
@@ -133,8 +202,13 @@ export const updateCartQuantity = async (req, res) => {
             });
         }
 
+        const hasVariant = variant_index !== undefined && variant_index !== null;
         const itemIndex = cart.items.findIndex(
-            (item) => item.product.toString() === productId
+            (item) =>
+                item.product.toString() === productId &&
+                (hasVariant
+                    ? Number(item.variant_index) === Number(variant_index)
+                    : !item.variant_index && item.variant_index !== 0)
         );
 
         if (itemIndex === -1) {

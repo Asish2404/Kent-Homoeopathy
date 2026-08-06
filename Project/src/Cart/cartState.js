@@ -23,6 +23,19 @@ const clampQty = (item, qty) => {
   return Math.max(1, Math.min(stock, Number(qty) || 1));
 };
 
+// Unique line key: same product + same variant merge; different variants of
+// the same product stay as separate cart lines.
+const keyOf = (it) => {
+  const vi =
+    it && it.variant_index !== undefined && it.variant_index !== null
+      ? it.variant_index
+      : "";
+  return `${it && it.id}::${vi}`;
+};
+
+const variantIndexOf = (variant_index) =>
+  variant_index !== undefined && variant_index !== null ? variant_index : "";
+
 export function useCartState() {
   const [items, setItems] = useState(() => {
     return readList(STORAGE_KEY);
@@ -66,7 +79,7 @@ export function useCartState() {
     if (!n) return;
 
     setItems((prev) => {
-      const idx = prev.findIndex((x) => x.id === n.id);
+      const idx = prev.findIndex((x) => keyOf(x) === keyOf(n));
       if (idx === -1) {
         return [...prev, { ...n, qty: clampQty(n, qty) }];
       }
@@ -80,20 +93,22 @@ export function useCartState() {
       );
     });
 
-    setSavedItems((prev) => prev.filter((x) => x.id !== n.id));
+    setSavedItems((prev) => prev.filter((x) => keyOf(x) !== keyOf(n)));
   };
 
-  const removeFromCart = (id) => {
+  const removeFromCart = (id, variant_index) => {
     const sid = String(id);
-    setItems((prev) => prev.filter((x) => x.id !== sid));
+    const vi = variantIndexOf(variant_index);
+    setItems((prev) => prev.filter((x) => `${String(x.id)}::${variantIndexOf(x.variant_index)}` !== `${sid}::${vi}`));
   };
 
-  const setQty = (id, qty) => {
+  const setQty = (id, qty, variant_index) => {
     const sid = String(id);
+    const vi = variantIndexOf(variant_index);
     setItems((prev) =>
       prev
         .map((x) =>
-          x.id === sid
+          `${String(x.id)}::${variantIndexOf(x.variant_index)}` === `${sid}::${vi}`
             ? { ...x, qty: clampQty(x, qty) }
             : x
         )
@@ -104,23 +119,25 @@ export function useCartState() {
   const addToSaved = (product) => {
     const n = normalizeCartItem(product);
     if (!n) return;
-    setItems((prev) => prev.filter((x) => x.id !== n.id));
+    setItems((prev) => prev.filter((x) => keyOf(x) !== keyOf(n)));
     setSavedItems((prev) => {
-      if (prev.some((x) => x.id === n.id)) return prev;
+      if (prev.some((x) => keyOf(x) === keyOf(n))) return prev;
       return [...prev, n];
     });
   };
 
-  const removeFromSaved = (id) => {
+  const removeFromSaved = (id, variant_index) => {
     const sid = String(id);
-    setSavedItems((prev) => prev.filter((x) => x.id !== sid));
+    const vi = variantIndexOf(variant_index);
+    setSavedItems((prev) => prev.filter((x) => `${String(x.id)}::${variantIndexOf(x.variant_index)}` !== `${sid}::${vi}`));
   };
 
-  const moveSavedToCart = (id) => {
+  const moveSavedToCart = (id, variant_index) => {
     const sid = String(id);
-    const item = savedItems.find((x) => x.id === sid);
+    const vi = variantIndexOf(variant_index);
+    const item = savedItems.find((x) => `${String(x.id)}::${variantIndexOf(x.variant_index)}` === `${sid}::${vi}`);
     if (!item) return;
-    removeFromSaved(sid);
+    removeFromSaved(sid, variant_index);
     addToCart(item, item.qty || 1);
   };
 
@@ -172,4 +189,3 @@ export function useCartState() {
     isWishlisted,
   };
 }
-

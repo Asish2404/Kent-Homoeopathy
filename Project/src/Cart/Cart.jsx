@@ -112,19 +112,24 @@ export default function Cart() {
   const grand = sub - couponSave + delivery + platform;
   const totalSave = discTotal + couponSave + (deliveryBase === 0 ? 49 : 0) + (cartHasKentProduct ? 50 : 0);
 
-  const empty = active.length === 0;
+const empty = active.length === 0;
 
-  const updateQty = (id, delta) => {
-    const item = items.find((x) => String(x.id) === String(id));
+  // Unique line key: same product + same variant merge; different variants of
+  // the same product stay as separate cart lines.
+  const lineKey = (it) =>
+    `${String(it.id)}::${it.variant_index !== undefined && it.variant_index !== null ? it.variant_index : ""}`;
+
+  const updateQty = (entry, delta) => {
+    const item = items.find((x) => lineKey(x) === lineKey(entry));
     if (!item) return;
     const current = Number(item.qty || 1);
     const maxQty = Math.max(1, Number(item.stock || 15));
     const next = Math.max(1, Math.min(maxQty, current + delta));
-    cart.setQty(String(id), next);
+    cart.setQty(String(item.id), next, item.variant_index);
   };
 
-  const removeItem = (id) => {
-    cart.removeFromCart(String(id));
+  const removeItem = (entry) => {
+    cart.removeFromCart(String(entry.id), entry.variant_index);
   };
 
   const applyCoupon = () => {
@@ -302,9 +307,9 @@ export default function Cart() {
                     {loading ? (
                       [1, 2, 3].map((n) => <Skeleton key={n} />)
                     ) : (
-                      inStock.map((item) => (
+inStock.map((item) => (
                         <div
-                          key={item.id}
+                          key={lineKey(item)}
                           className="bg-white rounded-2xl border border-slate-200 overflow-hidden card fin shadow-sm"
                         >
                           {Number(item.discount) >= 15 && (
@@ -340,8 +345,8 @@ export default function Cart() {
                                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">{item.composition}</p>
                                   <p className="text-[11px] text-slate-400 mt-0.5">{item.packInfo}</p>
                                 </div>
-                                <button
-                                  onClick={() => removeItem(item.id)}
+<button
+                                  onClick={() => removeItem(item)}
                                   className="flex-shrink-0 p-2 rounded-xl text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all"
                                   aria-label="Remove"
                                 >
@@ -372,10 +377,10 @@ export default function Cart() {
                                   </p>
                                 </div>
 
-                                <QtyBox
+<QtyBox
                                   qty={Number(item.qty || 1)}
-                                  onInc={() => updateQty(item.id, 1)}
-                                  onDec={() => updateQty(item.id, -1)}
+                                  onInc={() => updateQty(item, 1)}
+                                  onDec={() => updateQty(item, -1)}
                                 />
                               </div>
 
@@ -421,8 +426,8 @@ export default function Cart() {
                     </svg>
                     Not deliverable to this pincode
                   </p>
-                  {outStock.map((item) => (
-                    <div key={item.id} className="bg-white rounded-2xl border border-slate-200 p-5 opacity-55 shadow-sm">
+{outStock.map((item) => (
+                    <div key={lineKey(item)} className="bg-white rounded-2xl border border-slate-200 p-5 opacity-55 shadow-sm">
                       <div className="flex gap-4 items-center">
                         <div className="w-20 h-20 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                           <img src={item.image} alt={item.name} className="w-16 h-16 object-contain grayscale opacity-60" loading="lazy" />
@@ -433,7 +438,7 @@ export default function Cart() {
                           <p className="text-xs text-slate-400">{item.composition}</p>
                           <div className="flex items-center gap-3 mt-2">
                             <span className="text-[11px] font-bold text-red-500 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">Out of Stock</span>
-                            <button onClick={() => removeItem(item.id)} className="text-[11px] text-slate-400 hover:text-red-500 font-semibold transition-colors">
+<button onClick={() => removeItem(item)} className="text-[11px] text-slate-400 hover:text-red-500 font-semibold transition-colors">
                               Remove
                             </button>
                           </div>

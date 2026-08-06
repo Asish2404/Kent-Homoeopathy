@@ -10,6 +10,12 @@ const orderItemSchema = new mongoose.Schema(
         discountPrice: { type: Number },
         unitPrice: { type: Number },
         subtotal: { type: Number },
+        // ===== Variant-based order support =====
+        variant_id: { type: String, default: "" },
+        variant_index: { type: Number, default: null },
+        selected_size: { type: String, default: "" },
+        selected_potency: { type: String, default: "" },
+        selling_price: { type: Number, default: 0 },
     },
     { _id: false }
 );

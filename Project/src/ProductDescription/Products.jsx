@@ -339,8 +339,9 @@ const next = [product, ...existing.filter((p) => p._id !== product._id)].slice(0
     );
   }, [product, displaySelectedPotency]);
 
-  const activePrice = Number(
-    selectedVariant?.discount_price ??
+const activePrice = Number(
+    selectedVariant?.selling_price ??
+      selectedVariant?.discount_price ??
       selectedPotencyObj?.discount_price ??
       product?.currentPrice ??
       0
@@ -371,8 +372,11 @@ const next = [product, ...existing.filter((p) => p._id !== product._id)].slice(0
       ? Math.round(((activeMrp - activePrice) / activeMrp) * 100)
       : product?.discount || 0;
 
-  const addCurrentToCart = () => {
+const addCurrentToCart = () => {
     if (!product) return;
+    const variant =
+      selectedVariant ||
+      (selectedPotencyObj ? { ...selectedPotencyObj, size: displaySelectedSize, potency: displaySelectedPotency } : null);
     cart.addToCart(
       {
         id: product.id,
@@ -385,6 +389,14 @@ const next = [product, ...existing.filter((p) => p._id !== product._id)].slice(0
         stock: activeStock || product.stock,
         packInfo: selectedPackInfo,
         sku: activeSku,
+        // ===== Variant data stored in the cart =====
+        variant_id: variant?._id ? String(variant._id) : "",
+        variant_index: selectedVariant ? product.variants.findIndex((v) => String(v?._id) === String(selectedVariant._id)) : null,
+        selected_size: variant?.size || displaySelectedSize,
+        selected_potency: variant?.potency || displaySelectedPotency,
+        selling_price: activePrice,
+        mrp_price: activeMrp,
+        min_order_qty: variant?.min_order_qty || 1,
       },
       quantity
     );

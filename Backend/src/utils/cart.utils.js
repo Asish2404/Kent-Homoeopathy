@@ -3,7 +3,13 @@ export const calculateSubtotal = (items) => {
 
     return items.reduce((sum, item) => {
         const quantity = Number(item.quantity) || 0;
-        const price = Number(item.product?.price ?? item.product?.discount_price) || 0;
+        // Prefer variant selling price when present, otherwise fall back to
+        // product-level discount_price / price (backward compatible).
+        const price = Number(
+            item.selling_price ??
+                item.product?.price ??
+                item.product?.discount_price
+        ) || 0;
         return sum + quantity * price;
     }, 0);
 };

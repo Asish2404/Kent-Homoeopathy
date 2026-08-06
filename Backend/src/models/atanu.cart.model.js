@@ -12,6 +12,14 @@ const cartItemSchema = new mongoose.Schema({
         default: 1,
         min: 1,
     },
+
+    // ===== Variant-based cart support =====
+    variant_id: { type: String, default: "" },        // variant _id (string)
+    variant_index: { type: Number, default: null },    // index into product.variants
+    selected_size: { type: String, default: "" },      // Size / Pack Size
+    selected_potency: { type: String, default: "" },   // Potency
+    selling_price: { type: Number, default: 0 },       // Selling price of selected variant
+    mrp_price: { type: Number, default: 0 },           // MRP of selected variant
 });
 
 const cartSchema = new mongoose.Schema(

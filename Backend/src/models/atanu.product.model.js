@@ -1,19 +1,29 @@
 import mongoose from "mongoose";
 
+/**
+ * Simplified product variant schema.
+ *
+ * Each variant holds its own pricing, discount, stock, potency and size.
+ * The selling_price is ALWAYS auto-calculated from mrp_price and
+ * discount_percent (selling = mrp - (mrp * discount% / 100)) and is never
+ * edited manually by the administrator.
+ */
 const variantSchema = new mongoose.Schema(
     {
-        size: { type: String, required: true },
-        unit: { type: String, default: "ml" },
-        net_quantity: { type: String, default: "" },
-        mrp_price: { type: Number, required: true },
-        discount_price: { type: Number, required: true },
+        size: { type: String, default: "" },              // Size / Pack Size
+        potency: { type: String, default: "" },           // Potency (e.g. 30C)
+        mrp_price: { type: Number, default: 0 },          // MRP
+        discount_percent: { type: Number, default: 0 },   // Discount %
+        selling_price: { type: Number, default: 0 },      // AUTO-CALCULATED
+        min_order_qty: { type: Number, default: 1 },      // Min qty per order
         stock: { type: Number, default: 0 },
-        sku: { type: String, default: "" },
-        barcode: { type: String, default: "" },
-        weight: { type: String, default: "" },
-        status: { type: String, default: "active" },
+        expiry_date: { type: String, default: "" },
+        rating: { type: Number, default: 0, min: 0, max: 5 },
+        review_count: { type: Number, default: 0, min: 0 },
+        out_of_stock: { type: Boolean, default: false },
+        not_available: { type: Boolean, default: false },
     },
-    { _id: false }
+    { _id: true }
 );
 
 const potencySchema = new mongoose.Schema(
@@ -67,7 +77,7 @@ const productSchema = new mongoose.Schema(
         country_of_origin: { type: String },
         shelf_life: { type: String },
         suitable_age_group: { type: String },
-prescription_required: { type: Boolean, default: false },
+        prescription_required: { type: Boolean, default: false },
         potency: { type: String },
         faq: [faqSchema],
 
@@ -127,6 +137,7 @@ prescription_required: { type: Boolean, default: false },
         trending: { type: Boolean, default: false },
         recommended: { type: Boolean, default: false },
         new_arrival: { type: Boolean, default: false },
+        top_pick: { type: Boolean, default: false },
         home_page: { type: Boolean, default: false },
         hide_product: { type: Boolean, default: false },
         draft: { type: Boolean, default: false },

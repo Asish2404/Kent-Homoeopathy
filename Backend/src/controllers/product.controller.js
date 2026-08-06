@@ -1,10 +1,80 @@
 import { Product } from "../models/atanu.product.model.js";
 
+/**
+ * Normalize an incoming variants array: compute selling_price for every
+ * variant and provide sensible defaults for all supported fields.
+ */
+const normalizeVariants = (variants) => {
+    if (!Array.isArray(variants)) return variants;
+    return variants
+        .filter((v) => v && (v.size || v.potency))
+        .map((v) => {
+            const mrp = Number(v?.mrp_price) || 0;
+            const discount = Math.max(0, Math.min(100, Number(v?.discount_percent) || 0));
+            return {
+                size: v?.size || "",
+                potency: v?.potency || "",
+                mrp_price: mrp,
+                discount_percent: discount,
+                selling_price: Math.max(0, mrp - (mrp * discount) / 100),
+                min_order_qty: Math.max(1, Number(v?.min_order_qty) || 1),
+                stock: Number(v?.stock) || 0,
+                expiry_date: v?.expiry_date || "",
+                rating: Number(v?.rating) || 0,
+                review_count: Number(v?.review_count) || 0,
+                out_of_stock: Boolean(v?.out_of_stock),
+                not_available: Boolean(v?.not_available),
+            };
+        });
+};
+
 
 export const getAllProducts = async (req, res) => {
     try {
+        const { section, discount, category, limit } = req.query;
+        const filter = {};
 
-        const products = await Product.find().populate("category");
+        // Homepage section flags (Featured, New Arrivals, Trending, Best Sellers, Top Picks)
+        if (section && typeof section === "string") {
+            const flags = {
+                featured: "featured",
+                new_arrivals: "new_arrival",
+                trending: "trending",
+                best_sellers: "best_seller",
+                top_picks: "top_pick",
+            };
+            const field = flags[section];
+            if (field) filter[field] = true;
+        }
+
+// Automatic discount collections (20% OFF, 30% OFF, 50% OFF, 70% OFF).
+        // A product automatically belongs to a discount bucket when any of its
+        // variants carries a discount_percent within that bucket (25–35% for
+        // the 30% OFF section, etc.). No manual assignment is required.
+        if (discount && typeof discount === "string") {
+            const pct = Number(discount.replace(/[^0-9.]/g, "")) || 0;
+            const target = { 20: 20, 30: 30, 50: 50, 70: 70 }[pct];
+            if (target) {
+                filter["variants.discount_percent"] = {
+                    $gte: target - 5,
+                    $lte: target + 5,
+                };
+            }
+        }
+
+        // Category slug / id filter
+        if (category) {
+            filter.category = category;
+        }
+
+        let query = Product.find(filter).populate("category");
+
+        if (limit) {
+            const lim = Number(limit);
+            if (Number.isFinite(lim) && lim > 0) query = query.limit(lim);
+        }
+
+        const products = await query;
 
         res.status(200).json({
             success: true,
@@ -124,11 +194,12 @@ prescription_required,
             slug,
             canonical_url,
             og_image,
-            featured,
+featured,
             best_seller,
             trending,
             recommended,
             new_arrival,
+            top_pick,
             home_page,
             hide_product,
             draft,
@@ -168,8 +239,8 @@ prescription_required,
             isKentProduct: isKentProduct || false,
         };
 
-        // Only add optional fields if they are provided
-        if (variants !== undefined) productData.variants = variants;
+// Only add optional fields if they are provided
+        if (variants !== undefined) productData.variants = normalizeVariants(variants);
         if (benefits !== undefined) productData.benefits = benefits;
         if (ingredients !== undefined) productData.ingredients = ingredients;
         if (usage !== undefined) productData.usage = usage;
@@ -228,8 +299,9 @@ if (potency !== undefined) productData.potency = potency;
         if (featured !== undefined) productData.featured = featured;
         if (best_seller !== undefined) productData.best_seller = best_seller;
         if (trending !== undefined) productData.trending = trending;
-        if (recommended !== undefined) productData.recommended = recommended;
+if (recommended !== undefined) productData.recommended = recommended;
         if (new_arrival !== undefined) productData.new_arrival = new_arrival;
+        if (top_pick !== undefined) productData.top_pick = top_pick;
         if (home_page !== undefined) productData.home_page = home_page;
         if (hide_product !== undefined) productData.hide_product = hide_product;
         if (draft !== undefined) productData.draft = draft;
@@ -258,9 +330,15 @@ export const updateProduct = async (req, res) => {
 
         const { id } = req.params;
 
+        const updateData = { ...req.body };
+        // Auto-calculate selling prices whenever variants are updated
+        if (updateData.variants !== undefined) {
+            updateData.variants = normalizeVariants(updateData.variants);
+        }
+
         const updatedProduct = await Product.findByIdAndUpdate(
             id,
-            req.body,
+            updateData,
             {
                 new: true,
                 runValidators: true

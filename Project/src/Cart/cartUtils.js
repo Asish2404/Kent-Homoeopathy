@@ -14,11 +14,11 @@ export function normalizeCartItem(item) {
 
   const stock = readNumber(item.stock ?? item.maxQty ?? item.availableStock ?? item.inventory, 15);
 
-  return {
+return {
     id: String(id),
     name: item.name ?? "",
     image: item.image ?? item.productImage ?? "",
-    price: readNumber(item.price ?? item.currentPrice ?? 0),
+    price: readNumber(item.price ?? item.selling_price ?? item.currentPrice ?? 0),
     mrp: readNumber(
       item.mrp ??
         item.oldPrice ??
@@ -34,6 +34,14 @@ export function normalizeCartItem(item) {
     stock,
     packInfo: item.packInfo ?? item.variantLabel ?? "",
     isKentProduct: Boolean(item.isKentProduct),
+    // ===== Variant support =====
+    variant_id: item.variant_id ?? "",
+    variant_index: item.variant_index !== undefined && item.variant_index !== null ? Number(item.variant_index) : null,
+    selected_size: item.selected_size ?? "",
+    selected_potency: item.selected_potency ?? "",
+    selling_price: readNumber(item.selling_price ?? item.price ?? 0),
+    mrp_price: readNumber(item.mrp_price ?? item.mrp ?? 0),
+    min_order_qty: Math.max(1, readNumber(item.min_order_qty, 1)),
   };
 }
 

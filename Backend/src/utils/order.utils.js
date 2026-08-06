@@ -59,14 +59,40 @@ export const isProductInactive = (product) => {
 };
 
 export const buildOrderItems = (cartItems) => {
-    return cartItems.map((item) => ({
-        productId: item.product._id,
-        quantity: Number(item.quantity) || 0,
-        productName: item.product.product_name,
-        productImage: item.product.product_image,
-        mrpPrice: item.product.mrp_price,
-        discountPrice: item.product.discount_price,
-    }));
+    return cartItems.map((item) => {
+        const variantIndex = item.variant_index !== undefined && item.variant_index !== null
+            ? Number(item.variant_index)
+            : null;
+        const variant = 
+            variantIndex !== null &&
+            Array.isArray(item.product?.variants) &&
+            item.product.variants[variantIndex]
+                ? item.product.variants[variantIndex]
+                : null;
+
+        const mrpPrice = variant
+            ? Number(variant.mrp_price)
+            : Number(item.product.mrp_price);
+        const sellingPrice =
+            (variant ? Number(variant.selling_price) : 0) ||
+            Number(item.selling_price) ||
+            Number(item.product.discount_price);
+
+        return {
+            productId: item.product._id,
+            quantity: Number(item.quantity) || 0,
+            productName: item.product.product_name,
+            productImage: item.product.product_image,
+            mrpPrice,
+            discountPrice: sellingPrice,
+            unitPrice: sellingPrice,
+            variant_id: variant?._id ? String(variant._id) : item.variant_id || "",
+            variant_index: variantIndex,
+            selected_size: variant?.size || item.selected_size || "",
+            selected_potency: variant?.potency || item.selected_potency || "",
+            selling_price: sellingPrice,
+        };
+    });
 };
 
 export const updateProductStock = async (cartItems) => {
@@ -87,26 +113,56 @@ export const updateProductStock = async (cartItems) => {
             continue;
         }
 
-        const updatedProduct = await Product.findOneAndUpdate(
-            {
-                _id: productId,
-                stock: { $gte: quantity },
-            },
-            {
-                $inc: { stock: -quantity },
-            },
-            {
-                new: true,
-            }
-        );
+const variantIndex =
+            item.variant_index !== undefined && item.variant_index !== null
+                ? Number(item.variant_index)
+                : null;
+
+        let updatedProduct;
+
+        if (variantIndex !== null) {
+            // Deduct stock from the specific variant using an atomic update.
+            updatedProduct = await Product.findOneAndUpdate(
+                {
+                    _id: productId,
+                    [`variants.${variantIndex}.stock`]: { $gte: quantity },
+                },
+                {
+                    $inc: { [`variants.${variantIndex}.stock`]: -quantity },
+                },
+                {
+                    new: true,
+                }
+            );
+        } else {
+            updatedProduct = await Product.findOneAndUpdate(
+                {
+                    _id: productId,
+                    stock: { $gte: quantity },
+                },
+                {
+                    $inc: { stock: -quantity },
+                },
+                {
+                    new: true,
+                }
+            );
+        }
 
         if (!updatedProduct) {
             for (const appliedItem of stockAdjustments.reverse()) {
                 if (appliedItem.skipped) continue;
-                await Product.updateOne(
-                    { _id: appliedItem.productId },
-                    { $inc: { stock: appliedItem.quantity } }
-                );
+                if (appliedItem.variantIndex !== null) {
+                    await Product.updateOne(
+                        { _id: appliedItem.productId },
+                        { $inc: { [`variants.${appliedItem.variantIndex}.stock`]: appliedItem.quantity } }
+                    );
+                } else {
+                    await Product.updateOne(
+                        { _id: appliedItem.productId },
+                        { $inc: { stock: appliedItem.quantity } }
+                    );
+                }
             }
 
             return {
@@ -118,6 +174,7 @@ export const updateProductStock = async (cartItems) => {
         stockAdjustments.push({
             productId,
             quantity,
+            variantIndex,
             skipped: false,
         });
     }
