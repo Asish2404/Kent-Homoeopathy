@@ -3,7 +3,7 @@ import { FaUserMd, FaStethoscope, FaCheckCircle } from "react-icons/fa";
 import { FiArrowRight, FiHeadphones, FiAward } from "react-icons/fi";
 import Carousel from "../components/Carousel";
 import HomeServiceStrip from "../components/HomeServiceStrip";
-import CategoryTile from "../components/CategoryTile";
+import PremiumCategoryCarousel from "../components/PremiumCategoryCarousel";
 import ConcernTile from "../components/ConcernTile";
 import BrandLogoStrip from "../components/BrandLogoStrip";
 import PromoBannerCarousel from "../components/PromoBannerCarousel";
@@ -158,37 +158,13 @@ const Home = () => {
       <Statistics />
 
       {/* Shop by Category */}
-      <section className="py-6">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-5">
-            <div className="min-w-0">
-              <span className="section-eyebrow">Browse</span>
-              <h2 className="section-title mt-2">
-                Shop by <span className="brand-gradient-text">Category</span>
-              </h2>
-            </div>
-            <button onClick={() => navigate("/Products")} className="btn-outline group self-start shrink-0 hidden sm:inline-flex">
-              View All
-              <FiArrowRight className="transition-transform group-hover:translate-x-1" />
-            </button>
-          </div>
-
+      <section className="py-4 sm:py-5">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-10">
           {homepageCategories.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-              {homepageCategories.map((c) => (
-                <CategoryTile key={c.id} category={c} />
-              ))}
-            </div>
+            <PremiumCategoryCarousel categories={homepageCategories} onViewAll={() => navigate("/Products")} />
           ) : (
             <div className="text-center py-8 text-neutral-400">Categories coming soon.</div>
           )}
-
-          <div className="flex justify-center mt-4 sm:hidden">
-            <button onClick={() => navigate("/Products")} className="btn-outline group">
-              View All
-              <FiArrowRight className="transition-transform group-hover:translate-x-1" />
-            </button>
-          </div>
         </div>
       </section>
 
