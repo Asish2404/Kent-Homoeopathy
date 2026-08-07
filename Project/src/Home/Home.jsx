@@ -160,21 +160,21 @@ const Home = () => {
       {/* Shop by Category */}
       <section className="py-6">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="flex items-end justify-between gap-6 mb-5">
-            <div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-5">
+            <div className="min-w-0">
               <span className="section-eyebrow">Browse</span>
               <h2 className="section-title mt-2">
                 Shop by <span className="brand-gradient-text">Category</span>
               </h2>
             </div>
-            <button onClick={() => navigate("/Products")} className="btn-outline group hidden sm:inline-flex">
+            <button onClick={() => navigate("/Products")} className="btn-outline group self-start shrink-0 hidden sm:inline-flex">
               View All
               <FiArrowRight className="transition-transform group-hover:translate-x-1" />
             </button>
           </div>
 
           {homepageCategories.length > 0 ? (
-            <div className="flex gap-3 overflow-x-auto scroll-smooth no-scrollbar pb-2">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 lg:grid-cols-3 xl:grid-cols-4">
               {homepageCategories.map((c) => (
                 <CategoryTile key={c.id} category={c} />
               ))}
