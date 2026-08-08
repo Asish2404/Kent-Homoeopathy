@@ -24,16 +24,24 @@ const variantSchema = new mongoose.Schema(
     { _id: true }
 );
 
+const specificationSchema = new mongoose.Schema(
+    {
+        label: { type: String, default: "" },
+        value: { type: String, default: "" },
+    },
+    { _id: false }
+);
+
 const productSchema = new mongoose.Schema(
     {
         product_name: { type: String, required: true },
         product_image: { type: String, required: true },
+        images: { type: [String], default: [] },
         brand: { type: String, required: true },
         short_description: { type: String, required: true },
         detailed_description: { type: String, required: true },
         category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
         medicine_type: { type: String, default: "" },
-        isKentProduct: { type: Boolean, default: false },
 
         mrp_price: { type: Number, default: 0 },
         discount_price: { type: Number, default: 0 },
@@ -45,8 +53,10 @@ const productSchema = new mongoose.Schema(
         trending: { type: Boolean, default: false },
         best_seller: { type: Boolean, default: false },
         top_pick: { type: Boolean, default: false },
-        hide_product: { type: Boolean, default: false },
-        draft: { type: Boolean, default: false },
+
+        averageRating: { type: Number, default: 0, min: 0, max: 5 },
+        totalReviews: { type: Number, default: 0, min: 0 },
+        specifications: { type: [specificationSchema], default: [] },
     },
     { timestamps: true }
 );

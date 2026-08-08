@@ -28,17 +28,35 @@ const normalizeVariants = (variants) => {
         });
 };
 
+const normalizeImages = (value) => {
+    if (!Array.isArray(value)) return value;
+    return value
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter(Boolean);
+};
+
+const normalizeSpecifications = (value) => {
+    if (!Array.isArray(value)) return value;
+    return value
+        .map((s) =>
+            s && typeof s === "object"
+                ? { label: String(s.label || "").trim(), value: String(s.value || "").trim() }
+                : null
+        )
+        .filter((s) => s && (s.label || s.value));
+};
+
 const normalizeProductPayload = (body = {}) => {
     const payload = {};
     const allowedFields = [
         "product_name",
         "product_image",
+        "images",
         "brand",
         "short_description",
         "detailed_description",
         "category",
         "medicine_type",
-        "isKentProduct",
         "mrp_price",
         "discount_price",
         "stock",
@@ -48,8 +66,9 @@ const normalizeProductPayload = (body = {}) => {
         "trending",
         "best_seller",
         "top_pick",
-        "hide_product",
-        "draft",
+        "averageRating",
+        "totalReviews",
+        "specifications",
     ];
 
     for (const [key, value] of Object.entries(body)) {
@@ -58,6 +77,19 @@ const normalizeProductPayload = (body = {}) => {
 
     if (payload.product_image !== undefined && typeof payload.product_image === "string") {
         payload.product_image = payload.product_image.trim();
+    }
+
+    if (payload.images !== undefined) {
+        payload.images = normalizeImages(payload.images);
+    }
+
+    // The first image automatically becomes the primary product image.
+    if (Array.isArray(payload.images) && payload.images.length > 0) {
+        payload.product_image = payload.images[0];
+    }
+
+    if (payload.specifications !== undefined) {
+        payload.specifications = normalizeSpecifications(payload.specifications);
     }
 
     if (payload.variants !== undefined) {

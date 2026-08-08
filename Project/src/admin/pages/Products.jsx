@@ -1,17 +1,8 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import Card from "../components/ui/Card";
-import Badge from "../components/ui/Badge";
 import EmptyState from "../components/ui/EmptyState";
 import { formatCurrency } from "../utils/formatters";
 import { getProducts, createProduct, updateProduct, deleteProduct, exportProducts, getCategories } from "../services/admin.service";
-
-const statusVariant = (status) => {
-  const s = String(status).toLowerCase();
-  if (s === "in stock" || s === "available") return "success";
-  if (s === "low stock") return "warning";
-  if (s === "out of stock") return "danger";
-  return "neutral";
-};
 
 const SectionHeader = ({ title, subtitle }) => (
   <div className="pt-5 border-t border-neutral-100 mt-5">
@@ -35,12 +26,12 @@ const ToggleCheckbox = ({ label, checked, onChange }) => (
 const emptyProductForm = {
   product_name: "",
   product_image: "",
+  images: [],
   brand: "",
   short_description: "",
   detailed_description: "",
   category: "",
   medicine_type: "",
-  isKentProduct: false,
   // Variants (new simplified schema)
   variants: [],
   // Homepage sections
@@ -49,9 +40,11 @@ const emptyProductForm = {
   trending: false,
   best_seller: false,
   top_pick: false,
-  // Status
-  hide_product: false,
-  draft: false,
+  // Review & rating
+  averageRating: 0,
+  totalReviews: 0,
+  // Specifications
+  specifications: [],
 };
 
 // Default values for a new, empty variant.
@@ -77,62 +70,55 @@ const computeSellingPrice = (mrp, discountPct) => {
   return Math.max(0, m - (m * d) / 100);
 };
 
-const IMAGE_MODE_UPLOAD = "upload";
-const IMAGE_MODE_URL = "url";
-
-const inferImageMode = (value) => {
-  const trimmed = String(value || "").trim();
-  if (!trimmed) return IMAGE_MODE_UPLOAD;
-  return trimmed.startsWith("data:image/") ? IMAGE_MODE_UPLOAD : IMAGE_MODE_URL;
-};
-
-const isValidImageUrl = (value) => {
-  const trimmed = String(value || "").trim();
-  if (!trimmed) return false;
-  try {
-    const parsed = new URL(trimmed);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
-};
+const readFileAsDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
-  const [form, setForm] = useState(() => ({
-    ...emptyProductForm,
-    ...(product
-      ? {
-          product_name: product.product_name || "",
-          product_image: product.product_image || "",
-          brand: product.brand || "",
-          short_description: product.short_description || "",
-          detailed_description: product.detailed_description || "",
-          category: product.category?._id || product.category || "",
-          medicine_type: product.medicine_type || "",
-          isKentProduct: product.isKentProduct || false,
-          variants: Array.isArray(product.variants) && product.variants.length > 0 ? product.variants : [],
-          featured: product.featured || false,
-          new_arrival: product.new_arrival || false,
-          trending: product.trending || false,
-          best_seller: product.best_seller || false,
-          top_pick: product.top_pick || false,
-          hide_product: product.hide_product || false,
-          draft: product.draft || false,
-        }
-      : {}),
-  }));
+  const [form, setForm] = useState(() => {
+    // Normalize existing images into an array. The first image is the primary.
+    const existingImages = Array.isArray(product?.images) && product.images.length > 0
+      ? product.images
+      : (product?.product_image ? [product.product_image] : []);
+    return {
+      ...emptyProductForm,
+      ...(product
+        ? {
+            product_name: product.product_name || "",
+            product_image: product.product_image || (existingImages[0] || ""),
+            images: existingImages,
+            brand: product.brand || "",
+            short_description: product.short_description || "",
+            detailed_description: product.detailed_description || "",
+            category: product.category?._id || product.category || "",
+            medicine_type: product.medicine_type || "",
+            variants: Array.isArray(product.variants) && product.variants.length > 0 ? product.variants : [],
+            featured: product.featured || false,
+            new_arrival: product.new_arrival || false,
+            trending: product.trending || false,
+            best_seller: product.best_seller || false,
+            top_pick: product.top_pick || false,
+            averageRating: Number(product.averageRating || 0),
+            totalReviews: Number(product.totalReviews || 0),
+            specifications: Array.isArray(product.specifications) ? product.specifications : [],
+          }
+        : {}),
+    };
+  });
   const [errors, setErrors] = useState({});
-  const [imageMode, setImageMode] = useState(() => inferImageMode(product?.product_image));
-  const [imageUrlInput, setImageUrlInput] = useState(() => product?.product_image || "");
   const [imageMessage, setImageMessage] = useState("");
+  const [draggingImage, setDraggingImage] = useState(false);
   const fileInputRef = useRef(null);
-  const urlInputRef = useRef(null);
   const isEdit = !!product;
 
   const validate = () => {
     const e = {};
     if (!form.product_name.trim()) e.product_name = "Product name is required";
-    if (!form.product_image.trim()) e.product_image = "Image URL is required";
+    if (!form.images || form.images.length === 0) e.images = "At least one product image is required";
     if (!form.brand.trim()) e.brand = "Brand is required";
     if (!form.short_description.trim()) e.short_description = "Short description is required";
     if (!form.detailed_description.trim()) e.detailed_description = "Detailed description is required";
@@ -151,87 +137,98 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
       }
     }
 
-    // Accept either a remote URL or a locally uploaded image.
-    if (form.product_image && !/^(https?:\/\/|data:image\/)/.test(form.product_image)) {
-      e.product_image = "Image must be a valid URL or uploaded image";
-    }
-
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleChange = (field) => (e) => {
-    const isCheckbox = ["isKentProduct", "featured", "new_arrival", "trending", "best_seller", "top_pick", "hide_product", "draft"].includes(field);
+    const isCheckbox = ["featured", "new_arrival", "trending", "best_seller", "top_pick"].includes(field);
     const value = isCheckbox ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  const clearImageSelection = (nextMode = imageMode) => {
-    setImageMode(nextMode);
-    setImageUrlInput("");
-    setImageMessage("");
-    setForm((prev) => ({ ...prev, product_image: "" }));
-    setErrors((prev) => ({ ...prev, product_image: undefined }));
-  };
-
-  const handleImageModeChange = (nextMode) => {
-    if (nextMode === imageMode) return;
-    clearImageSelection(nextMode);
-  };
-
-  const handleImagePick = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  // ---- Multiple image manager ----
+  const addImages = async (files) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type) && !/\.(jpe?g|png|webp)$/i.test(file.name)) {
-      setImageMessage("Please choose a JPG, PNG, or WEBP image.");
-      setErrors((prev) => ({ ...prev, product_image: "Please choose a JPG, PNG, or WEBP image." }));
-      e.target.value = "";
-      return;
+    const validFiles = Array.from(files || []).filter(
+      (f) => allowedTypes.includes(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name)
+    );
+    if (validFiles.length !== (files?.length || 0)) {
+      setImageMessage("Some files were skipped. Supported formats: JPG, PNG, WEBP.");
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : "";
-      setImageMode(IMAGE_MODE_UPLOAD);
-      setImageUrlInput("");
-      setImageMessage("");
-      setForm((prev) => ({ ...prev, product_image: result }));
-      if (errors.product_image) setErrors((prev) => ({ ...prev, product_image: undefined }));
-    };
-    reader.onerror = () => {
-      setImageMessage("Unable to read selected image.");
-      setErrors((prev) => ({ ...prev, product_image: "Unable to read selected image" }));
-    };
-    reader.readAsDataURL(file);
+    const dataUrls = [];
+    for (const file of validFiles) {
+      try {
+        dataUrls.push(await readFileAsDataUrl(file));
+      } catch {
+        // skip unreadable files
+      }
+    }
+
+    if (dataUrls.length === 0) return;
+
+    setForm((prev) => {
+      const nextImages = [...(prev.images || []), ...dataUrls];
+      return {
+        ...prev,
+        images: nextImages,
+        product_image: nextImages[0],
+      };
+    });
+    setImageMessage("");
+    if (errors.images) setErrors((prev) => ({ ...prev, images: undefined }));
+  };
+
+  const handleFilePick = (e) => {
+    void addImages(e.target.files);
     e.target.value = "";
   };
 
-  const handleImageUrlChange = (e) => {
-    const value = e.target.value;
-    setImageUrlInput(value);
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDraggingImage(false);
+    void addImages(e.dataTransfer.files);
+  };
 
-    const trimmed = value.trim();
-    if (!trimmed) {
-      setImageMessage("Enter an image URL to preview it.");
-      setForm((prev) => ({ ...prev, product_image: "" }));
-      setErrors((prev) => ({ ...prev, product_image: undefined }));
-      return;
-    }
+  const removeImage = (idx) => {
+    setForm((prev) => {
+      const nextImages = (prev.images || []).filter((_, i) => i !== idx);
+      return {
+        ...prev,
+        images: nextImages,
+        product_image: nextImages[0] || "",
+      };
+    });
+  };
 
-    if (!isValidImageUrl(trimmed)) {
-      setImageMessage("Please enter a valid image URL.");
-      setForm((prev) => ({ ...prev, product_image: "" }));
-      setErrors((prev) => ({ ...prev, product_image: "Please enter a valid image URL." }));
-      return;
-    }
+  const moveImage = (idx, dir) => {
+    setForm((prev) => {
+      const nextImages = [...(prev.images || [])];
+      const target = idx + dir;
+      if (target < 0 || target >= nextImages.length) return prev;
+      [nextImages[idx], nextImages[target]] = [nextImages[target], nextImages[idx]];
+      return {
+        ...prev,
+        images: nextImages,
+        product_image: nextImages[0],
+      };
+    });
+  };
 
-    setImageMode(IMAGE_MODE_URL);
-    setImageMessage("");
-    setForm((prev) => ({ ...prev, product_image: trimmed }));
-    if (errors.product_image) setErrors((prev) => ({ ...prev, product_image: undefined }));
+  const setPrimaryImage = (idx) => {
+    setForm((prev) => {
+      const nextImages = [...(prev.images || [])];
+      if (idx <= 0 || idx >= nextImages.length) return prev;
+      const [img] = nextImages.splice(idx, 1);
+      nextImages.unshift(img);
+      return {
+        ...prev,
+        images: nextImages,
+        product_image: nextImages[0],
+      };
+    });
   };
 
   // ---- Variant manager ----
@@ -271,17 +268,44 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
       variants: (prev.variants || []).filter((_, i) => i !== idx),
     }));
 
+  // ---- Specifications manager ----
+  const handleSpecChange = (idx, key) => (e) => {
+    setForm((prev) => {
+      const specs = [...(prev.specifications || [])];
+      const current = { ...(specs[idx] || {}) };
+      current[key] = e.target.value;
+      specs[idx] = current;
+      return { ...prev, specifications: specs };
+    });
+  };
+
+  const addSpecification = () =>
+    setForm((prev) => ({
+      ...prev,
+      specifications: [...(prev.specifications || []), { label: "", value: "" }],
+    }));
+
+  const removeSpecification = (idx) =>
+    setForm((prev) => ({
+      ...prev,
+      specifications: (prev.specifications || []).filter((_, i) => i !== idx),
+    }));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     const payload = {
       ...form,
+      product_image: form.images?.[0] || "",
+      images: form.images || [],
       // Keep product-level price fields for backward compatibility by
       // deriving them from the first variant when present.
       mrp_price: Number(form.variants?.[0]?.mrp_price) || 0,
       discount_price: Number(form.variants?.[0]?.selling_price) || 0,
       stock: Number(form.variants?.[0]?.stock) || 0,
+      averageRating: Number(form.averageRating) || 0,
+      totalReviews: Number(form.totalReviews) || 0,
       variants: (form.variants || [])
         .filter((v) => v.size || v.potency)
         .map((v) => ({
@@ -298,6 +322,7 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
           out_of_stock: Boolean(v.out_of_stock),
           not_available: Boolean(v.not_available),
         })),
+      specifications: (form.specifications || []).filter((s) => s && (s.label || s.value)),
     };
 
     await onSave(payload);
@@ -308,7 +333,7 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-4xl mx-4 max-h-[92vh] overflow-y-auto">
+      <div className="bg-white rounded-3xl shadow-xl w-full max-w-5xl mx-4 max-h-[92vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-neutral-200 sticky top-0 bg-white z-10">
           <div className="text-lg font-extrabold text-neutral-900">{isEdit ? "Edit Product" : "Add Product"}</div>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-2xl leading-none">&times;</button>
@@ -348,98 +373,81 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
             <textarea value={form.short_description} onChange={handleChange("short_description")} rows={2} className={inputCls("short_description")} placeholder="Brief description" />
             {errors.short_description && <div className="text-xs text-red-600 mt-1">{errors.short_description}</div>}
           </div>
+
+          {/* ===== FULL DESCRIPTION (enlarged editor) ===== */}
           <div>
-            <label className={labelCls}>Detailed Description *</label>
-            <textarea value={form.detailed_description} onChange={handleChange("detailed_description")} rows={3} className={inputCls("detailed_description")} placeholder="Full product details" />
+            <label className={labelCls}>Full Description *</label>
+            <textarea
+              value={form.detailed_description}
+              onChange={handleChange("detailed_description")}
+              rows={10}
+              className={`${inputCls("detailed_description")} min-h-[220px] leading-relaxed resize-y`}
+              placeholder="Write the complete product details here. This is the main description shown to customers."
+            />
+            <div className="text-xs text-neutral-400 mt-1">Supports long-form product details. The larger editor makes editing easier.</div>
             {errors.detailed_description && <div className="text-xs text-red-600 mt-1">{errors.detailed_description}</div>}
           </div>
 
-          {/* ===== PRODUCT IMAGE (single) ===== */}
-          <SectionHeader title="Product Image" subtitle="Choose one image for the product using either a local file or a direct URL." />
+          {/* ===== MULTIPLE PRODUCT IMAGES ===== */}
+          <SectionHeader title="Product Images" subtitle="Upload multiple images. Drag & drop or click to choose. The first image is the primary product image." />
           <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
-            <label className={labelCls}>Product Image *</label>
-            <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm">
-              <button
-                type="button"
-                onClick={() => handleImageModeChange(IMAGE_MODE_UPLOAD)}
-                className={`flex-1 min-w-37.5 rounded-xl px-4 py-3 text-sm font-semibold transition ${imageMode === IMAGE_MODE_UPLOAD ? "bg-(--brand-600) text-white shadow" : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100"}`}
-              >
-                Upload from Device
-              </button>
-              <button
-                type="button"
-                onClick={() => handleImageModeChange(IMAGE_MODE_URL)}
-                className={`flex-1 min-w-37.5 rounded-xl px-4 py-3 text-sm font-semibold transition ${imageMode === IMAGE_MODE_URL ? "bg-(--brand-600) text-white shadow" : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100"}`}
-              >
-                Upload via Image URL
-              </button>
+            <label className={labelCls}>Product Images *</label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={handleFilePick}
+              className="hidden"
+            />
+
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDraggingImage(true); }}
+              onDragLeave={() => setDraggingImage(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`mt-3 rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition ${
+                draggingImage ? "border-(--brand-600) bg-(--brand-50)/40" : "border-neutral-300 bg-white hover:border-(--brand-400)"
+              }`}
+            >
+              <div className="text-sm font-semibold text-neutral-700">
+                {draggingImage ? "Drop images here" : "Drag & drop images here, or click to browse"}
+              </div>
+              <div className="text-xs text-neutral-400 mt-1">You can select multiple files at once. JPG, PNG, WEBP.</div>
             </div>
-            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImagePick} className="hidden" />
 
-            {imageMode === IMAGE_MODE_UPLOAD ? (
-              <div className="mt-4 space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-outline px-4 py-3">
-                    Choose Image
-                  </button>
-                  {form.product_image && (
-                    <>
-                      <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-outline px-4 py-3">
-                        Replace Image
-                      </button>
-                      <button type="button" onClick={() => clearImageSelection(IMAGE_MODE_UPLOAD)} className="btn-outline px-4 py-3 text-red-600">
-                        Remove Image
-                      </button>
-                    </>
-                  )}
-                </div>
-                <div className="text-xs text-neutral-500">Supported formats: JPG, PNG, WEBP.</div>
-              </div>
-            ) : (
-              <div className="mt-4 space-y-3">
-                <input
-                  ref={urlInputRef}
-                  value={imageUrlInput}
-                  onChange={handleImageUrlChange}
-                  type="url"
-                  placeholder="https://example.com/product-image.jpg"
-                  className={inputCls("product_image")}
-                />
-                <div className="text-xs text-neutral-500">Enter a direct image URL and preview it live before saving.</div>
-              </div>
-            )}
+            {errors.images && <div className="text-xs text-red-600 mt-3">{errors.images}</div>}
+            {imageMessage && !errors.images && <div className="text-xs text-amber-600 mt-3">{imageMessage}</div>}
 
-            {errors.product_image && <div className="text-xs text-red-600 mt-3">{errors.product_image}</div>}
-            {imageMessage && !errors.product_image && <div className="text-xs text-amber-600 mt-3">{imageMessage}</div>}
-
-            {form.product_image && (
-              <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                  <div className="text-sm font-semibold text-neutral-800">Image Preview</div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => (imageMode === IMAGE_MODE_URL ? urlInputRef.current?.focus() : fileInputRef.current?.click())}
-                      className="btn-outline px-3 py-2 text-sm"
+            {/* Image previews */}
+            {form.images && form.images.length > 0 && (
+              <div className="mt-4">
+                <div className="flex flex-wrap gap-3">
+                  {form.images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-28 h-28 rounded-xl overflow-hidden border-2 bg-white group"
+                      style={{ borderColor: idx === 0 ? "var(--brand-600)" : "var(--neutral-200)" }}
                     >
-                      Replace Image
-                    </button>
-                    <button type="button" onClick={() => clearImageSelection(imageMode)} className="btn-outline px-3 py-2 text-sm text-red-600">
-                      Remove Image
-                    </button>
-                  </div>
+                      <img src={img} alt={`product ${idx + 1}`} className="w-full h-full object-cover" />
+                      {idx === 0 && (
+                        <span className="absolute top-1 left-1 bg-(--brand-600) text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                          PRIMARY
+                        </span>
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 bg-black/60 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition p-1">
+                        <button type="button" title="Move left" onClick={() => moveImage(idx, -1)} className="text-white text-xs px-1 hover:text-(--brand-200)">◀</button>
+                        <button type="button" title="Move right" onClick={() => moveImage(idx, 1)} className="text-white text-xs px-1 hover:text-(--brand-200)">▶</button>
+                        {idx !== 0 && (
+                          <button type="button" title="Set as primary" onClick={() => setPrimaryImage(idx)} className="text-white text-xs px-1 hover:text-amber-300">★</button>
+                        )}
+                        <button type="button" title="Remove" onClick={() => removeImage(idx)} className="text-white text-xs px-1 hover:text-red-300">✕</button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-start gap-3">
-                  <img
-                    src={form.product_image}
-                    alt="preview"
-                    className="w-24 h-24 rounded-xl object-cover border border-neutral-200"
-                    onError={() => setImageMessage("This image could not be loaded. Please try a different URL or file.")}
-                  />
-                  <div className="text-xs text-neutral-500 leading-5">
-                    <div className="font-semibold text-neutral-700">Stored image</div>
-                    <div>This product will use a single image asset.</div>
-                  </div>
+                <div className="text-xs text-neutral-500 mt-2">
+                  Hover an image to reorder (◀ ▶), set as primary (★), or remove (✕).
                 </div>
               </div>
             )}
@@ -495,22 +503,71 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
             );
           })}
 
+          {/* ===== REVIEW & RATING MANAGEMENT ===== */}
+          <SectionHeader title="Review & Rating" subtitle="Manage the product's average rating and total review count. These are kept in sync with customer reviews." />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Average Rating</label>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                value={form.averageRating}
+                onChange={handleChange("averageRating")}
+                className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm"
+                placeholder="0.0"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Total Reviews</label>
+              <input
+                type="number"
+                min="0"
+                value={form.totalReviews}
+                onChange={handleChange("totalReviews")}
+                className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full text-sm"
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          {/* ===== PRODUCT SPECIFICATIONS ===== */}
+          <SectionHeader title="Product Specifications" subtitle="Add key-value specifications shown on the product page. These are stored dynamically." />
+          {errors.specifications && <div className="text-xs text-red-600">{errors.specifications}</div>}
+          <div className="flex items-center justify-between mb-2">
+            <label className={labelCls}>Specifications</label>
+            <button type="button" onClick={addSpecification} className="text-xs font-bold text-(--brand-700) hover:text-(--brand-800)">+ Add Specification</button>
+          </div>
+          {(form.specifications || []).length === 0 && (
+            <p className="text-xs text-neutral-400 mb-2">No specifications added yet. Add label/value pairs (e.g. Brand, Net Quantity, Storage).</p>
+          )}
+          {(form.specifications || []).map((s, idx) => (
+            <div key={idx} className="flex items-center gap-2 mb-2">
+              <input
+                value={s.label || ""}
+                onChange={handleSpecChange(idx, "label")}
+                placeholder="Label (e.g. Net Quantity)"
+                className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm flex-1"
+              />
+              <input
+                value={s.value || ""}
+                onChange={handleSpecChange(idx, "value")}
+                placeholder="Value (e.g. 30 ml)"
+                className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm flex-1"
+              />
+              <button type="button" onClick={() => removeSpecification(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold px-2">Remove</button>
+            </div>
+          ))}
+
           {/* ===== HOMEPAGE SECTIONS ===== */}
-          <SectionHeader title="Homepage Sections" subtitle="A product can appear in multiple homepage sections." />
+          <SectionHeader title="Homepage Sections" subtitle="A product can appear in multiple homepage sections. Managed alongside the Homepage Management panel." />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <ToggleCheckbox label="Featured" checked={form.featured} onChange={handleChange("featured")} />
             <ToggleCheckbox label="New Arrival" checked={form.new_arrival} onChange={handleChange("new_arrival")} />
             <ToggleCheckbox label="Trending" checked={form.trending} onChange={handleChange("trending")} />
             <ToggleCheckbox label="Best Seller" checked={form.best_seller} onChange={handleChange("best_seller")} />
             <ToggleCheckbox label="Top Pick of the Day" checked={form.top_pick} onChange={handleChange("top_pick")} />
-          </div>
-
-          {/* ===== PRODUCT STATUS ===== */}
-          <SectionHeader title="Product Status" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <ToggleCheckbox label="Kent Product" checked={form.isKentProduct} onChange={handleChange("isKentProduct")} />
-            <ToggleCheckbox label="Hide Product" checked={form.hide_product} onChange={handleChange("hide_product")} />
-            <ToggleCheckbox label="Draft" checked={form.draft} onChange={handleChange("draft")} />
           </div>
 
           <div className="flex justify-end gap-3 pt-2 border-t border-neutral-100">
@@ -548,7 +605,6 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("All");
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
   const [deleteProductItem, setDeleteProductItem] = useState(null);
@@ -594,11 +650,9 @@ const Products = () => {
       const catStr = typeof cat === "string" ? cat.toLowerCase() : "";
       const id = (p._id || "").toLowerCase();
       const matchesQuery = !q || name.includes(q) || catStr.includes(q) || id.includes(q);
-      const stockStatus = String(p.stockStatus || p.status || "In Stock");
-      const matchesStatus = status === "All" ? true : stockStatus === status;
-      return matchesQuery && matchesStatus;
+      return matchesQuery;
     });
-  }, [query, status, products]);
+  }, [query, products]);
 
   const handleCreate = () => {
     setEditProduct(null);
@@ -646,17 +700,6 @@ const Products = () => {
     }
   };
 
-  const handleToggleKent = async (product) => {
-    try {
-      await updateProduct(product._id, { isKentProduct: !product.isKentProduct });
-      notify(`Kent product ${product.isKentProduct ? "removed" : "set"} successfully`);
-      await loadProducts();
-    } catch (err) {
-      const msg = err.response?.data?.message || err.message || "Toggle failed";
-      notify(msg, "error");
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Notification toast */}
@@ -697,16 +740,6 @@ const Products = () => {
               className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none w-full sm:w-80"
               placeholder="Search products..."
             />
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none"
-            >
-              <option>All</option>
-              <option>In Stock</option>
-              <option>Low Stock</option>
-              <option>Out of Stock</option>
-            </select>
           </div>
 
           <div className="text-sm text-neutral-500">
@@ -736,8 +769,7 @@ const Products = () => {
                     <th className="font-bold py-3">Price</th>
                     <th className="font-bold py-3">Discount</th>
                     <th className="font-bold py-3">Stock</th>
-                    <th className="font-bold py-3">Kent</th>
-                    <th className="font-bold py-3">Status</th>
+                    <th className="font-bold py-3">Rating</th>
                     <th className="font-bold py-3">Actions</th>
                   </tr>
                 </thead>
@@ -749,9 +781,9 @@ const Products = () => {
                     const mrp = p.mrp_price || p.price || 0;
                     const discount = mrp > 0 ? Math.round((1 - price / mrp) * 100) : 0;
                     const stock = p.stock || p.currentStock || p.availableStock || 0;
-                    const stockStatus = p.stockStatus || p.status || "In Stock";
-                    const image = p.product_image || "/src/assets/Product_image.png";
-                    const isKent = p.isKentProduct || false;
+                    const image = (Array.isArray(p.images) && p.images[0]) || p.product_image || "/src/assets/Product_image.png";
+                    const rating = Number(p.averageRating || 0);
+                    const reviews = Number(p.totalReviews || 0);
 
                     return (
                       <tr key={p._id} className="border-t border-neutral-200">
@@ -773,18 +805,8 @@ const Products = () => {
                         <td className="py-3 text-neutral-700">{discount}%</td>
                         <td className="py-3 font-extrabold text-neutral-900">{stock}</td>
                         <td className="py-3">
-                          <button
-                            onClick={() => handleToggleKent(p)}
-                            className={`px-2.5 py-1 rounded-2xl text-xs font-bold border ${isKent
-                                ? "bg-brand-50 text-brand-700 border-brand-200"
-                                : "bg-neutral-50 text-neutral-400 border-neutral-200"
-                              }`}
-                          >
-                            {isKent ? "Yes" : "No"}
-                          </button>
-                        </td>
-                        <td className="py-3">
-                          <Badge variant={statusVariant(stockStatus)}>{stockStatus}</Badge>
+                          <div className="text-sm font-bold text-neutral-900">★ {rating.toFixed(1)}</div>
+                          <div className="text-xs text-neutral-500">{reviews} reviews</div>
                         </td>
                         <td className="py-3">
                           <div className="flex items-center gap-2">
@@ -797,8 +819,8 @@ const Products = () => {
                   })}
                   {filtered.length === 0 && !loading && (
                     <tr>
-                      <td colSpan={8} className="py-10">
-                        <EmptyState title="No matching products" description="Try adjusting your search or filter." />
+                      <td colSpan={7} className="py-10">
+                        <EmptyState title="No matching products" description="Try adjusting your search." />
                       </td>
                     </tr>
                   )}

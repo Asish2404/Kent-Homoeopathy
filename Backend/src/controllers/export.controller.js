@@ -45,10 +45,11 @@ export const exportProducts = async (req, res) => {
       Name: p.product_name || "",
       Brand: p.brand || "",
       Category: p.category?.category_name || "",
-      MRP: p.mrp_price || 0,
+MRP: p.mrp_price || 0,
       DiscountPrice: p.discount_price || 0,
       Stock: p.stock ?? 0,
-      isKentProduct: p.isKentProduct ? "Yes" : "No",
+      AverageRating: p.averageRating || 0,
+      TotalReviews: p.totalReviews || 0,
       Description: p.short_description || "",
       CreatedAt: p.createdAt ? new Date(p.createdAt).toISOString() : "",
     }));

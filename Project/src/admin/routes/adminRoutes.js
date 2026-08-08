@@ -15,6 +15,7 @@ import Reports from "../pages/Reports";
 import Categories from "../pages/Categories";
 import Coupons from "../pages/Coupons";
 import Reviews from "../pages/Reviews";
+import HomepageManagement from "../pages/HomepageManagement";
 import Settings from "../pages/SettingsPlaceholder";
 
 
@@ -37,7 +38,8 @@ const adminRoutes = [
           { path: "reports", element: <Reports /> },
           { path: "categories", element: <Categories /> },
           { path: "coupons", element: <Coupons /> },
-          { path: "reviews", element: <Reviews /> },
+{ path: "reviews", element: <Reviews /> },
+          { path: "homepage", element: <HomepageManagement /> },
           { path: "settings", element: <Settings /> },
         ],
       },

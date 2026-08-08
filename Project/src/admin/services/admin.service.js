@@ -251,6 +251,50 @@ export const getReviews = async (params = {}) => {
   return data;
 };
 
+export const approveReview = async (reviewId) => {
+  const { data } = await api.patch(`/reviews/${reviewId}/approve`);
+  return data;
+};
+
+export const rejectReview = async (reviewId) => {
+  const { data } = await api.patch(`/reviews/${reviewId}/reject`);
+  return data;
+};
+
+export const hideReview = async (reviewId) => {
+  const { data } = await api.patch(`/reviews/${reviewId}/hide`);
+  return data;
+};
+
+// ========================
+// HOMEPAGE SECTIONS
+// ========================
+
+export const getHomepageSections = async (params = {}) => {
+  const { data } = await api.get("/homepage/sections", { params });
+  return data;
+};
+
+export const getHomepageSection = async (section, params = {}) => {
+  const { data } = await api.get(`/homepage/sections/${section}`, { params });
+  return data;
+};
+
+export const addProductToHomepageSection = async (section, productId) => {
+  const { data } = await api.post(`/homepage/sections/${section}/products`, { productId });
+  return data;
+};
+
+export const removeProductFromHomepageSection = async (section, productId) => {
+  const { data } = await api.delete(`/homepage/sections/${section}/products/${productId}`);
+  return data;
+};
+
+export const reorderHomepageSection = async (section, productIds) => {
+  const { data } = await api.patch(`/homepage/sections/${section}/reorder`, { productIds });
+  return data;
+};
+
 // ========================
 // DOCTORS
 // ========================

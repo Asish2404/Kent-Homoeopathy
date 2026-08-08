@@ -14,7 +14,8 @@ import {
 const navItems = [
   { to: "/admin", label: "Dashboard" },
   { to: "/admin/orders", label: "Orders" },
-  { to: "/admin/products", label: "Products" },
+{ to: "/admin/products", label: "Products" },
+  { to: "/admin/homepage", label: "Homepage Management" },
   { to: "/admin/doctors", label: "Doctors" },
   { to: "/admin/categories", label: "Categories" },
   { to: "/admin/inventory", label: "Inventory" },

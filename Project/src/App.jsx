@@ -37,6 +37,7 @@ import Reports from "./admin/pages/Reports";
 import Categories from "./admin/pages/Categories";
 import Coupons from "./admin/pages/Coupons";
 import Reviews from "./admin/pages/Reviews";
+import HomepageManagement from "./admin/pages/HomepageManagement";
 import Settings from "./admin/pages/SettingsPlaceholder";
 
 function App() {
@@ -71,6 +72,7 @@ function App() {
             <Route path="categories" element={<Categories />} />
             <Route path="coupons" element={<Coupons />} />
 <Route path="reviews" element={<Reviews />} />
+            <Route path="homepage" element={<HomepageManagement />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
