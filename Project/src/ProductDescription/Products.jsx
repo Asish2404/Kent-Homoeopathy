@@ -3,12 +3,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   Star,
   ShoppingCart,
-  Stethoscope,
-  Calendar,
-  Phone,
-  Truck,
   Shield,
-RotateCcw,
   Award,
   ChevronRight,
   Plus,
@@ -16,7 +11,6 @@ RotateCcw,
   Share2,
   ThumbsUp,
   BadgeCheck,
-  Lock,
   RefreshCw,
   Scale,
   FileText,
@@ -105,9 +99,7 @@ function normalizeProduct(raw) {
     discount: discountPct,
     inStock,
     soldCount: Number(raw.sold_count || raw.soldCount || 0),
-    availabilityText: inStock ? "In stock" : "Out of stock",
-    deliveryETA: raw.deliveryETA || raw.delivery || "24 hrs",
-    deliveryInfo: `Delivery in ${raw.deliveryETA || raw.delivery || "24 hrs"}`,
+availabilityText: inStock ? "In stock" : "Out of stock",
     potencies: Array.isArray(raw.potencies) && raw.potencies.length > 0 ? raw.potencies.map((p) => typeof p === "string" ? p : (p?.value || "")) : [potency],
     potencyObjects: potencyList,
     sizes,
@@ -409,15 +401,17 @@ const Products = () => {
     setReviewMessage(null);
   };
 
-  const badge = product?.bestSeller
-    ? "Bestseller"
+const badge = product?.bestSeller
+    ? "Best Seller"
     : product?.newArrival
-      ? "New"
+      ? "New Arrival"
       : product?.trending
         ? "Trending"
-        : product?.featured
-          ? "Featured"
-          : "";
+        : product?.top_pick || product?.topPick
+          ? "Top Pick"
+          : product?.featured
+            ? "Featured"
+            : "";
 
   // About Product section only (simplified Product Information)
   const aboutProduct = product?.longDescription || product?.description || "";
@@ -503,50 +497,7 @@ const Products = () => {
 
       {/* Product Content */}
       {product && !loading && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 pb-24">
-          {/* Consultation Strip */}
-          <div
-            className="mb-8 p-5 md:p-6
-                     bg-gradient-to-r from-[var(--brand-50)] to-white
-                     border border-[var(--brand-100)]
-                     rounded-2xl flex flex-col md:flex-row
-                     items-center justify-between gap-4"
-          >
-            <div className="flex items-center gap-4 text-center md:text-left">
-              <div
-                className="w-12 h-12 rounded-2xl
-                         bg-[var(--brand-600)] flex items-center justify-center
-                         text-white shadow-md shadow-[var(--brand-600)]/30"
-              >
-                <Stethoscope className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-neutral-900 text-base md:text-lg">
-                  Need Help Choosing?
-                </h3>
-                <p className="text-sm text-neutral-500">
-                  Consult with certified homeopathy doctors — free first visit
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3 w-full md:w-auto">
-              <button
-                className="flex-1 md:flex-none btn-primary py-2.5 text-sm"
-                onClick={() => navigate("/Consult")}
-              >
-                <Stethoscope className="w-4 h-4" />
-                Consult Doctor
-              </button>
-              <button
-                className="flex-1 md:flex-none btn-outline py-2.5 text-sm"
-                onClick={() => navigate("/Consult")}
-              >
-                <Calendar className="w-4 h-4" />
-                Book Appointment
-              </button>
-            </div>
-          </div>
-
+<div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 pb-24">
           {/* Product section */}
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
             {/* Images */}
@@ -641,12 +592,7 @@ const Products = () => {
                     <Shield className="w-4 h-4 text-[var(--brand-600)]" />
                     <span className="font-medium">Genuine</span>
                   </div>
-                  <div className="w-px h-4 bg-neutral-200" />
-                  <div className="flex items-center gap-1.5 text-neutral-700">
-                    <Truck className="w-4 h-4 text-[var(--brand-600)]" />
-                    <span className="font-medium">Free Delivery</span>
-                  </div>
-                  <div className="w-px h-4 bg-neutral-200" />
+<div className="w-px h-4 bg-neutral-200" />
                   <div className="flex items-center gap-1.5 text-neutral-700">
                     <Award className="w-4 h-4 text-[var(--brand-600)]" />
                     <span className="font-medium">GMP</span>
@@ -707,15 +653,21 @@ const Products = () => {
                 <p className="text-xs text-neutral-400 mb-4">{product.medicineType}</p>
               )}
 
-              {/* Rating + Sold count */}
+{/* Rating + Sold count */}
               <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <StarRating rating={displayedRating} />
-                <span className="text-sm font-medium text-neutral-700">
-                  {displayedRating || 0}
-                </span>
-                <span className="text-sm text-neutral-500">
-                  ({displayedReviews} reviews)
-                </span>
+                {displayedReviews > 0 && displayedRating > 0 ? (
+                  <>
+                    <StarRating rating={displayedRating} />
+                    <span className="text-sm font-medium text-neutral-700">
+                      {displayedRating}
+                    </span>
+                    <span className="text-sm text-neutral-500">
+                      ({displayedReviews} reviews)
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-sm text-neutral-500">No reviews yet</span>
+                )}
                 {product.soldCount > 0 && (
                   <span className="text-xs text-emerald-600 font-medium">
                     <BadgeCheck className="w-3.5 h-3.5 inline mr-0.5" />
@@ -873,41 +825,7 @@ const Products = () => {
                 )}
               </div>
 
-              {/* Quick Contact */}
-              <div className="p-4 bg-[var(--brand-50)] border border-[var(--brand-100)] rounded-xl flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-neutral-800 mb-0.5">Need Expert Advice?</p>
-                  <p className="text-xs text-neutral-500">Talk to our homeopathic specialist</p>
-                </div>
-                <a
-                  href="tel:+08910863893"
-                  className="flex items-center gap-2 bg-white text-[var(--brand-700)] font-semibold text-sm px-4 py-2 rounded-lg hover:bg-[var(--brand-100)] transition"
-                >
-                  <Phone className="w-4 h-4" />
-                  Call Now
-                </a>
-              </div>
-
-              {/* Delivery / trust info */}
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-neutral-600">
-                <div className="flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-[var(--brand-600)]" />
-                  {product.deliveryInfo}
-                </div>
-                <div className="flex items-center gap-2">
-                  <RotateCcw className="w-4 h-4 text-[var(--brand-600)]" />
-                  7-day easy returns
-                </div>
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-[var(--brand-600)]" />
-                  100% genuine
-                </div>
-                <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-[var(--brand-600)]" />
-                  Secure payment
-                </div>
-              </div>
-            </div>
+</div>
           </div>
 
           {/* Product Information — About Product only */}
@@ -1253,34 +1171,7 @@ const Products = () => {
             </div>
           </section>
 
-          {/* Bottom CTA */}
-          <div
-            className="mt-8 p-8 md:p-12 rounded-3xl text-center text-white
-                       bg-gradient-to-br from-[var(--brand-700)] via-[var(--brand-800)] to-[var(--brand-900)]
-                       relative overflow-hidden"
-          >
-            <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/10 blur-2xl" />
-            <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-[var(--accent-mint)]/20 blur-2xl" />
-            <div className="relative">
-              <h3 className="text-2xl md:text-3xl font-bold mb-3 font-['Plus_Jakarta_Sans']">
-                Still Have Questions?
-              </h3>
-              <p className="text-[var(--brand-100)] mb-6 max-w-md mx-auto">
-                Expert homeopathic doctors available 24/7 to help you choose the right remedy.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-3">
-                <button className="bg-white text-[var(--brand-700)] font-semibold px-7 py-3 rounded-xl hover:bg-[var(--brand-50)] transition flex items-center justify-center gap-2">
-                  <Stethoscope className="w-4 h-4" />
-                  Free Consultation
-                </button>
-                <button className="bg-white/10 backdrop-blur border border-white/30 text-white font-semibold px-7 py-3 rounded-xl hover:bg-white/20 transition flex items-center justify-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  Call Now
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+</div>
       )}
 
       {/* Sticky Purchase Bar */}

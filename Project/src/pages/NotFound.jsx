@@ -38,9 +38,8 @@ const NotFound = () => {
             Popular pages
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-            {[
+{[
               { to: "/Products", label: "Products" },
-              { to: "/Consult", label: "Consult Doctor" },
               { to: "/Labtest", label: "Lab Tests" },
               { to: "/Contact", label: "Contact Us" },
             ].map((link) => (

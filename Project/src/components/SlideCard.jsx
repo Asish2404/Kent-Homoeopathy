@@ -2,8 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 const CTA_ROUTES = {
-  "Consult Doctor": "/Consult",
-  "Find a Specialist": "/Consult",
   "Products": "/Products",
   "Explore Products": "/Products",
   "Shop Now": "/Products",
@@ -15,7 +13,6 @@ const CTA_ROUTES = {
   "Book Lab Test": "/Labtest",
   "Book Lab Tests": "/Labtest",
   "Book Test": "/Labtest",
-  "Consult Now": "/Consult",
 };
 
 const SlideCard = React.memo(({ slide }) => {

@@ -104,16 +104,6 @@ export const brands = [
    ============================================================ */
 export const homeServices = [
   {
-    iconKey: "stethoscope",
-    label: "Consult Doctor",
-    route: "/Consult",
-  },
-  {
-    iconKey: "calendar",
-    label: "Book Appointment",
-    route: "/Consult",
-  },
-  {
     iconKey: "flask",
     label: "Book Lab Test",
     route: "/Labtest",
@@ -139,24 +129,15 @@ export const homeServices = [
 export const promoBanners = [
   {
     id: "fallback-1",
-    title: "Free Consultation",
-    subtitle: "Talk to a certified homeopathy doctor today",
-    ctaText: "Consult Now",
-    ctaLink: "/Consult",
-    image: "/images/products/belladonna-30c.svg",
-    alt: "Free homeopathy consultation",
-  },
-  {
-    id: "fallback-2",
     title: "Genuine Medicines",
-    subtitle: "100% authentic homeopathic remedies, fast delivery",
+    subtitle: "100% authentic homeopathic remedies",
     ctaText: "Shop Now",
     ctaLink: "/Products",
     image: "/images/products/arsenic-album-30c.svg",
     alt: "Genuine homeopathic medicines",
   },
   {
-    id: "fallback-3",
+    id: "fallback-2",
     title: "Book Lab Tests",
     subtitle: "Accurate tests at your doorstep",
     ctaText: "Book Now",

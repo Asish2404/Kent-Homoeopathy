@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
-import { FaUserMd, FaStethoscope, FaCheckCircle } from "react-icons/fa";
+import { FaUserMd, FaLeaf, FaCheckCircle } from "react-icons/fa";
 import { FiArrowRight, FiHeadphones, FiAward } from "react-icons/fi";
 import Carousel from "../components/Carousel";
 import HomeServiceStrip from "../components/HomeServiceStrip";
@@ -328,7 +328,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA Banner */}
+{/* CTA Banner */}
       <section className="py-6">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10">
           <div
@@ -351,30 +351,29 @@ const Home = () => {
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
                                  bg-white/15 backdrop-blur border border-white/20
                                  text-sm font-semibold mb-4">
-                  <FaStethoscope />
-                  Free First Consultation
+                  <FaLeaf />
+                  Shop Genuine Medicines
                 </span>
                 <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight mb-3
                                font-['Plus_Jakarta_Sans']">
-                  Not sure what you need?
+Quality homeopathy,
                   <br />
-                  <span className="text-[var(--brand-200)]">Talk to a doctor.</span>
+                  <span className="text-[var(--brand-200)]">for every family.</span>
                 </h2>
                 <p className="text-[var(--brand-100)] max-w-md leading-relaxed text-sm md:text-base">
-                  Get personalised guidance from certified homeopathy practitioners —
-                  online, on call, or in-person.
+                  Explore authentic remedies and wellness products curated with care.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row md:justify-end gap-3">
                 <button
-                  onClick={() => navigate("/Consult")}
+                  onClick={() => navigate("/Products")}
                   className="bg-white text-[var(--brand-700)] font-semibold
                              px-6 md:px-7 py-3 rounded-xl
                              hover:bg-[var(--brand-50)] hover:shadow-xl
                              transition flex items-center justify-center gap-2 group"
                 >
-                  Book Consultation
+                  Shop Products
                   <FiArrowRight className="transition-transform group-hover:translate-x-1" />
                 </button>
 

@@ -1,5 +1,4 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { Star, Clock3, Edit3, Trash2, Plus } from "lucide-react";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
@@ -120,7 +119,6 @@ const mapDoctor = (doc) => ({
 });
 
 const Doctors = () => {
-  const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -340,13 +338,13 @@ const Doctors = () => {
                       </span>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-1 gap-3">
+<div className="mt-6 grid grid-cols-1 gap-3">
                       <button
                         type="button"
+                        onClick={() => openEdit(doc)}
                         className="w-full rounded-2xl bg-green-600 py-3.5 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700"
-                        onClick={() => navigate("/Consult")}
                       >
-                        Book Appointment
+                        Edit Doctor
                       </button>
                     </div>
                   </div>

@@ -12,7 +12,6 @@ import Contact from "./ContactUS/Contact";
 import Labtest from "./Lab Tests/Labtest";
 import Login from "./Login/Login";
 import Home from "./Home/Home";
-import Consult from "./ConsultDoctor/Consult";
 import Cart from "./Cart/Cart";
 import Profile from "./Profile/Profile";
 import OrderTracking from "./pages/OrderTracking";
@@ -46,7 +45,6 @@ function App() {
       <Route path="/" element={<CartProvider><Layout /></CartProvider>}>
         <Route index element={<Home />} />
         <Route path="Labtest" element={<Labtest />} />
-        <Route path="Consult" element={<Consult />} />
         <Route path="Products" element={<ProductsCatalog />} />
         <Route path="products/:productId" element={<ProductsDetails />} />
         <Route path="Contact" element={<Contact />} />
@@ -55,7 +53,7 @@ function App() {
         <Route path="Profile" element={<Profile />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="payment" element={<Payment />} />
-<Route path="order-success" element={<OrderSuccess />} />
+        <Route path="order-success" element={<OrderSuccess />} />
         <Route path="orders/:orderId" element={<OrderTracking />} />
 
         {/* ADMIN */}
@@ -71,7 +69,7 @@ function App() {
             <Route path="reports" element={<Reports />} />
             <Route path="categories" element={<Categories />} />
             <Route path="coupons" element={<Coupons />} />
-<Route path="reviews" element={<Reviews />} />
+            <Route path="reviews" element={<Reviews />} />
             <Route path="homepage" element={<HomepageManagement />} />
             <Route path="settings" element={<Settings />} />
           </Route>

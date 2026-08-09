@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import KentLogo from "../assets/Kent.png";
 import SubscribeCard from "./SubscribeCard";
 import {
-  FaLeaf,
   FaFacebookF,
   FaTwitter,
   FaInstagram,
@@ -13,32 +11,18 @@ import {
   FaPhoneAlt,
   FaEnvelope,
   FaClock,
-  FaArrowRight,
   FaShieldAlt,
-  FaTruck,
   FaUndo,
   FaHeadset,
 } from "react-icons/fa";
 
 const Footer = () => {
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (!email) return;
-    setSubscribed(true);
-    setEmail("");
-    setTimeout(() => setSubscribed(false), 3500);
-  };
-
   return (
     <footer className="bg-[var(--neutral-900)] text-neutral-300 mt-auto w-full">
 {/* Trust strip */}
       <div className="border-b border-white/10">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8 grid grid-cols-2 md:grid-cols-3 gap-6">
           {[
-            { icon: <FaTruck />, title: "Free Delivery", sub: "On orders above ₹499" },
             { icon: <FaShieldAlt />, title: "100% Genuine", sub: "Verified medicines only" },
             { icon: <FaUndo />, title: "Easy Returns", sub: "Hassle-free refunds" },
             { icon: <FaHeadset />, title: "24/7 Support", sub: "Expert help anytime" },
@@ -83,9 +67,9 @@ const Footer = () => {
           </div>
 
           <p className="leading-7 text-sm md:text-base text-neutral-400 mb-6 max-w-md">
-            Your trusted destination for authentic homoeopathic medicines
-            and expert consultations. Serving the community for over 25 years
-            with care, integrity, and proven results.
+Your trusted destination for authentic homoeopathic medicines.
+            Serving the community for over 25 years with care, integrity,
+            and proven results.
           </p>
 
           {/* Socials */}
@@ -111,11 +95,10 @@ const Footer = () => {
             Quick Links
           </h3>
           <ul className="space-y-3 text-sm">
-            {[
+{[
               { to: "/", label: "About Us" },
               { to: "/Products", label: "Products" },
-              { to: "/Consult", label: "Book Appointment" },
-              { to: "/Consult", label: "Online Consultation" },
+              { to: "/Labtest", label: "Lab Test" },
               { to: "/Cart", label: "Track Order" },
               { to: "/", label: "Blog" },
             ].map((l, i) => (

@@ -159,8 +159,8 @@ const readUser = () => {
           stays above the drawer backdrop */}
       <div className="relative z-50 w-full bg-[var(--brand-700)] text-white text-xs sm:text-sm py-2 px-4 text-center">
         <span className="inline-flex items-center gap-2">
-          <FaLeaf className="text-[var(--brand-300)]" />
-          Free delivery on orders above ₹499 · 100% Genuine Medicines
+<FaLeaf className="text-[var(--brand-300)]" />
+          100% Genuine Homeopathic Medicines
         </span>
       </div>
 
@@ -215,12 +215,8 @@ const readUser = () => {
                   Home
                 </NavLink>
 
-                <NavLink to="/Labtest" className={navStyle}>
+<NavLink to="/Labtest" className={navStyle}>
                   Lab Test
-                </NavLink>
-
-                <NavLink to="/Consult" className={navStyle}>
-                  Consult Doctor
                 </NavLink>
 
                 <NavLink to="/Products" className={navStyle}>
@@ -523,15 +519,7 @@ const readUser = () => {
               Lab Test
             </NavLink>
 
-            <NavLink
-              to="/Consult"
-              onClick={() => setMenuOpen(false)}
-              className={navStyle}
-            >
-              Book Appointment
-            </NavLink>
-
-            <NavLink
+<NavLink
               to="/Products"
               onClick={() => setMenuOpen(false)}
               className={navStyle}

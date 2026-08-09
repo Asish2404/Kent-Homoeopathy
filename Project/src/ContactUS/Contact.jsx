@@ -20,7 +20,7 @@ import {
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { FiArrowRight, FiPhone, FiMail, FiMessageSquare } from "react-icons/fi";
-import { HiOutlineMailOpen, HiOutlineLocationMarker } from "react-icons/hi";
+import { HiOutlineLocationMarker } from "react-icons/hi";
 import FAQ from "./FAQ";
 import contactCards from "./ContactCards";
 /* -------- Inline reusable bits (kept local to the component) -------- */
@@ -44,15 +44,8 @@ const inputBase =
 
 
 const Contact = () => {
-  const subjectRef = useRef(null);
+const subjectRef = useRef(null);
   const messageRef = useRef(null);
-
-  const quickTopicOptions = [
-    "Book a consultation",
-    "Ask about a medicine",
-    "Help with an order",
-    "Report a quality issue",
-  ];
 
   const handleQuickTopic = (topic) => {
     // 1) Replace subject (even if it already has text)
@@ -71,11 +64,10 @@ const Contact = () => {
       if (messageRef.current) messageRef.current.focus();
     }, 0);
   };
-  const {
+const {
     register,
     handleSubmit,
     setValue,
-    getValues,
     formState: { errors },
     reset,
   } = useForm();
@@ -453,8 +445,8 @@ const Contact = () => {
                 We're here to help with any of these.
               </p>
               <ul className="space-y-3">
-                {[
-                  { icon: <FaStethoscope />, t: "Book a consultation" },
+{[
+                  { icon: <FaStethoscope />, t: "Ask about lab tests" },
                   { icon: <FaLeaf />, t: "Ask about a medicine" },
                   { icon: <FaCommentDots />, t: "Help with an order" },
                   { icon: <FaShieldAlt />, t: "Report a quality issue" },

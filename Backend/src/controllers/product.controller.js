@@ -1,4 +1,60 @@
+import mongoose from "mongoose";
 import { Product } from "../models/atanu.product.model.js";
+import { HomepageSection } from "../models/homepageSection.model.js";
+
+// Map product section flags to the corresponding homepage section keys.
+const FLAG_TO_SECTION = {
+    featured: "featured",
+    new_arrival: "new_arrivals",
+    trending: "trending",
+    best_seller: "best_sellers",
+    top_pick: "top_picks",
+};
+
+/**
+ * Keep the HomepageSection collection in sync with the product's section
+ * flags. This makes the Homepage Management panel the single source of
+ * truth: whenever flags change during create/update, the section membership
+ * documents are created/removed accordingly.
+ */
+const syncHomepageSections = async (productId, flags) => {
+    if (!productId) return;
+    const productObjectId =
+        typeof productId === "string" ? mongoose.Types.ObjectId(productId) : productId;
+
+    const operations = [];
+    for (const [flag, section] of Object.entries(FLAG_TO_SECTION)) {
+        const enabled = Boolean(flags?.[flag]);
+        if (enabled) {
+            const existing = await HomepageSection.findOne({
+                section,
+                product: productObjectId,
+            });
+            if (!existing) {
+                const maxOrder = await HomepageSection.findOne({ section })
+                    .sort({ order: -1 })
+                    .select("order");
+                const nextOrder = (maxOrder?.order ?? -1) + 1;
+                operations.push(
+                    HomepageSection.create({
+                        section,
+                        product: productObjectId,
+                        order: nextOrder,
+                    })
+                );
+            }
+        } else {
+            operations.push(
+                HomepageSection.deleteOne({
+                    section,
+                    product: productObjectId,
+                })
+            );
+        }
+    }
+
+    await Promise.all(operations);
+};
 
 /**
  * Normalize an incoming variants array: compute selling_price for every
@@ -223,7 +279,9 @@ export const createProduct = async (req, res) => {
             });
         }
 
-        const product = await Product.create(productData);
+const product = await Product.create(productData);
+
+        await syncHomepageSections(product._id, product);
 
         res.status(201).json({
             success: true,
@@ -257,12 +315,14 @@ export const updateProduct = async (req, res) => {
             }
         ).populate("category");
 
-        if (!updatedProduct) {
+if (!updatedProduct) {
             return res.status(404).json({
                 success: false,
                 message: "Product not found"
             });
         }
+
+        await syncHomepageSections(updatedProduct._id, updatedProduct);
 
         res.status(200).json({
             success: true,
@@ -287,12 +347,14 @@ export const deleteProduct = async (req, res) => {
 
         const deletedProduct = await Product.findByIdAndDelete(id);
 
-        if (!deletedProduct) {
+if (!deletedProduct) {
             return res.status(404).json({
                 success: false,
                 message: "Product not found"
             });
         }
+
+        await HomepageSection.deleteMany({ product: deletedProduct._id });
 
         res.status(200).json({
             success: true,

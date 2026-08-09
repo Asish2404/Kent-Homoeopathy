@@ -11,10 +11,10 @@ import Consult8 from "../assets/Consult8.png";
 const slides = [
   {
     id: 1,
-    title: "Medical Consultation",
-    description: "Connect with trusted doctors for guidance tailored to you.",
-    primaryCta: "Consult Doctor",
-    secondaryCta: "Find a Specialist",
+    title: "Trusted Homeopathic Care",
+    description: "Authentic remedies and wellness support tailored to you.",
+    primaryCta: "Shop Now",
+    secondaryCta: "Explore Products",
     image:
       Consult1
   },
@@ -30,7 +30,7 @@ const slides = [
   {
     id: 3,
     title: "Medicines, Verified & Trusted",
-    description: "Premium healthcare products sourced with care and delivered fast.",
+    description: "Premium healthcare products sourced with care and quality assured.",
     primaryCta: "Explore Products",
     secondaryCta: "Order Medicines",
     image:
@@ -66,20 +66,20 @@ const slides = [
     id: 7,
     title: "Preventive Healthcare",
     description: "Stay ahead—tests and guidance designed to help you act early.",
-    primaryCta: "Consult Doctor",
+    primaryCta: "Explore Products",
     secondaryCta: "Book Lab Tests",
     image:
       Consult7
   },
   {
     id: 8,
-    title: "Trusted Care, Modern Delivery",
+    title: "Trusted Care, Modern Support",
     description: "Premium experience—real people, reliable medicines, and timely support.",
     primaryCta: "Shop Now",
+    secondaryCta: "Explore Products",
     image:
       Consult8
   }
 ];
 
 export default slides;
-

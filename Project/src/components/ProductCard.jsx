@@ -19,10 +19,10 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default", q
   const cart = useCartContext();
   const navigate = useNavigate();
   const {
-    name,
+name,
     price,
     oldPrice,
-    rating = 4.8,
+    rating = 0,
     reviews = 0,
     image,
     discount,
@@ -153,8 +153,8 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default", q
           <p className="mt-1 text-[11px] text-neutral-500 font-medium">{pack}</p>
         )}
 
-        {/* Rating (default only) */}
-        {!isCompact && (
+{/* Rating (default only) — only shown when real reviews exist */}
+        {!isCompact && reviews > 0 && rating > 0 && (
           <div className="flex items-center gap-1.5 mb-3 mt-1">
             <div className="flex text-amber-400 text-xs gap-0.5">
               {[...Array(5)].map((_, i) => (
@@ -162,7 +162,7 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default", q
               ))}
             </div>
             <span className="text-xs text-neutral-500 font-medium">
-              {rating.toFixed(1)} {reviews > 0 && `(${reviews.toLocaleString()})`}
+              {rating.toFixed(1)} ({reviews.toLocaleString()})
             </span>
           </div>
         )}

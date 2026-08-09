@@ -7,9 +7,9 @@ const FAQ = [
     q: "Are the medicines genuine?",
     a: "Yes. Every product is sourced from certified manufacturers, stored in GMP-compliant facilities, and verified by our in-house pharmacists before dispatch.",
   },
-  {
-    q: "Do you offer online doctor consultation?",
-    a: "Absolutely. You can book a video, audio, or chat consultation with our certified homeopathy practitioners from the Consult Doctor page.",
+{
+    q: "Do you offer prescription medicines?",
+    a: "Yes. We stock a wide range of genuine homoeopathic medicines. For prescription-required products, our pharmacists will guide you through the ordering process.",
   },
   {
     q: "What is your return and refund policy?",

@@ -22,7 +22,6 @@ const highlightText = (text, query) => {
 
 const SECTION_LABELS = {
   products: "Products",
-  doctors: "Doctors",
   categories: "Categories",
   labTests: "Lab Tests",
   faqs: "FAQs",
@@ -30,7 +29,6 @@ const SECTION_LABELS = {
 
 const getEntityTarget = (group, item) => {
   if (group === "products") return `/products/${item._id}`;
-  if (group === "doctors") return `/Consult?doctor=${item._id}`;
   if (group === "categories") return `/Products?category=${encodeURIComponent(item.category_name || "")}`;
   if (group === "labTests") return `/Labtest?test=${item._id}`;
   if (group === "faqs") return `/Contact?faq=${encodeURIComponent(item.question || "")}`;
@@ -44,7 +42,7 @@ export default function SearchBox({
   onSearch,
 }) {
   const [value, setValue] = useState("");
-  const [results, setResults] = useState({ products: [], doctors: [], categories: [], labTests: [], faqs: [] });
+  const [results, setResults] = useState({ products: [], categories: [], labTests: [], faqs: [] });
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [open, setOpen] = useState(false);
@@ -68,7 +66,7 @@ export default function SearchBox({
   }, [results]);
 
   const groupedResults = useMemo(() => {
-    const groups = ["products", "doctors", "categories", "labTests", "faqs"];
+    const groups = ["products", "categories", "labTests", "faqs"];
     const flat = [];
     groups.forEach((group) => {
       const items = results[group] || [];
@@ -95,7 +93,6 @@ export default function SearchBox({
       if (!controller.signal.aborted) {
         setResults({
           products: data.products || [],
-          doctors: data.doctors || [],
           categories: data.categories || [],
           labTests: data.labTests || [],
           faqs: data.faqs || [],
@@ -103,7 +100,7 @@ export default function SearchBox({
       }
     } catch {
       if (!controller.signal.aborted) {
-        setResults({ products: [], doctors: [], categories: [], labTests: [], faqs: [] });
+        setResults({ products: [], categories: [], labTests: [], faqs: [] });
       }
     } finally {
       if (!controller.signal.aborted) {
@@ -123,7 +120,7 @@ export default function SearchBox({
     if (!q) {
       // Reset results when input is cleared - defer to avoid cascading render warnings
       const resetTimer = setTimeout(() => {
-        setResults({ products: [], doctors: [], categories: [], labTests: [], faqs: [] });
+        setResults({ products: [], categories: [], labTests: [], faqs: [] });
         setLoading(false);
       }, 0);
       return () => clearTimeout(resetTimer);
@@ -195,7 +192,6 @@ export default function SearchBox({
 
   const getItemMeta = (group, item) => {
     if (group === "products") return item.brand;
-    if (group === "doctors") return item.specialization;
     if (group === "categories") return "Category";
     if (group === "labTests") return `₹${item.price ?? 0}`;
     if (group === "faqs") return item.category;
@@ -204,7 +200,6 @@ export default function SearchBox({
 
   const getItemLabel = (group, item) => {
     if (group === "products") return item.product_name;
-    if (group === "doctors") return item.doctor_name;
     if (group === "categories") return item.category_name;
     if (group === "labTests") return item.test_name;
     if (group === "faqs") return item.question;
@@ -366,9 +361,8 @@ export default function SearchBox({
                       setOpen(false);
                       inputRef.current?.blur();
                     }}
-                    className={`w-full text-left px-4 py-3 border-b border-neutral-100 last:border-b-0 transition flex items-center justify-between gap-3 ${
-                      index === activeIndex ? "bg-[var(--brand-50)]" : "bg-white hover:bg-neutral-50"
-                    }`}
+                    className={`w-full text-left px-4 py-3 border-b border-neutral-100 last:border-b-0 transition flex items-center justify-between gap-3 ${index === activeIndex ? "bg-[var(--brand-50)]" : "bg-white hover:bg-neutral-50"
+                      }`}
                   >
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold text-neutral-900 truncate">
