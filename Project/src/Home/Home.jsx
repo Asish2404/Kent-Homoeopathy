@@ -148,7 +148,7 @@ const Home = () => {
           title="Featured Products"
           subtitle="Handpicked for you"
           products={featuredProducts}
-          onViewAll={() => navigate("/Products")}
+          onViewAll={() => navigate("/Products?section=featured")}
           bgClass="bg-transparent"
           compact
         />
@@ -224,7 +224,7 @@ const Home = () => {
           title="New Arrivals"
           subtitle="Fresh from the clinic"
           products={newArrivalsSection}
-          onViewAll={() => navigate("/Products")}
+          onViewAll={() => navigate("/Products?section=new_arrivals")}
           viewAllLabel="View All New Arrivals"
           bgClass="bg-white"
         />
@@ -236,7 +236,7 @@ const Home = () => {
           title="Trending Now"
           subtitle="Most loved this week"
           products={trendingSection}
-          onViewAll={() => navigate("/Products")}
+          onViewAll={() => navigate("/Products?section=trending")}
           viewAllLabel="View All Trending"
           bgClass="section-soft"
         />
@@ -248,7 +248,7 @@ const Home = () => {
           title="Best Sellers"
           subtitle="Customer favourites"
           products={bestSellersSection}
-          onViewAll={() => navigate("/Products")}
+          onViewAll={() => navigate("/Products?section=best_sellers")}
           viewAllLabel="View All Best Sellers"
           bgClass="bg-white"
         />
@@ -260,7 +260,7 @@ const Home = () => {
           title="Top Picks of the Day"
           subtitle="Handpicked daily"
           products={topPicksSection}
-          onViewAll={() => navigate("/Products")}
+          onViewAll={() => navigate("/Products?section=top_picks")}
           viewAllLabel="View All Top Picks"
           bgClass="section-soft"
         />

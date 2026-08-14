@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Product } from "../models/atanu.product.model.js";
+import { Category } from "../models/atanu.category.model.js";
 import { HomepageSection } from "../models/homepageSection.model.js";
 
 // Map product section flags to the corresponding homepage section keys.
@@ -20,7 +21,7 @@ const FLAG_TO_SECTION = {
 const syncHomepageSections = async (productId, flags) => {
     if (!productId) return;
     const productObjectId =
-        typeof productId === "string" ? mongoose.Types.ObjectId(productId) : productId;
+        typeof productId === "string" ? new mongoose.Types.ObjectId(productId) : productId;
 
     const operations = [];
     for (const [flag, section] of Object.entries(FLAG_TO_SECTION)) {
@@ -169,64 +170,132 @@ const normalizeProductPayload = (body = {}) => {
 
 export const getAllProducts = async (req, res) => {
     try {
-        const { section, discount, category, limit } = req.query;
+        const { section, discount, category, q, query: searchQuery, limit } = req.query;
         const filter = {};
 
         // Homepage section flags (Featured, New Arrivals, Trending, Best Sellers, Top Picks)
         if (section && typeof section === "string") {
+            const normalizedSec = section.trim().toLowerCase().replace(/-/g, "_");
             const flags = {
                 featured: "featured",
                 new_arrivals: "new_arrival",
+                new_arrival: "new_arrival",
                 trending: "trending",
                 best_sellers: "best_seller",
+                best_seller: "best_seller",
                 top_picks: "top_pick",
+                top_pick: "top_pick",
             };
-            const field = flags[section];
+            const field = flags[normalizedSec];
             if (field) filter[field] = true;
         }
 
-// Automatic discount collections (20% OFF, 30% OFF, 50% OFF, 70% OFF).
-        // A product automatically belongs to a discount bucket when any of its
-        // variants carries a discount_percent within that bucket (25–35% for
-        // the 30% OFF section, etc.). No manual assignment is required.
+        // Automatic discount collections (20% OFF, 30% OFF, 50% OFF, 70% OFF)
         if (discount && typeof discount === "string") {
             const pct = Number(discount.replace(/[^0-9.]/g, "")) || 0;
             const target = { 20: 20, 30: 30, 50: 50, 70: 70 }[pct];
             if (target) {
-                filter["variants.discount_percent"] = {
-                    $gte: target - 5,
-                    $lte: target + 5,
-                };
+                filter.$or = [
+                    { "variants.discount_percent": { $gte: target - 5, $lte: target + 5 } },
+                    {
+                        $expr: {
+                            $and: [
+                                { $gt: ["$mrp_price", 0] },
+                                { $gt: ["$discount_price", 0] },
+                                {
+                                    $gte: [
+                                        {
+                                            $multiply: [
+                                                {
+                                                    $divide: [
+                                                        { $subtract: ["$mrp_price", "$discount_price"] },
+                                                        "$mrp_price",
+                                                    ],
+                                                },
+                                                100,
+                                            ],
+                                        },
+                                        target - 5,
+                                    ],
+                                },
+                                {
+                                    $lte: [
+                                        {
+                                            $multiply: [
+                                                {
+                                                    $divide: [
+                                                        { $subtract: ["$mrp_price", "$discount_price"] },
+                                                        "$mrp_price",
+                                                    ],
+                                                },
+                                                100,
+                                            ],
+                                        },
+                                        target + 5,
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                ];
             }
         }
 
-        // Category slug / id filter
-        if (category) {
-            filter.category = category;
+        // Category filter: handle ObjectId, slug, or category_name
+        if (category && typeof category === "string" && category.trim() !== "" && category.toLowerCase() !== "all") {
+            const rawCat = category.trim();
+            if (mongoose.Types.ObjectId.isValid(rawCat) && rawCat.length === 24) {
+                filter.category = new mongoose.Types.ObjectId(rawCat);
+            } else {
+                const words = rawCat.replace(/-/g, " ");
+                const catDoc = await Category.findOne({
+                    $or: [
+                        { category_name: new RegExp(`^${rawCat}$`, "i") },
+                        { category_name: new RegExp(`^${words}$`, "i") },
+                    ],
+                });
+                if (catDoc) {
+                    filter.category = catDoc._id;
+                } else {
+                    filter.category = null;
+                }
+            }
         }
 
-        let query = Product.find(filter).populate("category");
+        // Search text filter
+        const searchTerm = (q || searchQuery || "").trim();
+        if (searchTerm) {
+            const rx = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+            filter.$and = filter.$and || [];
+            filter.$and.push({
+                $or: [
+                    { product_name: rx },
+                    { brand: rx },
+                    { short_description: rx },
+                    { detailed_description: rx },
+                ],
+            });
+        }
+
+        let queryBuilder = Product.find(filter).populate("category");
 
         if (limit) {
             const lim = Number(limit);
-            if (Number.isFinite(lim) && lim > 0) query = query.limit(lim);
+            if (Number.isFinite(lim) && lim > 0) queryBuilder = queryBuilder.limit(lim);
         }
 
-        const products = await query;
+        const products = await queryBuilder;
 
         res.status(200).json({
             success: true,
             count: products.length,
-            products
+            products,
         });
-
     } catch (error) {
-
         res.status(500).json({
             success: false,
-            message: error.message
+            message: error.message,
         });
-
     }
 };
 

@@ -1,32 +1,53 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-
 import { FaHeart } from "react-icons/fa";
 import { HiOutlineSparkles } from "react-icons/hi2";
 import { FiSearch, FiFilter, FiX } from "react-icons/fi";
-import { allCategories } from "./data/products";
 import { useCartContext } from "./Cart/CartContext";
 import api from "./services/api";
 
-
+const SECTION_OPTIONS = [
+  { id: "all", label: "All Products" },
+  { id: "featured", label: "Featured" },
+  { id: "trending", label: "Trending" },
+  { id: "best_sellers", label: "Best Sellers" },
+  { id: "top_picks", label: "Top Picks" },
+  { id: "new_arrivals", label: "New Arrivals" },
+];
 
 const ProductsCatalog = () => {
   const navigate = useNavigate();
   const cart = useCartContext();
   const location = useLocation();
 
-  // ===== API-driven product list (with static fallback) =====
+  // API-driven data
   const [apiProducts, setApiProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState("");
 
-  const fetchProducts = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setProductsLoading(true);
     setProductsError("");
     try {
-      const res = await api.get("/products");
-      const items = res.data?.products || res.data?.data?.products || [];
+      const [prodRes, catRes] = await Promise.all([
+        api.get("/products"),
+        api.get("/category").catch(() => ({ data: { categories: [] } })),
+      ]);
+
+      const items = prodRes.data?.products || prodRes.data?.data?.products || [];
       setApiProducts(Array.isArray(items) ? items : []);
+
+      const catList = catRes.data?.categories || catRes.data?.data || [];
+      if (Array.isArray(catList) && catList.length > 0) {
+        setCategories(
+          catList.map((c) => ({
+            id: c._id || c.id,
+            slug: c.slug || c.category_name?.toLowerCase().replace(/\s+/g, "-"),
+            title: c.category_name || c.name || "Category",
+          }))
+        );
+      }
     } catch (err) {
       setProductsError(
         err?.response?.data?.message || err.message || "Failed to load products."
@@ -37,70 +58,95 @@ const ProductsCatalog = () => {
     }
   }, []);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+    fetchData();
+  }, [fetchData]);
 
   const normalizeApiProduct = useCallback((raw) => {
     const product_name = raw.product_name || raw.name || "";
     const product_image = raw.product_image || raw.image || "";
-    const category =
+    const categoryName =
       raw.category?.category_name ||
-      (typeof raw.category === "string" ? raw.category : "Products");
+      (typeof raw.category === "string" ? raw.category : "General");
+    const categoryId = raw.category?._id || (typeof raw.category === "string" ? raw.category : "");
     const price = Number(raw.discount_price ?? raw.price ?? 0);
     const mrp = Number(raw.mrp_price ?? raw.oldPrice ?? price);
+
+    let discountPct = 0;
+    if (typeof raw.discount === "number") {
+      discountPct = raw.discount;
+    } else if (typeof raw.discount === "string") {
+      const m = raw.discount.match(/(\d+(?:\.\d+)?)%/);
+      if (m) discountPct = Number(m[1]);
+    } else if (mrp > 0 && price > 0 && mrp > price) {
+      discountPct = Math.round(((mrp - price) / mrp) * 100);
+    }
+
     return {
       id: raw._id || raw.id,
+      _id: raw._id || raw.id,
       name: product_name,
       image: product_image,
       price,
       oldPrice: mrp > price ? mrp : undefined,
-      rating: Number(raw.rating || 0),
-      reviews: Number(raw.reviews || raw.reviewCount || 0),
-      categoryTitle: category,
+      rating: Number(raw.averageRating || raw.rating || 0),
+      reviews: Number(raw.totalReviews || raw.reviews || raw.reviewCount || 0),
+      categoryTitle: categoryName,
+      categoryId,
       brand: raw.brand || "Dr. Kent",
       isInStock: (raw.stock ?? raw.inStock ?? 0) > 0,
-      deliveryETA: raw.deliveryETA || "24 hrs",
-      consultRequired: raw.consultRequired ?? false,
-      badge: raw.badge || "",
-      discount: raw.discount,
+      badge: raw.badge || (raw.best_seller ? "Best Seller" : raw.new_arrival ? "New" : raw.featured ? "Featured" : raw.top_pick ? "Top Pick" : ""),
+      discount: discountPct > 0 ? `-${discountPct}%` : undefined,
+      discountPct,
       shortDescription: raw.short_description || raw.shortDescription || "",
       longDescription: raw.detailed_description || raw.detailedDescription || "",
+      featured: Boolean(raw.featured),
+      trending: Boolean(raw.trending),
+      best_seller: Boolean(raw.best_seller),
+      top_pick: Boolean(raw.top_pick),
+      new_arrival: Boolean(raw.new_arrival),
       mrp,
-      _id: raw._id,
     };
   }, []);
 
-  const staticProducts = useMemo(() => {
-    return allCategories.flatMap((c) => c.products || []).map((p) => ({
-      ...p,
-      categoryTitle:
-        allCategories.find((cc) => cc.products?.some((pp) => pp.id === p.id))?.title || "Products",
-      isInStock: true,
-      brand: "Dr. Kent",
-      deliveryETA: "24 hrs",
-      consultRequired: true,
-    }));
-  }, []);
-
   const allProducts = useMemo(() => {
-    const apiList = Array.isArray(apiProducts)
-      ? apiProducts.map(normalizeApiProduct)
-      : [];
-    if (apiList.length > 0) return apiList;
-    return staticProducts;
-  }, [apiProducts, staticProducts, normalizeApiProduct]);
+    return Array.isArray(apiProducts) ? apiProducts.map(normalizeApiProduct) : [];
+  }, [apiProducts, normalizeApiProduct]);
+
+  // If categories API was empty, fallback to extracting unique categories from products
+  const dynamicCategories = useMemo(() => {
+    if (categories.length > 0) return categories;
+    const map = new Map();
+    allProducts.forEach((p) => {
+      if (p.categoryTitle && !map.has(p.categoryTitle.toLowerCase())) {
+        map.set(p.categoryTitle.toLowerCase(), {
+          id: p.categoryId || p.categoryTitle.toLowerCase().replace(/\s+/g, "-"),
+          slug: p.categoryTitle.toLowerCase().replace(/\s+/g, "-"),
+          title: p.categoryTitle,
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [categories, allProducts]);
+
+  // Dynamic brands from products
+  const dynamicBrands = useMemo(() => {
+    const set = new Set();
+    allProducts.forEach((p) => {
+      if (p.brand && p.brand.trim()) set.add(p.brand.trim());
+    });
+    return Array.from(set);
+  }, [allProducts]);
 
   // UI state
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [activeSection, setActiveSection] = useState("all");
   const [availability, setAvailability] = useState("any");
   const [brand, setBrand] = useState("any");
   const [minRating, setMinRating] = useState(0);
-  const [consultRequired, setConsultRequired] = useState("any");
-  const [deliveryOption, setDeliveryOption] = useState("any");
+  const [targetDiscount, setTargetDiscount] = useState(0);
+
   const prices = useMemo(() => {
     return allProducts
       .map((p) => Number(p.price) || 0)
@@ -108,121 +154,141 @@ const ProductsCatalog = () => {
   }, [allProducts]);
 
   const priceMin = prices.length ? Math.floor(Math.min(...prices)) : 0;
-  const priceMaxOverall = prices.length ? Math.ceil(Math.max(...prices)) : 0;
+  const priceMaxOverall = prices.length ? Math.ceil(Math.max(...prices)) : 5000;
 
-  // Price slider state (selected max)
   const [selectedPriceMax, setSelectedPriceMax] = useState(priceMaxOverall);
 
-
-
+  useEffect(() => {
+    if (priceMaxOverall > 0) {
+      setSelectedPriceMax(priceMaxOverall);
+    }
+  }, [priceMaxOverall]);
 
   const safeSelectedPriceMax = Math.min(
-    Math.max(selectedPriceMax, priceMin),
-    priceMaxOverall
+    Math.max(selectedPriceMax || priceMaxOverall, priceMin),
+    priceMaxOverall || 5000
   );
 
-const [sortKey, setSortKey] = useState("relevance");
+  const [sortKey, setSortKey] = useState("relevance");
   const [filterOpen, setFilterOpen] = useState(false);
 
   const hasActiveFilters =
     activeCategory !== "all" ||
+    activeSection !== "all" ||
     availability !== "any" ||
     brand !== "any" ||
     minRating > 0 ||
-    consultRequired !== "any" ||
-    deliveryOption !== "any" ||
+    targetDiscount > 0 ||
     safeSelectedPriceMax < priceMaxOverall;
 
-
-
-
-
-
-  const categoriesForSidebar = useMemo(() => {
-    return allCategories.map((c) => ({ id: c.id, title: c.title }));
-  }, []);
-
+  // Filter and Sort results
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-
     let list = [...allProducts];
 
+    // Category filter
     if (activeCategory !== "all") {
-      const cat = allCategories.find((c) => c.id === activeCategory);
-      const ids = new Set(cat?.products?.map((p) => p.id) || []);
-      const catTitle = (cat?.title || "").toLowerCase().trim();
+      const targetCat = dynamicCategories.find(
+        (c) =>
+          c.id === activeCategory ||
+          c.slug === activeCategory.toLowerCase() ||
+          c.title.toLowerCase() === activeCategory.toLowerCase()
+      );
+      const targetTitle = (targetCat?.title || activeCategory).toLowerCase().trim();
+      const targetId = targetCat?.id || activeCategory;
+
       list = list.filter((p) => {
-        // Static products are matched by their numeric id.
-        if (ids.has(p.id)) return true;
-        // API products carry categoryTitle from MongoDB — match by title.
-        if (catTitle) {
-          return String(p.categoryTitle || "").toLowerCase().trim() === catTitle;
-        }
+        if (p.categoryId && String(p.categoryId) === String(targetId)) return true;
+        if (p.categoryTitle && p.categoryTitle.toLowerCase().trim() === targetTitle) return true;
         return false;
       });
     }
 
+    // Section filter
+    if (activeSection !== "all") {
+      const sec = activeSection.toLowerCase().replace(/-/g, "_");
+      if (sec === "featured") list = list.filter((p) => p.featured);
+      else if (sec === "trending") list = list.filter((p) => p.trending);
+      else if (sec === "best_sellers" || sec === "best_seller") list = list.filter((p) => p.best_seller);
+      else if (sec === "top_picks" || sec === "top_pick") list = list.filter((p) => p.top_pick);
+      else if (sec === "new_arrivals" || sec === "new_arrival") list = list.filter((p) => p.new_arrival);
+    }
+
+    // Discount filter
+    if (targetDiscount > 0) {
+      list = list.filter((p) => {
+        const pct = p.discountPct || 0;
+        return pct >= targetDiscount - 5 && pct <= targetDiscount + 15;
+      });
+    }
+
+    // Query filter
     if (q) {
       list = list.filter((p) =>
-        [p.name, p.categoryTitle].some((x) => String(x || "").toLowerCase().includes(q))
+        [p.name, p.categoryTitle, p.brand, p.shortDescription].some((x) =>
+          String(x || "").toLowerCase().includes(q)
+        )
       );
     }
 
+    // Availability filter
     if (availability !== "any") {
       if (availability === "in_stock") list = list.filter((p) => p.isInStock);
       if (availability === "out_of_stock") list = list.filter((p) => !p.isInStock);
     }
 
+    // Brand filter
     if (brand !== "any") {
       list = list.filter((p) => p.brand === brand);
     }
 
+    // Rating filter
     if (minRating > 0) {
       list = list.filter((p) => Number(p.rating || 0) >= minRating);
     }
 
-    if (consultRequired !== "any") {
-      const want = consultRequired === "required";
-      list = list.filter((p) => Boolean(p.consultRequired) === want);
-    }
-
-    if (deliveryOption !== "any") {
-      list = list.filter((p) => String(p.deliveryETA || "").includes(deliveryOption === "fast" ? "hrs" : ""));
-    }
-
-    // price range (simple max)
+    // Price range
     list = list.filter((p) => Number(p.price || 0) <= safeSelectedPriceMax);
 
-    // sorting
-
-
+    // Sorting
     list.sort((a, b) => {
       if (sortKey === "price_low") return Number(a.price) - Number(b.price);
       if (sortKey === "price_high") return Number(b.price) - Number(a.price);
       if (sortKey === "rating_high") return Number(b.rating) - Number(a.rating);
-      // relevance fallback
+      // relevance
       const ar = Number(a.rating || 0) * 0.7 + Number(a.reviews || 0) * 0.00001;
       const br = Number(b.rating || 0) * 0.7 + Number(b.reviews || 0) * 0.00001;
       return br - ar;
     });
 
     return list;
-  }, [activeCategory, availability, allProducts, brand, consultRequired, deliveryOption, minRating, safeSelectedPriceMax, query, sortKey]);
+  }, [
+    activeCategory,
+    activeSection,
+    allProducts,
+    availability,
+    brand,
+    dynamicCategories,
+    minRating,
+    query,
+    safeSelectedPriceMax,
+    sortKey,
+    targetDiscount,
+  ]);
 
-
-const resetFilters = () => {
+  const resetFilters = () => {
     setQuery("");
     setActiveCategory("all");
+    setActiveSection("all");
     setAvailability("any");
     setBrand("any");
     setMinRating(0);
-    setConsultRequired("any");
-    setDeliveryOption("any");
+    setTargetDiscount(0);
     setSelectedPriceMax(priceMaxOverall);
     setSortKey("relevance");
   };
 
-  // Lock body scroll while the mobile filter drawer is open
+  // Lock body scroll when mobile drawer open
   useEffect(() => {
     if (filterOpen) {
       const prev = document.body.style.overflow;
@@ -237,82 +303,55 @@ const resetFilters = () => {
     setFilterOpen(false);
   };
 
-
-  // Read URL params (global search / category) and apply only those filters
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // Sync URL parameters (?category=, ?section=, ?discount=, ?query=)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = params.get("query") || "";
-    const catParamRaw = params.get("category") || "";
-    const catParam = catParamRaw.trim();
+    const catParam = (params.get("category") || "").trim();
+    const secParam = (params.get("section") || "").trim().toLowerCase();
+    const discParam = params.get("discount") || "";
 
-    // Always keep category in sync with URL (including refresh)
-    const normalize = (s) => String(s || "").trim().toLowerCase();
-    const resolveCategoryId = (value) => {
-      const v = normalize(value);
-      if (!v) return "all";
-
-      // 1) If URL already uses category ids (e.g. pain, women)
-      const byId = allCategories.find((c) => normalize(c.id) === v);
-      if (byId) return byId.id;
-
-      // 2) If URL uses category titles (e.g. "Pain Relief", "Women's Wellness")
-      const byTitle = allCategories.find((c) => normalize(c.title) === v);
-      if (byTitle) return byTitle.id;
-
-      // 3) Fallback invalid => All
-      return "all";
-    };
-
-    const nextActiveCategory = resolveCategoryId(catParam);
-
-    if (q || catParam) {
-      // reset other filters then apply only query + category
+    if (q || catParam || secParam || discParam) {
       setAvailability("any");
       setBrand("any");
       setMinRating(0);
-      setConsultRequired("any");
-      setDeliveryOption("any");
-      setSelectedPriceMax(priceMaxOverall);
       setSortKey("relevance");
 
-
       setQuery(q);
-      setActiveCategory(nextActiveCategory);
+
+      if (catParam) {
+        setActiveCategory(catParam);
+      } else {
+        setActiveCategory("all");
+      }
+
+      if (secParam) {
+        setActiveSection(secParam);
+      } else {
+        setActiveSection("all");
+      }
+
+      if (discParam) {
+        const num = Number(discParam.replace(/[^0-9.]/g, "")) || 0;
+        setTargetDiscount(num);
+      } else {
+        setTargetDiscount(0);
+      }
     } else {
-      // No query/category in URL => default to All
       setQuery("");
       setActiveCategory("all");
+      setActiveSection("all");
+      setTargetDiscount(0);
     }
-  }, [location.search, allProducts]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [location.search]);
 
   const handleProductClick = (product) => {
-    // Route by the MongoDB _id (what the backend expects). The numeric id
-    // is only used for display/sorting, never for API calls or routing.
     const routeId = product?._id || product?.id;
     navigate(`/products/${routeId}`, { state: { product } });
   };
 
-  const formatDiscountPct = (p) => {
-    // Prefer explicit discount format in data; fallback to computed old/new prices
-    if (typeof p.discount === "string" && p.discount.includes("%")) return p.discount;
-    const oldP = Number(p.oldPrice);
-    const curP = Number(p.price);
-    if (!Number.isFinite(oldP) || !Number.isFinite(curP) || oldP <= 0 || oldP <= curP) return null;
-    const pct = Math.round(((oldP - curP) / oldP) * 100);
-    return pct > 0 ? `-${pct}%` : null;
-  };
-
-  const reviewCountSafe = (p) => {
-    const r = Number(p.reviews || p.reviewCount || 0);
-    return r > 0 ? r.toLocaleString() : "";
-  };
-
   return (
     <div className="min-h-screen bg-neutral-50">
-
-
       {/* Title bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-7">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -358,7 +397,7 @@ const resetFilters = () => {
       {/* Main section: Filters + Product list */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
-          {/* Sidebar */}
+          {/* Sidebar (Desktop) */}
           <aside className="lg:sticky lg:top-24 self-start hidden md:block">
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
               <style>{`
@@ -370,7 +409,6 @@ const resetFilters = () => {
               `}</style>
 
               <div className="p-5 border-b border-neutral-100">
-
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="font-bold text-neutral-900">Filters</h2>
                   <button
@@ -385,36 +423,62 @@ const resetFilters = () => {
               </div>
 
               <div className="products-filter-scrollbar p-5 space-y-7">
+                {/* Section filter */}
+                <div>
+                  <div className="font-semibold text-neutral-900 mb-3">Sections</div>
+                  <div className="space-y-2">
+                    {SECTION_OPTIONS.map((sec) => (
+                      <button
+                        key={sec.id}
+                        type="button"
+                        onClick={() => setActiveSection(sec.id)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                          activeSection === sec.id
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
+                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                        }`}
+                      >
+                        {sec.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Category */}
                 <div>
                   <div className="font-semibold text-neutral-900 mb-3">Category</div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                     <button
                       type="button"
                       onClick={() => setActiveCategory("all")}
                       className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
                         activeCategory === "all"
-                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
                           : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
                       }`}
                     >
-                      All
+                      All Categories
                     </button>
-                    {categoriesForSidebar.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => setActiveCategory(c.id)}
-                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
-                          activeCategory === c.id
-                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
-                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
-                        }`}
-                      >
-                        {c.title}
-                      </button>
-                    ))}
+                    {dynamicCategories.map((c) => {
+                      const isActive =
+                        activeCategory === c.id ||
+                        activeCategory.toLowerCase() === c.slug?.toLowerCase() ||
+                        activeCategory.toLowerCase() === c.title?.toLowerCase();
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setActiveCategory(c.id)}
+                          className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                            isActive
+                              ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
+                              : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                          }`}
+                        >
+                          {c.title}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -424,7 +488,6 @@ const resetFilters = () => {
                   <div className="text-sm text-neutral-500 mb-2">
                     Up to ₹{safeSelectedPriceMax}
                   </div>
-
 
                   <div className="relative">
                     <div
@@ -445,22 +508,18 @@ const resetFilters = () => {
                     <input
                       type="range"
                       min={priceMin}
-                      max={priceMaxOverall}
+                      max={priceMaxOverall || 5000}
                       value={safeSelectedPriceMax}
                       onChange={(e) => setSelectedPriceMax(Number(e.target.value))}
                       className="w-full absolute left-0 top-0 h-2 bg-transparent appearance-none outline-none cursor-pointer"
-                      style={{
-                        background: "transparent",
-                      }}
+                      style={{ background: "transparent" }}
                     />
                   </div>
 
                   <div className="flex justify-between text-xs text-neutral-500 mt-2">
                     <span>₹{priceMin}</span>
-                    <span>₹{priceMaxOverall}</span>
+                    <span>₹{priceMaxOverall || 5000}</span>
                   </div>
-
-
                 </div>
 
                 {/* Availability */}
@@ -478,7 +537,7 @@ const resetFilters = () => {
                         onClick={() => setAvailability(opt.id)}
                         className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
                           availability === opt.id
-                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
                             : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
                         }`}
                       >
@@ -489,28 +548,38 @@ const resetFilters = () => {
                 </div>
 
                 {/* Brand */}
-                <div>
-                  <div className="font-semibold text-neutral-900 mb-3">Brand</div>
-                  <div className="space-y-2">
-                    {[
-                      { id: "any", label: "Any" },
-                      { id: "Dr. Kent", label: "Dr. Kent" },
-                    ].map((opt) => (
+                {dynamicBrands.length > 0 && (
+                  <div>
+                    <div className="font-semibold text-neutral-900 mb-3">Brand</div>
+                    <div className="space-y-2">
                       <button
-                        key={opt.id}
                         type="button"
-                        onClick={() => setBrand(opt.id)}
+                        onClick={() => setBrand("any")}
                         className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
-                          brand === opt.id
-                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          brand === "any"
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
                             : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
                         }`}
                       >
-                        {opt.label}
+                        Any Brand
                       </button>
-                    ))}
+                      {dynamicBrands.map((b) => (
+                        <button
+                          key={b}
+                          type="button"
+                          onClick={() => setBrand(b)}
+                          className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                            brand === b
+                              ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
+                              : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                          }`}
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Rating */}
                 <div>
@@ -518,9 +587,9 @@ const resetFilters = () => {
                   <div className="space-y-2">
                     {[
                       { id: 0, label: "Any" },
-                      { id: 4.5, label: "4.5+" },
-                      { id: 4.0, label: "4.0+" },
-                      { id: 3.5, label: "3.5+" },
+                      { id: 4.5, label: "4.5★ & above" },
+                      { id: 4.0, label: "4.0★ & above" },
+                      { id: 3.5, label: "3.5★ & above" },
                     ].map((opt) => (
                       <button
                         key={opt.id}
@@ -528,56 +597,7 @@ const resetFilters = () => {
                         onClick={() => setMinRating(opt.id)}
                         className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
                           minRating === opt.id
-                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
-                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Consultation Required */}
-                <div>
-                  <div className="font-semibold text-neutral-900 mb-3">Consultation</div>
-                  <div className="space-y-2">
-                    {[
-                      { id: "any", label: "Any" },
-                      { id: "required", label: "Required" },
-                      { id: "not_required", label: "Not required" },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setConsultRequired(opt.id)}
-                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
-                          consultRequired === opt.id
-                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
-                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Delivery Options */}
-                <div>
-                  <div className="font-semibold text-neutral-900 mb-3">Delivery Options</div>
-                  <div className="space-y-2">
-                    {[
-                      { id: "any", label: "Any" },
-                      { id: "fast", label: "Fast delivery" },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setDeliveryOption(opt.id)}
-                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
-                          deliveryOption === opt.id
-                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
                             : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
                         }`}
                       >
@@ -590,7 +610,7 @@ const resetFilters = () => {
             </div>
           </aside>
 
-{/* Product list */}
+          {/* Product list */}
           <section>
             {/* Mobile filters button */}
             <div className="md:hidden mb-4">
@@ -600,7 +620,7 @@ const resetFilters = () => {
                   onClick={() => setFilterOpen(true)}
                   className="flex-1 flex items-center justify-center gap-2 bg-white border border-neutral-200 rounded-2xl px-4 py-3 shadow-sm font-semibold text-neutral-800 text-sm hover:bg-neutral-50 transition min-h-[48px]"
                 >
-<FiFilter className="text-base" />
+                  <FiFilter className="text-base" />
                   Filters
                   {hasActiveFilters && (
                     <span className="w-2 h-2 rounded-full bg-[var(--brand-600)]" />
@@ -635,7 +655,7 @@ const resetFilters = () => {
                   <p className="text-neutral-500 text-sm mt-1">{productsError}</p>
                   <button
                     type="button"
-                    onClick={fetchProducts}
+                    onClick={fetchData}
                     className="btn-outline mt-4 py-2 px-4"
                   >
                     Retry
@@ -653,8 +673,8 @@ const resetFilters = () => {
                 </div>
               ) : (
                 results.map((p) => {
-                  const discountLabel = formatDiscountPct(p);
                   const rating = Number(p.rating || 0);
+                  const reviews = Number(p.reviews || 0);
 
                   return (
                     <div
@@ -666,17 +686,17 @@ const resetFilters = () => {
                         tabIndex={0}
                         onClick={() => handleProductClick(p)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') handleProductClick(p);
+                          if (e.key === "Enter" || e.key === " ") handleProductClick(p);
                         }}
                         className="w-full text-left cursor-pointer"
                       >
                         <div className="flex flex-col md:flex-row md:items-stretch">
-                          {/* Compact Image */}
+                          {/* Image */}
                           <div className="flex-shrink-0 p-3 md:p-4">
-                            <div className="relative w-[76px] sm:w-[88px] h-[76px] sm:h-[88px] rounded-xl overflow-hidden bg-gradient-to-br from-[var(--brand-50)] to-white border border-neutral-100 flex items-center justify-center">
-                              {discountLabel && (
+                            <div className="relative w-[88px] h-[88px] sm:w-[100px] sm:h-[100px] rounded-xl overflow-hidden bg-gradient-to-br from-[var(--brand-50)] to-white border border-neutral-100 flex items-center justify-center">
+                              {p.discount && (
                                 <div className="absolute top-2 left-2 z-10 bg-[var(--brand-600)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                                  {discountLabel}
+                                  {p.discount}
                                 </div>
                               )}
                               {p.badge && (
@@ -704,29 +724,30 @@ const resetFilters = () => {
                                   {p.categoryTitle}
                                 </p>
 
+                                {/* Rating (Only show if reviews > 0 && rating > 0) */}
                                 <div className="flex items-center gap-2 mt-2">
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-amber-500 font-extrabold">★</span>
-                                    <span className="font-semibold text-neutral-800 text-[13px]">
-                                      {rating.toFixed(1)}
+                                  {reviews > 0 && rating > 0 ? (
+                                    <>
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-amber-500 font-extrabold">★</span>
+                                        <span className="font-semibold text-neutral-800 text-[13px]">
+                                          {rating.toFixed(1)}
+                                        </span>
+                                      </div>
+                                      <span className="text-neutral-500 text-[12px]">
+                                        ({reviews} {reviews === 1 ? "review" : "reviews"})
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="text-neutral-400 text-[12px] italic">
+                                      No reviews yet
                                     </span>
-                                  </div>
-                                  <span className="text-neutral-500 text-[12px]">
-                                    ({reviewCountSafe(p)} reviews)
-                                  </span>
+                                  )}
                                 </div>
 
                                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-100 whitespace-nowrap">
-                                    Delivery {p.deliveryETA}
-                                  </span>
-
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--brand-50)] text-[var(--brand-700)] text-[11px] font-semibold border border-[var(--brand-100)]">
-                                    {p.consultRequired ? "Consultation" : "No consult"}
-                                  </span>
-
                                   <span
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                                       p.isInStock
                                         ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                                         : "bg-rose-50 text-rose-700 border-rose-100"
@@ -734,10 +755,15 @@ const resetFilters = () => {
                                   >
                                     {p.isInStock ? "In stock" : "Out of stock"}
                                   </span>
+                                  {p.brand && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 text-[11px]">
+                                      {p.brand}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
 
-                              {/* Price + actions */}
+                              {/* Price + Actions */}
                               <div className="shrink-0 w-full sm:w-auto">
                                 <div className="flex items-end justify-between gap-3">
                                   <div className="flex items-baseline gap-2">
@@ -747,11 +773,6 @@ const resetFilters = () => {
                                     {p.oldPrice && (
                                       <div className="text-[12px] text-neutral-400 line-through">
                                         ₹{p.oldPrice}
-                                      </div>
-                                    )}
-                                    {p.discount && typeof p.discount === "string" && !p.discount.includes("%") && (
-                                      <div className="text-[11px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-                                        {p.discount}
                                       </div>
                                     )}
                                   </div>
@@ -827,7 +848,7 @@ const resetFilters = () => {
                 })
               )}
             </div>
-</section>
+          </section>
         </div>
       </div>
 
@@ -856,36 +877,63 @@ const resetFilters = () => {
               </button>
             </div>
 
-<div className="products-filter-scrollbar p-5 space-y-7 overflow-y-auto flex-1 safe-scroll-pad">
+            <div className="products-filter-scrollbar p-5 space-y-7 overflow-y-auto flex-1 safe-scroll-pad">
+              {/* Section filter */}
+              <div>
+                <div className="font-semibold text-neutral-900 mb-3">Sections</div>
+                <div className="space-y-2">
+                  {SECTION_OPTIONS.map((sec) => (
+                    <button
+                      key={sec.id}
+                      type="button"
+                      onClick={() => setActiveSection(sec.id)}
+                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                        activeSection === sec.id
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
+                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                      }`}
+                    >
+                      {sec.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Category */}
               <div>
                 <div className="font-semibold text-neutral-900 mb-3">Category</div>
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                   <button
                     type="button"
                     onClick={() => setActiveCategory("all")}
                     className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
                       activeCategory === "all"
-                        ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                        ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
                         : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
                     }`}
                   >
-                    All
+                    All Categories
                   </button>
-                  {categoriesForSidebar.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setActiveCategory(c.id)}
-                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
-                        activeCategory === c.id
-                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
-                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
-                      }`}
-                    >
-                      {c.title}
-                    </button>
-                  ))}
+                  {dynamicCategories.map((c) => {
+                    const isActive =
+                      activeCategory === c.id ||
+                      activeCategory.toLowerCase() === c.slug?.toLowerCase() ||
+                      activeCategory.toLowerCase() === c.title?.toLowerCase();
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setActiveCategory(c.id)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                          isActive
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
+                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                        }`}
+                      >
+                        {c.title}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -898,14 +946,14 @@ const resetFilters = () => {
                 <input
                   type="range"
                   min={priceMin}
-                  max={priceMaxOverall}
+                  max={priceMaxOverall || 5000}
                   value={safeSelectedPriceMax}
                   onChange={(e) => setSelectedPriceMax(Number(e.target.value))}
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-neutral-500 mt-2">
                   <span>₹{priceMin}</span>
-                  <span>₹{priceMaxOverall}</span>
+                  <span>₹{priceMaxOverall || 5000}</span>
                 </div>
               </div>
 
@@ -924,7 +972,7 @@ const resetFilters = () => {
                       onClick={() => setAvailability(opt.id)}
                       className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
                         availability === opt.id
-                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
                           : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
                       }`}
                     >
@@ -935,28 +983,38 @@ const resetFilters = () => {
               </div>
 
               {/* Brand */}
-              <div>
-                <div className="font-semibold text-neutral-900 mb-3">Brand</div>
-                <div className="space-y-2">
-                  {[
-                    { id: "any", label: "Any" },
-                    { id: "Dr. Kent", label: "Dr. Kent" },
-                  ].map((opt) => (
+              {dynamicBrands.length > 0 && (
+                <div>
+                  <div className="font-semibold text-neutral-900 mb-3">Brand</div>
+                  <div className="space-y-2">
                     <button
-                      key={opt.id}
                       type="button"
-                      onClick={() => setBrand(opt.id)}
+                      onClick={() => setBrand("any")}
                       className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
-                        brand === opt.id
-                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                        brand === "any"
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
                           : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
                       }`}
                     >
-                      {opt.label}
+                      Any Brand
                     </button>
-                  ))}
+                    {dynamicBrands.map((b) => (
+                      <button
+                        key={b}
+                        type="button"
+                        onClick={() => setBrand(b)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
+                          brand === b
+                            ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
+                            : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
+                        }`}
+                      >
+                        {b}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Rating */}
               <div>
@@ -964,9 +1022,9 @@ const resetFilters = () => {
                 <div className="space-y-2">
                   {[
                     { id: 0, label: "Any" },
-                    { id: 4.5, label: "4.5+" },
-                    { id: 4.0, label: "4.0+" },
-                    { id: 3.5, label: "3.5+" },
+                    { id: 4.5, label: "4.5★ & above" },
+                    { id: 4.0, label: "4.0★ & above" },
+                    { id: 3.5, label: "3.5★ & above" },
                   ].map((opt) => (
                     <button
                       key={opt.id}
@@ -974,56 +1032,7 @@ const resetFilters = () => {
                       onClick={() => setMinRating(opt.id)}
                       className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
                         minRating === opt.id
-                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
-                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Consultation */}
-              <div>
-                <div className="font-semibold text-neutral-900 mb-3">Consultation</div>
-                <div className="space-y-2">
-                  {[
-                    { id: "any", label: "Any" },
-                    { id: "required", label: "Required" },
-                    { id: "not_required", label: "Not required" },
-                  ].map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setConsultRequired(opt.id)}
-                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
-                        consultRequired === opt.id
-                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
-                          : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Delivery Options */}
-              <div>
-                <div className="font-semibold text-neutral-900 mb-3">Delivery Options</div>
-                <div className="space-y-2">
-                  {[
-                    { id: "any", label: "Any" },
-                    { id: "fast", label: "Fast delivery" },
-                  ].map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setDeliveryOption(opt.id)}
-                      className={`w-full text-left text-sm px-3 py-2 rounded-xl border transition ${
-                        deliveryOption === opt.id
-                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)]"
+                          ? "bg-[var(--brand-50)] border-[var(--brand-200)] text-[var(--brand-800)] font-semibold"
                           : "bg-white border-neutral-200 text-neutral-700 hover:border-[var(--brand-200)]"
                       }`}
                     >
@@ -1058,4 +1067,3 @@ const resetFilters = () => {
 };
 
 export default ProductsCatalog;
-

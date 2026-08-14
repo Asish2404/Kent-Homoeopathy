@@ -199,7 +199,7 @@ const readUser = () => {
               <div className="w-full max-w-none lg:max-w-[320px] mx-auto min-w-0">
                 <SearchBox
                   className="relative h-[40px] w-full min-w-0 bg-[#F8FAFC] rounded-[14px] border border-[#E5E7EB] shadow-sm transition-all duration-250 hover:border-[var(--brand-300)] focus-within:border-[var(--brand-500)] focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]"
-                  placeholder="Search medicines, doctors..."
+                  placeholder="Search medicines..."
                   ariaLabel="Universal Search"
                   onSearch={handleSearch}
                 />
@@ -355,20 +355,6 @@ const readUser = () => {
                             <span className="font-medium whitespace-nowrap">Settings</span>
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigate("/Profile", { state: { tab: "appointments" } });
-                              setProfileOpen(false);
-                            }}
-                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--brand-50)] text-neutral-700 transition text-left w-full"
-                          >
-                            <FaUserMd className="text-[var(--brand-600)] text-lg" />
-                            <span className="font-medium whitespace-nowrap">
-                              My Appointments
-                            </span>
-                          </button>
-
                           <div className="border-t border-neutral-100 my-1" />
 
                           <button
@@ -497,7 +483,7 @@ const readUser = () => {
             <div className="w-full h-[44px] mb-3">
               <SearchBox
                 className="relative h-full w-full bg-[#F8FAFC] rounded-[14px] border border-[#E5E7EB] shadow-sm transition-all duration-250 focus-within:border-[var(--brand-500)] focus-within:shadow-[0_0_0_3px_rgba(34,197,94,0.15)]"
-                placeholder="Search medicines, doctors..."
+                placeholder="Search medicines..."
                 ariaLabel="Universal Search"
                 onSearch={handleSearch}
               />

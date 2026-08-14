@@ -15,7 +15,6 @@ import EmptyState from "../components/EmptyState";
 
 import Overview from "./Overview";
 import Orders from "./Orders";
-import Appointments from "./Appointments";
 import Wishlist from "./Wishlist";
 import Settings from "./Settings";
 
@@ -207,10 +206,6 @@ export default function Profile() {
       label: "My Orders",
     },
     {
-      id: "appointments",
-      label: "Appointments",
-    },
-    {
       id: "wishlist",
       label: "Wishlist",
     },
@@ -348,8 +343,6 @@ export default function Profile() {
                 onRetry={fetchOrders}
               />
             )}
-
-            {tab === "appointments" && <Appointments appointments={appointments} />}
 
             {tab === "wishlist" && (
               <Wishlist
