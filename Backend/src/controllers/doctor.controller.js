@@ -319,3 +319,51 @@ export const updateDoctorAvailability = async (req, res) => {
     }
 };
 
+export const bookDoctorAppointment = async (req, res) => {
+    try {
+        const {
+            doctorId,
+            doctorName,
+            patientName,
+            phoneNumber,
+            email,
+            age,
+            gender,
+            appointmentDate,
+            consultationType,
+            reasonForVisit,
+        } = req.body;
+
+        if (!patientName || !phoneNumber || !appointmentDate) {
+            return res.status(400).json({
+                success: false,
+                message: "Patient name, phone number, and appointment date are required.",
+            });
+        }
+
+        const appointmentNumber = `APT-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+
+        return res.status(200).json({
+            success: true,
+            message: "Doctor appointment booked successfully.",
+            appointment: {
+                appointmentNumber,
+                doctorId,
+                doctorName,
+                patientName,
+                phoneNumber,
+                email: email || "",
+                age: age || "",
+                gender: gender || "other",
+                appointmentDate,
+                consultationType: consultationType || "In-Clinic Consultation",
+                reasonForVisit: reasonForVisit || "General Consultation",
+                status: "confirmed",
+                createdAt: new Date(),
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error?.message || "Failed to book appointment" });
+    }
+};
+

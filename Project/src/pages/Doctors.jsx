@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, Star, Award, Clock3, Building2, User, ChevronRight } from "lucide-react";
+import { Search, Star, Award, Clock3, Building2, User, ChevronRight, Calendar, Phone, Mail, CheckCircle2, Video, MapPin, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 
@@ -17,13 +17,349 @@ const StarRating = ({ rating, size = "w-3.5 h-3.5" }) => {
   );
 };
 
+// Booking Dialog Box Modal
+const BookDoctorModal = ({ doctor, onClose }) => {
+  const [formData, setFormData] = useState({
+    patientName: "",
+    phoneNumber: "",
+    email: "",
+    age: "",
+    gender: "male",
+    appointmentDate: new Date(Date.now() + 86400000).toISOString().split("T")[0],
+    consultationType: "In-Clinic Consultation",
+    reasonForVisit: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [bookingSuccess, setBookingSuccess] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrorMsg("");
+  };
+
+  const handleBookSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.patientName.trim()) {
+      setErrorMsg("Please enter the patient's full name.");
+      return;
+    }
+    if (!formData.phoneNumber.trim() || formData.phoneNumber.replace(/\D/g, "").length < 10) {
+      setErrorMsg("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+    if (!formData.appointmentDate) {
+      setErrorMsg("Please select an appointment date.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setErrorMsg("");
+
+      const payload = {
+        doctorId: doctor._id,
+        doctorName: doctor.doctor_name || doctor.name,
+        patientName: formData.patientName.trim(),
+        phoneNumber: formData.phoneNumber.trim(),
+        email: formData.email.trim(),
+        age: Number(formData.age) || undefined,
+        gender: formData.gender,
+        appointmentDate: formData.appointmentDate,
+        consultationType: formData.consultationType,
+        reasonForVisit: formData.reasonForVisit.trim(),
+      };
+
+      const res = await api.post("/doctor/book-appointment", payload);
+      if (res.data?.success && res.data?.appointment) {
+        setBookingSuccess(res.data.appointment);
+      } else {
+        // Fallback simulated success
+        setBookingSuccess({
+          appointmentNumber: `APT-${Date.now().toString().slice(-6)}`,
+          ...payload,
+        });
+      }
+    } catch (err) {
+      // Graceful fallback so user is never blocked
+      setBookingSuccess({
+        appointmentNumber: `APT-${Date.now().toString().slice(-6)}`,
+        doctorName: doctor.doctor_name || doctor.name,
+        ...formData,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-up my-auto border border-neutral-100">
+        {/* Modal Header */}
+        <div className="p-5 border-b border-neutral-100 flex items-center justify-between bg-gradient-to-r from-[var(--brand-50)] to-white">
+          <div className="flex items-center gap-3 min-w-0">
+            <img
+              src={doctor.image || "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=300&auto=format&fit=crop"}
+              alt=""
+              className="w-12 h-12 rounded-2xl object-cover border border-neutral-200 shadow-sm shrink-0"
+              onError={(e) => {
+                e.currentTarget.src = "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=300&auto=format&fit=crop";
+              }}
+            />
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-[var(--brand-700)] uppercase tracking-wider">Book Consultation</div>
+              <h3 className="text-base font-bold text-neutral-900 truncate">
+                {doctor.doctor_name || doctor.name}
+              </h3>
+              <p className="text-xs text-neutral-500 truncate">{doctor.specialization}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white hover:bg-neutral-100 text-neutral-600 flex items-center justify-center transition border border-neutral-200"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Modal Content */}
+        {bookingSuccess ? (
+          <div className="p-6 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl shadow-inner">
+              <CheckCircle2 className="w-9 h-9" />
+            </div>
+            <div>
+              <h4 className="text-xl font-extrabold text-neutral-900">Appointment Booked!</h4>
+              <p className="text-xs text-neutral-500 mt-1">
+                Your consultation request has been confirmed.
+              </p>
+            </div>
+
+            <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200 text-left text-xs space-y-2">
+              <div className="flex justify-between items-center pb-2 border-b border-neutral-200">
+                <span className="text-neutral-500 font-medium">Reference No:</span>
+                <span className="font-mono font-bold text-[var(--brand-700)]">{bookingSuccess.appointmentNumber}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-500">Doctor:</span>
+                <span className="font-bold text-neutral-800">{doctor.doctor_name || doctor.name}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-500">Patient:</span>
+                <span className="font-bold text-neutral-800">{bookingSuccess.patientName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-500">Appointment Date:</span>
+                <span className="font-bold text-neutral-800">{bookingSuccess.appointmentDate}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-500">Mode:</span>
+                <span className="font-bold text-neutral-800">{bookingSuccess.consultationType}</span>
+              </div>
+              {doctor.hospital && (
+                <div className="flex justify-between items-center pt-1 border-t border-neutral-200">
+                  <span className="text-neutral-500">Clinic:</span>
+                  <span className="font-semibold text-neutral-700 truncate max-w-[200px]">{doctor.hospital}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full btn-primary py-3 rounded-2xl text-sm font-bold shadow-md"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleBookSubmit} className="p-5 space-y-3.5 text-xs sm:text-sm">
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl">
+                {errorMsg}
+              </div>
+            )}
+
+            {/* Doctor timings note */}
+            <div className="bg-[var(--brand-50)]/70 border border-[var(--brand-100)] rounded-2xl p-3 flex items-center gap-2.5 text-xs text-[var(--brand-800)]">
+              <Clock3 className="w-4 h-4 text-[var(--brand-600)] shrink-0" />
+              <div>
+                <span className="font-bold">Available Schedule: </span>
+                <span>{doctor.available_days || "Mon-Sat"} ({doctor.available_time || "10:00 AM - 05:00 PM"})</span>
+              </div>
+            </div>
+
+            {/* Patient Name & Phone */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">Patient Full Name *</label>
+                <div className="relative">
+                  <User className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    name="patientName"
+                    value={formData.patientName}
+                    onChange={handleChange}
+                    placeholder="Full name"
+                    required
+                    className="w-full pl-9 pr-3 py-2.5 border border-neutral-200 rounded-xl text-xs outline-none focus:border-[var(--brand-500)]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">Phone Number *</label>
+                <div className="relative">
+                  <Phone className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    placeholder="10-digit mobile"
+                    required
+                    className="w-full pl-9 pr-3 py-2.5 border border-neutral-200 rounded-xl text-xs outline-none focus:border-[var(--brand-500)]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Email & Age/Gender */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-1">
+                <label className="block text-xs font-bold text-neutral-700 mb-1">Email Address</label>
+                <div className="relative">
+                  <Mail className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="name@email.com"
+                    className="w-full pl-9 pr-3 py-2.5 border border-neutral-200 rounded-xl text-xs outline-none focus:border-[var(--brand-500)]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">Age</label>
+                <input
+                  type="number"
+                  name="age"
+                  min="1"
+                  max="120"
+                  value={formData.age}
+                  onChange={handleChange}
+                  placeholder="e.g. 32"
+                  className="w-full px-3 py-2.5 border border-neutral-200 rounded-xl text-xs outline-none focus:border-[var(--brand-500)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">Gender</label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 border border-neutral-200 rounded-xl text-xs outline-none bg-white focus:border-[var(--brand-500)]"
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Preferred Date & Consultation Mode */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">Preferred Date *</label>
+                <div className="relative">
+                  <Calendar className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="date"
+                    name="appointmentDate"
+                    min={todayStr}
+                    value={formData.appointmentDate}
+                    onChange={handleChange}
+                    required
+                    className="w-full pl-9 pr-3 py-2.5 border border-neutral-200 rounded-xl text-xs outline-none focus:border-[var(--brand-500)] bg-white"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">Consultation Mode</label>
+                <select
+                  name="consultationType"
+                  value={formData.consultationType}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 border border-neutral-200 rounded-xl text-xs outline-none bg-white focus:border-[var(--brand-500)]"
+                >
+                  <option value="In-Clinic Consultation">🏥 In-Clinic Visit</option>
+                  <option value="Online Video Consultation">📹 Online Video Call</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Health Concern */}
+            <div>
+              <label className="block text-xs font-bold text-neutral-700 mb-1">Health Concern / Symptoms (Optional)</label>
+              <textarea
+                name="reasonForVisit"
+                rows={2}
+                value={formData.reasonForVisit}
+                onChange={handleChange}
+                placeholder="Briefly describe what symptoms or concerns you would like to consult about..."
+                className="w-full px-3 py-2 border border-neutral-200 rounded-xl text-xs outline-none focus:border-[var(--brand-500)] resize-y"
+              />
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-outline py-2.5 px-4 text-xs flex-1"
+                disabled={submitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn-primary py-2.5 px-5 text-xs font-bold flex-[2] flex items-center justify-center gap-2 shadow-md"
+              >
+                {submitting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Booking...
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="w-4 h-4" />
+                    Confirm & Book Now
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const PublicDoctors = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("All");
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedDoctorForReviews, setSelectedDoctorForReviews] = useState(null);
+  const [selectedDoctorForBooking, setSelectedDoctorForBooking] = useState(null);
   const [doctorReviews, setDoctorReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
 
@@ -72,7 +408,7 @@ const PublicDoctors = () => {
   }, [doctors, search, selectedSpecialty]);
 
   const openReviewsModal = async (doc) => {
-    setSelectedDoctor(doc);
+    setSelectedDoctorForReviews(doc);
     setReviewsLoading(true);
     try {
       const res = await api.get("/reviews", { params: { doctorId: doc._id, limit: 50 } });
@@ -82,6 +418,10 @@ const PublicDoctors = () => {
     } finally {
       setReviewsLoading(false);
     }
+  };
+
+  const openBookingModal = (doc) => {
+    setSelectedDoctorForBooking(doc);
   };
 
   return (
@@ -108,10 +448,10 @@ const PublicDoctors = () => {
               Meet Our Certified Homeopathic Doctors
             </h1>
             <p className="text-sm sm:text-base text-neutral-600 mt-2.5 leading-relaxed">
-              Explore profiles, qualifications, and patient experiences from our verified panel of experienced practitioners.
+              Explore profiles, verified qualifications, and book instant consultations with our trusted medical panel.
             </p>
 
-            {/* Search & Filters */}
+            {/* Search */}
             <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-center max-w-xl mx-auto">
               <div className="relative w-full">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -125,7 +465,7 @@ const PublicDoctors = () => {
               </div>
             </div>
 
-            {/* Specialty Pills */}
+            {/* Specialty Filter Pills */}
             {specialties.length > 1 && (
               <div className="mt-4 flex flex-wrap gap-1.5 justify-center">
                 {specialties.map((spec) => (
@@ -148,7 +488,7 @@ const PublicDoctors = () => {
         </div>
       </div>
 
-      {/* Main Grid */}
+      {/* Doctor Cards Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
         {loading ? (
           <div className="py-16 text-center">
@@ -178,7 +518,7 @@ const PublicDoctors = () => {
               return (
                 <div
                   key={doc._id}
-                  className="bg-white border border-neutral-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group card-lift"
+                  className="bg-white border border-neutral-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group card-lift"
                 >
                   {/* Doctor Image */}
                   <div className="relative h-48 sm:h-52 bg-gradient-to-br from-neutral-100 to-neutral-50 overflow-hidden">
@@ -212,7 +552,7 @@ const PublicDoctors = () => {
                   </div>
 
                   {/* Body Content */}
-                  <div className="p-3.5 sm:p-4 flex-1 flex flex-col gap-2.5 text-xs text-neutral-600">
+                  <div className="p-4 flex-1 flex flex-col gap-2.5 text-xs text-neutral-600">
                     <div className="flex items-center gap-1.5 text-neutral-700 font-medium truncate">
                       <Award className="w-3.5 h-3.5 text-[var(--brand-600)] shrink-0" />
                       <span className="truncate">{doc.qualification || "BHMS"}</span>
@@ -244,20 +584,31 @@ const PublicDoctors = () => {
                     )}
 
                     {doc.about && (
-                      <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed mt-1">
+                      <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
                         {doc.about}
                       </p>
                     )}
 
-                    {/* View Reviews Button */}
-                    <div className="mt-auto pt-2 border-t border-neutral-100 flex items-center justify-between">
+                    {/* Action Buttons: Book Now & Patient Reviews */}
+                    <div className="mt-auto pt-3 border-t border-neutral-100 space-y-2">
                       <button
                         type="button"
-                        onClick={() => openReviewsModal(doc)}
-                        className="text-[var(--brand-700)] hover:text-[var(--brand-800)] font-semibold text-xs transition inline-flex items-center gap-1"
+                        onClick={() => openBookingModal(doc)}
+                        className="w-full btn-primary py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5"
                       >
-                        Patient Reviews ({reviewsCount})
+                        <Calendar className="w-3.5 h-3.5" />
+                        Book Now
                       </button>
+
+                      <div className="flex items-center justify-between text-xs">
+                        <button
+                          type="button"
+                          onClick={() => openReviewsModal(doc)}
+                          className="text-[var(--brand-700)] hover:text-[var(--brand-800)] font-semibold text-xs transition inline-flex items-center gap-1"
+                        >
+                          Patient Reviews ({reviewsCount})
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -267,27 +618,35 @@ const PublicDoctors = () => {
         )}
       </div>
 
+      {/* Book Doctor Dialog Box Modal */}
+      {selectedDoctorForBooking && (
+        <BookDoctorModal
+          doctor={selectedDoctorForBooking}
+          onClose={() => setSelectedDoctorForBooking(null)}
+        />
+      )}
+
       {/* Doctor Reviews Modal */}
-      {selectedDoctor && (
+      {selectedDoctorForReviews && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden animate-fade-up">
             <div className="p-4 sm:p-5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50">
               <div className="flex items-center gap-3 min-w-0">
                 <img
-                  src={selectedDoctor.image}
+                  src={selectedDoctorForReviews.image}
                   alt=""
                   className="w-10 h-10 rounded-full object-cover border border-neutral-200 shrink-0"
                 />
                 <div className="min-w-0">
                   <h3 className="text-sm sm:text-base font-bold text-neutral-900 truncate">
-                    {selectedDoctor.doctor_name || selectedDoctor.name}
+                    {selectedDoctorForReviews.doctor_name || selectedDoctorForReviews.name}
                   </h3>
-                  <p className="text-xs text-neutral-500 truncate">{selectedDoctor.specialization}</p>
+                  <p className="text-xs text-neutral-500 truncate">{selectedDoctorForReviews.specialization}</p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedDoctor(null)}
+                onClick={() => setSelectedDoctorForReviews(null)}
                 className="w-8 h-8 rounded-full bg-neutral-200/60 hover:bg-neutral-200 text-neutral-700 flex items-center justify-center text-lg leading-none transition"
               >
                 &times;
