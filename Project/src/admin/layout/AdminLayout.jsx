@@ -12,18 +12,13 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { to: "/admin", label: "Dashboard" },
   { to: "/admin/orders", label: "Orders" },
-{ to: "/admin/products", label: "Products" },
+  { to: "/admin/products", label: "Products" },
   { to: "/admin/homepage", label: "Homepage Management" },
-  { to: "/admin/doctors", label: "Doctors" },
   { to: "/admin/categories", label: "Categories" },
   { to: "/admin/inventory", label: "Inventory" },
-  { to: "/admin/customers", label: "Customers" },
   { to: "/admin/reviews", label: "Reviews" },
   { to: "/admin/coupons", label: "Coupons" },
-  { to: "/admin/analytics", label: "Analytics" },
-  { to: "/admin/reports", label: "Reports" },
   { to: "/admin/settings", label: "Settings" },
 ];
 

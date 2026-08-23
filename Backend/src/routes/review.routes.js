@@ -21,10 +21,12 @@ const router = express.Router();
 router.get("/", getReviews);
 router.get("/:reviewId", getReviewById);
 
-// Auth user
-router.post("/", verifyJWT, createReview);
-router.patch("/:reviewId", verifyJWT, updateReview);
-router.delete("/:reviewId", verifyJWT, deleteReview);
+// Admin-only review management
+router.post("/", verifyJWT, isAdmin, createReview);
+router.patch("/:reviewId", verifyJWT, isAdmin, updateReview);
+router.delete("/:reviewId", verifyJWT, isAdmin, deleteReview);
+
+// Public / User helpful & report
 router.patch("/:reviewId/helpful", verifyJWT, voteHelpful);
 router.patch("/:reviewId/report", verifyJWT, reportReview);
 

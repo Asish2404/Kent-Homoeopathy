@@ -35,21 +35,23 @@ const Home = () => {
     const firstVariant = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants[0] : null;
     const vMrp = Number(firstVariant?.mrp_price || mrp);
     const vPrice = Number(firstVariant?.selling_price || firstVariant?.discount_price || price);
-    const discountPct = vMrp > 0 && vPrice > 0 ? Math.round((1 - vPrice / vMrp) * 100) : 0;
+    const discountPct = vMrp > 0 && vPrice > 0 && vMrp > vPrice ? Math.round(((vMrp - vPrice) / vMrp) * 100) : 0;
+    const isOut = Boolean(firstVariant?.out_of_stock) || Boolean(p.out_of_stock) || Number(p.stock ?? 0) <= 0;
+    const isNotAvail = Boolean(firstVariant?.not_available) || Boolean(p.not_available);
     return {
       id: p._id,
       _id: p._id,
-      name: p.product_name,
+      name: p.product_name || p.name,
       price: vPrice || price,
-      oldPrice: vMrp || mrp,
-      rating: Number(p.rating || firstVariant?.rating || 0),
-      reviews: Number(p.review_count || firstVariant?.review_count || 0),
-      image: p.product_image,
+      oldPrice: vMrp > vPrice ? vMrp : undefined,
+      rating: Number(p.averageRating || p.rating || firstVariant?.rating || 0),
+      reviews: Number(p.totalReviews || p.review_count || firstVariant?.review_count || 0),
+      image: p.product_image || p.images?.[0],
       discount: discountPct > 0 ? `-${discountPct}%` : undefined,
       badge: p.best_seller ? "Best Seller" : p.new_arrival ? "New" : p.featured ? "Featured" : p.top_pick ? "Top Pick" : undefined,
       categoryTitle: p.category?.category_name || p.category || "Products",
-      brand: p.brand,
-      isInStock: Number(p.stock || 0) > 0,
+      brand: p.brand || "Kent",
+      isInStock: !isOut && !isNotAvail,
       stock: Number(p.stock || 0),
       isKentProduct: Boolean(p.isKentProduct),
       variants: p.variants || [],

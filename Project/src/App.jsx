@@ -37,6 +37,7 @@ import Categories from "./admin/pages/Categories";
 import Coupons from "./admin/pages/Coupons";
 import Reviews from "./admin/pages/Reviews";
 import HomepageManagement from "./admin/pages/HomepageManagement";
+import PublicDoctors from "./pages/Doctors";
 import Settings from "./admin/pages/SettingsPlaceholder";
 
 function App() {
@@ -44,6 +45,8 @@ function App() {
     createRoutesFromElements(
       <Route path="/" element={<CartProvider><Layout /></CartProvider>}>
         <Route index element={<Home />} />
+        <Route path="Doctors" element={<PublicDoctors />} />
+        <Route path="doctors" element={<PublicDoctors />} />
         <Route path="Labtest" element={<Labtest />} />
         <Route path="Products" element={<ProductsCatalog />} />
         <Route path="products/:productId" element={<ProductsDetails />} />
@@ -59,7 +62,7 @@ function App() {
         {/* ADMIN */}
         <Route path="admin" element={<AdminRequireAuth />}>
           <Route element={<AdminLayout />}>
-            <Route index element={<Dashboard />} />
+            <Route index element={<Products />} />
             <Route path="products" element={<Products />} />
             <Route path="doctors" element={<Doctors />} />
             <Route path="orders" element={<Orders />} />

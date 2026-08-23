@@ -215,7 +215,11 @@ const readUser = () => {
                   Home
                 </NavLink>
 
-<NavLink to="/Labtest" className={navStyle}>
+                <NavLink to="/Doctors" className={navStyle}>
+                  Doctors
+                </NavLink>
+
+                <NavLink to="/Labtest" className={navStyle}>
                   Lab Test
                 </NavLink>
 
@@ -498,6 +502,14 @@ const readUser = () => {
             </NavLink>
 
             <NavLink
+              to="/Doctors"
+              onClick={() => setMenuOpen(false)}
+              className={navStyle}
+            >
+              Doctors
+            </NavLink>
+
+            <NavLink
               to="/Labtest"
               onClick={() => setMenuOpen(false)}
               className={navStyle}
@@ -505,7 +517,7 @@ const readUser = () => {
               Lab Test
             </NavLink>
 
-<NavLink
+            <NavLink
               to="/Products"
               onClick={() => setMenuOpen(false)}
               className={navStyle}

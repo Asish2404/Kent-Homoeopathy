@@ -132,6 +132,11 @@ export const getOrders = async (params = {}) => {
   return data;
 };
 
+export const updateOrderStatus = async (orderId, orderStatus) => {
+  const { data } = await api.patch(`/orders/${orderId}/status`, { orderStatus });
+  return data;
+};
+
 // ========================
 // PRODUCTS
 // ========================
@@ -153,6 +158,11 @@ export const updateProduct = async (productId, productData) => {
 
 export const deleteProduct = async (productId) => {
   const { data } = await api.delete(`/products/${productId}`);
+  return data;
+};
+
+export const updateProductStock = async (productId, payload) => {
+  const { data } = await api.patch(`/products/${productId}/stock`, payload);
   return data;
 };
 
@@ -248,6 +258,21 @@ export const deleteCoupon = async (couponId) => {
 
 export const getReviews = async (params = {}) => {
   const { data } = await api.get("/reviews", { params });
+  return data;
+};
+
+export const createReview = async (reviewData) => {
+  const { data } = await api.post("/reviews", reviewData);
+  return data;
+};
+
+export const updateReview = async (reviewId, reviewData) => {
+  const { data } = await api.patch(`/reviews/${reviewId}`, reviewData);
+  return data;
+};
+
+export const deleteReview = async (reviewId) => {
+  const { data } = await api.delete(`/reviews/${reviewId}`);
   return data;
 };
 

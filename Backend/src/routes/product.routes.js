@@ -8,7 +8,8 @@ import {
     getProductById,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    updateProductStock,
 } from "../controllers/product.controller.js";
 
 const router = express.Router();
@@ -18,6 +19,7 @@ router.get("/:id", getProductById);
 
 // Admin-only routes
 router.post("/", verifyJWT, isAdmin, createProduct);
+router.patch("/:id/stock", verifyJWT, isAdmin, updateProductStock);
 router.patch("/:id", verifyJWT, isAdmin, updateProduct);
 router.delete("/:id", verifyJWT, isAdmin, deleteProduct);
 

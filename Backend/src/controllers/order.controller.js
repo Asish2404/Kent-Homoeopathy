@@ -226,22 +226,24 @@ const cancelOrder = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
-        const { orderStatus } = req.body;
+        const rawStatus = (req.body.orderStatus || req.body.status || "").toString().trim();
+        const normalized = rawStatus.toLowerCase().replace(/_/g, " ");
 
-        const allowed = [
+        const validStatuses = [
             "pending",
             "confirmed",
             "processing",
             "packed",
             "shipped",
+            "out for delivery",
             "delivered",
             "cancelled",
         ];
 
-        if (!allowed.includes(orderStatus)) {
+        if (!validStatuses.includes(normalized)) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid order status",
+                message: `Invalid order status. Allowed: ${validStatuses.join(", ")}`,
             });
         }
 
@@ -253,18 +255,28 @@ const updateOrderStatus = async (req, res) => {
             });
         }
 
-        order.orderStatus = orderStatus;
-        order.status = orderStatus === "pending" ? "pending" : orderStatus;
+        order.orderStatus = normalized;
+        order.status = normalized;
 
-        if (orderStatus === "cancelled") {
-            order.status = "cancelled";
+        if (normalized === "cancelled") {
+            const restoreItems = order.orderItems?.length ? order.orderItems : order.products;
+            if (Array.isArray(restoreItems)) {
+                for (const item of restoreItems) {
+                    const qty = Number(item.quantity) || 0;
+                    if (!qty || !item.productId) continue;
+                    await Product.updateOne(
+                        { _id: item.productId },
+                        { $inc: { stock: qty } }
+                    );
+                }
+            }
         }
 
         await order.save();
 
         return res.status(200).json({
             success: true,
-            message: "Order status updated",
+            message: "Order status updated successfully",
             order,
         });
     } catch (error) {

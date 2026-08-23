@@ -110,15 +110,14 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
     };
   });
   const [errors, setErrors] = useState({});
-  const [imageMessage, setImageMessage] = useState("");
-  const [draggingImage, setDraggingImage] = useState(false);
-  const fileInputRef = useRef(null);
+  const [imageUrlInput, setImageUrlInput] = useState("");
+  const [imageError, setImageError] = useState("");
   const isEdit = !!product;
 
   const validate = () => {
     const e = {};
     if (!form.product_name.trim()) e.product_name = "Product name is required";
-    if (!form.images || form.images.length === 0) e.images = "At least one product image is required";
+    if (!form.images || form.images.length === 0) e.images = "At least one product image URL is required";
     if (!form.brand.trim()) e.brand = "Brand is required";
     if (!form.short_description.trim()) e.short_description = "Short description is required";
     if (!form.detailed_description.trim()) e.detailed_description = "Detailed description is required";
@@ -148,48 +147,32 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  // ---- Multiple image manager ----
-  const addImages = async (files) => {
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    const validFiles = Array.from(files || []).filter(
-      (f) => allowedTypes.includes(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name)
-    );
-    if (validFiles.length !== (files?.length || 0)) {
-      setImageMessage("Some files were skipped. Supported formats: JPG, PNG, WEBP.");
+  // ---- URL-based Multiple Image Manager ----
+  const handleAddImageUrl = () => {
+    const trimmed = imageUrlInput.trim();
+    if (!trimmed) {
+      setImageError("Please enter a valid image URL");
+      return;
     }
-
-    const dataUrls = [];
-    for (const file of validFiles) {
-      try {
-        dataUrls.push(await readFileAsDataUrl(file));
-      } catch {
-        // skip unreadable files
-      }
+    if (!/^https?:\/\/.+/i.test(trimmed) && !trimmed.startsWith("/")) {
+      setImageError("Image URL must start with http:// or https://");
+      return;
     }
-
-    if (dataUrls.length === 0) return;
 
     setForm((prev) => {
-      const nextImages = [...(prev.images || []), ...dataUrls];
+      const current = prev.images || [];
+      if (current.includes(trimmed)) return prev;
+      const nextImages = [...current, trimmed];
       return {
         ...prev,
         images: nextImages,
         product_image: nextImages[0],
       };
     });
-    setImageMessage("");
+
+    setImageUrlInput("");
+    setImageError("");
     if (errors.images) setErrors((prev) => ({ ...prev, images: undefined }));
-  };
-
-  const handleFilePick = (e) => {
-    void addImages(e.target.files);
-    e.target.value = "";
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDraggingImage(false);
-    void addImages(e.dataTransfer.files);
   };
 
   const removeImage = (idx) => {
@@ -299,27 +282,25 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
       ...form,
       product_image: form.images?.[0] || "",
       images: form.images || [],
-      // Keep product-level price fields for backward compatibility by
-      // deriving them from the first variant when present.
       mrp_price: Number(form.variants?.[0]?.mrp_price) || 0,
       discount_price: Number(form.variants?.[0]?.selling_price) || 0,
       stock: Number(form.variants?.[0]?.stock) || 0,
       averageRating: Number(form.averageRating) || 0,
       totalReviews: Number(form.totalReviews) || 0,
       variants: (form.variants || [])
-        .filter((v) => v.size || v.potency)
+        .filter((v) => v && (v.size || v.potency || v.mrp_price !== "" || v.stock !== ""))
         .map((v) => ({
-          size: v.size || "",
-          potency: v.potency || "",
+          size: (v.size || "").trim(),
+          potency: (v.potency || "").trim(),
           mrp_price: Number(v.mrp_price) || 0,
           discount_percent: Math.max(0, Math.min(100, Number(v.discount_percent) || 0)),
           selling_price: computeSellingPrice(v.mrp_price, v.discount_percent),
           min_order_qty: Math.max(1, Number(v.min_order_qty) || 1),
-          stock: Number(v.stock) || 0,
-          expiry_date: v.expiry_date || "",
+          stock: Math.max(0, Number(v.stock) || 0),
+          expiry_date: (v.expiry_date || "").trim(),
           rating: Number(v.rating) || 0,
           review_count: Number(v.review_count) || 0,
-          out_of_stock: Boolean(v.out_of_stock),
+          out_of_stock: Boolean(v.out_of_stock) || Number(v.stock) <= 0,
           not_available: Boolean(v.not_available),
         })),
       specifications: (form.specifications || []).filter((s) => s && (s.label || s.value)),
@@ -332,8 +313,8 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
   const labelCls = "text-xs font-bold text-neutral-700 block mb-1";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-5xl mx-4 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="bg-white rounded-3xl shadow-xl w-full max-w-5xl max-h-[92vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-neutral-200 sticky top-0 bg-white z-10">
           <div className="text-lg font-extrabold text-neutral-900">{isEdit ? "Edit Product" : "Add Product"}</div>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-2xl leading-none">&times;</button>
@@ -374,129 +355,194 @@ const ProductModal = ({ product, categories, onClose, onSave, saving }) => {
             {errors.short_description && <div className="text-xs text-red-600 mt-1">{errors.short_description}</div>}
           </div>
 
-          {/* ===== FULL DESCRIPTION (enlarged editor) ===== */}
+          {/* ===== FULL DESCRIPTION ===== */}
           <div>
             <label className={labelCls}>Full Description *</label>
             <textarea
               value={form.detailed_description}
               onChange={handleChange("detailed_description")}
-              rows={10}
-              className={`${inputCls("detailed_description")} min-h-[220px] leading-relaxed resize-y`}
+              rows={8}
+              className={`${inputCls("detailed_description")} min-h-[180px] leading-relaxed resize-y`}
               placeholder="Write the complete product details here. This is the main description shown to customers."
             />
-            <div className="text-xs text-neutral-400 mt-1">Supports long-form product details. The larger editor makes editing easier.</div>
             {errors.detailed_description && <div className="text-xs text-red-600 mt-1">{errors.detailed_description}</div>}
           </div>
 
-          {/* ===== MULTIPLE PRODUCT IMAGES ===== */}
-          <SectionHeader title="Product Images" subtitle="Upload multiple images. Drag & drop or click to choose. The first image is the primary product image." />
+          {/* ===== MULTIPLE PRODUCT IMAGES VIA URL ===== */}
+          <SectionHeader title="Product Images (URL-Based)" subtitle="Enter image URLs (e.g. https://...). The first image is the primary cover image." />
           <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
-            <label className={labelCls}>Product Images *</label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              onChange={handleFilePick}
-              className="hidden"
-            />
-
-            <div
-              onDragOver={(e) => { e.preventDefault(); setDraggingImage(true); }}
-              onDragLeave={() => setDraggingImage(false)}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`mt-3 rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition ${
-                draggingImage ? "border-(--brand-600) bg-(--brand-50)/40" : "border-neutral-300 bg-white hover:border-(--brand-400)"
-              }`}
-            >
-              <div className="text-sm font-semibold text-neutral-700">
-                {draggingImage ? "Drop images here" : "Drag & drop images here, or click to browse"}
-              </div>
-              <div className="text-xs text-neutral-400 mt-1">You can select multiple files at once. JPG, PNG, WEBP.</div>
+            <label className={labelCls}>Add Image URL</label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={imageUrlInput}
+                onChange={(e) => {
+                  setImageUrlInput(e.target.value);
+                  setImageError("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddImageUrl();
+                  }
+                }}
+                placeholder="https://images.unsplash.com/photo-... or image URL"
+                className="border border-neutral-200 rounded-2xl px-4 py-3 outline-none flex-1 text-sm bg-white"
+              />
+              <button
+                type="button"
+                onClick={handleAddImageUrl}
+                className="btn-primary px-5 py-3 text-sm shrink-0"
+              >
+                + Add Image URL
+              </button>
             </div>
 
-            {errors.images && <div className="text-xs text-red-600 mt-3">{errors.images}</div>}
-            {imageMessage && !errors.images && <div className="text-xs text-amber-600 mt-3">{imageMessage}</div>}
+            {imageError && <div className="text-xs text-red-600 mt-2">{imageError}</div>}
+            {errors.images && <div className="text-xs text-red-600 mt-2">{errors.images}</div>}
 
-            {/* Image previews */}
-            {form.images && form.images.length > 0 && (
+            {/* Live image preview cards */}
+            {form.images && form.images.length > 0 ? (
               <div className="mt-4">
+                <div className="text-xs font-semibold text-neutral-600 mb-2">
+                  Images ({form.images.length}) · Reorder or change primary image:
+                </div>
                 <div className="flex flex-wrap gap-3">
                   {form.images.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative w-28 h-28 rounded-xl overflow-hidden border-2 bg-white group"
-                      style={{ borderColor: idx === 0 ? "var(--brand-600)" : "var(--neutral-200)" }}
+                      className="relative w-28 h-28 rounded-2xl overflow-hidden border-2 bg-white group shadow-sm"
+                      style={{ borderColor: idx === 0 ? "var(--brand-600)" : "#e5e5e5" }}
                     >
-                      <img src={img} alt={`product ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img
+                        src={img}
+                        alt={`product ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=300&auto=format&fit=crop";
+                        }}
+                      />
                       {idx === 0 && (
-                        <span className="absolute top-1 left-1 bg-(--brand-600) text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                        <span className="absolute top-1 left-1 bg-[var(--brand-600)] text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow">
                           PRIMARY
                         </span>
                       )}
-                      <div className="absolute inset-x-0 bottom-0 bg-black/60 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition p-1">
-                        <button type="button" title="Move left" onClick={() => moveImage(idx, -1)} className="text-white text-xs px-1 hover:text-(--brand-200)">◀</button>
-                        <button type="button" title="Move right" onClick={() => moveImage(idx, 1)} className="text-white text-xs px-1 hover:text-(--brand-200)">▶</button>
-                        {idx !== 0 && (
-                          <button type="button" title="Set as primary" onClick={() => setPrimaryImage(idx)} className="text-white text-xs px-1 hover:text-amber-300">★</button>
+                      <div className="absolute inset-x-0 bottom-0 bg-black/70 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition p-1.5">
+                        {idx > 0 && (
+                          <button
+                            type="button"
+                            title="Move left"
+                            onClick={() => moveImage(idx, -1)}
+                            className="text-white text-xs px-1 hover:text-[var(--brand-200)]"
+                          >
+                            ◀
+                          </button>
                         )}
-                        <button type="button" title="Remove" onClick={() => removeImage(idx)} className="text-white text-xs px-1 hover:text-red-300">✕</button>
+                        {idx < form.images.length - 1 && (
+                          <button
+                            type="button"
+                            title="Move right"
+                            onClick={() => moveImage(idx, 1)}
+                            className="text-white text-xs px-1 hover:text-[var(--brand-200)]"
+                          >
+                            ▶
+                          </button>
+                        )}
+                        {idx !== 0 && (
+                          <button
+                            type="button"
+                            title="Set as primary"
+                            onClick={() => setPrimaryImage(idx)}
+                            className="text-amber-300 text-xs px-1 font-bold hover:scale-110"
+                          >
+                            ★
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          title="Remove image"
+                          onClick={() => removeImage(idx)}
+                          className="text-red-400 text-xs px-1 font-bold hover:text-red-200"
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="text-xs text-neutral-500 mt-2">
-                  Hover an image to reorder (◀ ▶), set as primary (★), or remove (✕).
-                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-neutral-400 mt-3 italic">
+                No images added yet. Enter a valid image URL above to add product images.
               </div>
             )}
           </div>
 
           {/* ===== VARIANT MANAGER ===== */}
           <SectionHeader
-            title="Variants"
-            subtitle="Each variant holds its own MRP, discount %, auto-calculated selling price, minimum qty, potency, pack size, stock, expiry, rating and availability."
+            title="Variants & Pack Sizes"
+            subtitle="Each variant holds its own pack size, potency (optional), MRP, discount %, selling price, stock, and availability."
           />
           {errors.variants && <div className="text-xs text-red-600">{errors.variants}</div>}
           <div className="flex items-center justify-between mb-2">
             <label className={labelCls}>Variants</label>
-            <button type="button" onClick={addVariant} className="text-xs font-bold text-(--brand-700) hover:text-(--brand-800)">+ Add Variant</button>
+            <button type="button" onClick={addVariant} className="text-xs font-bold text-[var(--brand-700)] hover:text-[var(--brand-800)]">+ Add Variant</button>
           </div>
           {(form.variants || []).length === 0 && (
-            <p className="text-xs text-neutral-400 mb-2">No variants added yet. Add at least one variant to set pricing and stock.</p>
+            <p className="text-xs text-neutral-400 mb-2">No variants added yet. Add at least one variant to set pack sizes, pricing and stock.</p>
           )}
           {(form.variants || []).map((v, idx) => {
             const selling = computeSellingPrice(v.mrp_price, v.discount_percent);
             return (
-              <div key={idx} className="border border-neutral-100 rounded-2xl p-3 mb-3 space-y-3">
+              <div key={idx} className="border border-neutral-200 bg-neutral-50/60 rounded-2xl p-4 mb-3 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-neutral-700">Variant #{idx + 1}</span>
-                  <button type="button" onClick={() => removeVariant(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold">Remove</button>
+                  <span className="text-xs font-extrabold text-neutral-800">Variant #{idx + 1} {v.size ? `(${v.size})` : ""}</span>
+                  <button type="button" onClick={() => removeVariant(idx)} className="text-red-500 hover:text-red-700 text-xs font-bold">Remove Variant</button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <input value={v.size || ""} onChange={handleVariantChange(idx, "size")} placeholder="Pack Size (30ml)" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input value={v.potency || ""} onChange={handleVariantChange(idx, "potency")} placeholder="Potency (30C)" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input type="number" min="0" value={v.mrp_price || ""} onChange={handleVariantChange(idx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input type="number" min="0" max="100" value={v.discount_percent || ""} onChange={handleVariantChange(idx, "discount_percent")} placeholder="Discount %" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input type="number" min="0" value={v.min_order_qty || ""} onChange={handleVariantChange(idx, "min_order_qty")} placeholder="Min Qty" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input type="number" min="0" value={v.stock || ""} onChange={handleVariantChange(idx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input value={v.expiry_date || ""} onChange={handleVariantChange(idx, "expiry_date")} placeholder="Expiry (12/2027)" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input type="number" step="0.1" min="0" max="5" value={v.rating || ""} onChange={handleVariantChange(idx, "rating")} placeholder="Rating" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                  <input type="number" min="0" value={v.review_count || ""} onChange={handleVariantChange(idx, "review_count")} placeholder="Reviews" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm" />
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-center">
-                  <div className="p-2.5 bg-emerald-50 border border-emerald-100 rounded-xl">
-                    <div className="text-[10px] text-emerald-700 font-bold">Selling Price (auto)</div>
-                    <div className="text-sm font-extrabold text-emerald-700">₹{selling.toFixed(2)}</div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-500 block mb-0.5">Pack Size *</span>
+                    <input value={v.size || ""} onChange={handleVariantChange(idx, "size")} placeholder="e.g. 100 ml, 30 ml" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm w-full bg-white" />
                   </div>
-                  <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
-                    <input type="checkbox" checked={v.out_of_stock || false} onChange={handleVariantChange(idx, "out_of_stock")} className="w-4 h-4 accent-(--brand-600)" />
-                    Out of Stock
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-500 block mb-0.5">Potency (Optional)</span>
+                    <input value={v.potency || ""} onChange={handleVariantChange(idx, "potency")} placeholder="e.g. 30C, 200C (optional)" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm w-full bg-white" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-500 block mb-0.5">MRP (₹)</span>
+                    <input type="number" min="0" value={v.mrp_price || ""} onChange={handleVariantChange(idx, "mrp_price")} placeholder="MRP" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm w-full bg-white" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-500 block mb-0.5">Discount %</span>
+                    <input type="number" min="0" max="100" value={v.discount_percent || ""} onChange={handleVariantChange(idx, "discount_percent")} placeholder="0%" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm w-full bg-white" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-500 block mb-0.5">Stock Quantity</span>
+                    <input type="number" min="0" value={v.stock || ""} onChange={handleVariantChange(idx, "stock")} placeholder="Stock" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm w-full bg-white" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-500 block mb-0.5">Min Order Qty</span>
+                    <input type="number" min="1" value={v.min_order_qty || "1"} onChange={handleVariantChange(idx, "min_order_qty")} placeholder="1" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm w-full bg-white" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-500 block mb-0.5">Expiry Date</span>
+                    <input value={v.expiry_date || ""} onChange={handleVariantChange(idx, "expiry_date")} placeholder="MM/YYYY" className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-sm w-full bg-white" />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <div className="p-2 bg-emerald-50 border border-emerald-100 rounded-xl">
+                      <div className="text-[9px] text-emerald-700 font-bold">Selling Price</div>
+                      <div className="text-sm font-extrabold text-emerald-700">₹{selling.toFixed(2)}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-4 pt-1 items-center">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700 cursor-pointer">
+                    <input type="checkbox" checked={v.out_of_stock || false} onChange={handleVariantChange(idx, "out_of_stock")} className="w-4 h-4 accent-[var(--brand-600)]" />
+                    Mark Out of Stock
                   </label>
-                  <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
-                    <input type="checkbox" checked={v.not_available || false} onChange={handleVariantChange(idx, "not_available")} className="w-4 h-4 accent-(--brand-600)" />
-                    Not Available
+                  <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700 cursor-pointer">
+                    <input type="checkbox" checked={v.not_available || false} onChange={handleVariantChange(idx, "not_available")} className="w-4 h-4 accent-[var(--brand-600)]" />
+                    Mark Not Available
                   </label>
                 </div>
               </div>

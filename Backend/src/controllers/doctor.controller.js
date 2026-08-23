@@ -53,7 +53,6 @@ export const createDoctor = async (req, res) => {
             "qualification",
             "specialization",
             "experience",
-            "consultation_fee",
             "hospital",
             "available_days",
             "available_time",
@@ -74,10 +73,7 @@ export const createDoctor = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid phone format" });
         }
 
-        const fee = parsePositiveNumber(consultation_fee);
-        if (!Number.isFinite(fee) || fee <= 0) {
-            return res.status(400).json({ success: false, message: "Consultation fee must be positive" });
-        }
+        const fee = consultation_fee !== undefined && consultation_fee !== "" ? parsePositiveNumber(consultation_fee) : 0;
 
         const exp = parsePositiveNumber(experience);
         if (!Number.isFinite(exp) || exp < 0) {
@@ -103,7 +99,7 @@ export const createDoctor = async (req, res) => {
             specialization: normalizeString(specialization),
             experience: exp,
             hospital: normalizeString(hospital),
-            consultation_fee: fee,
+            consultation_fee: Number.isFinite(fee) ? fee : 0,
             available_days: normalizeString(available_days),
             available_time: normalizeString(available_time),
             image: normalizeString(image),
@@ -235,10 +231,7 @@ export const updateDoctor = async (req, res) => {
             if (req.body[f] !== undefined) {
                 if (f === "consultation_fee") {
                     const fee = parsePositiveNumber(req.body[f]);
-                    if (!Number.isFinite(fee) || fee <= 0) {
-                        return res.status(400).json({ success: false, message: "Consultation fee must be positive" });
-                    }
-                    update[f] = fee;
+                    update[f] = Number.isFinite(fee) && fee >= 0 ? fee : 0;
                 } else if (f === "experience") {
                     const exp = parsePositiveNumber(req.body[f]);
                     if (!Number.isFinite(exp) || exp < 0) {

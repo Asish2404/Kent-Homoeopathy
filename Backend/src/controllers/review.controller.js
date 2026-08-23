@@ -300,6 +300,10 @@ export const createReview = async (req, res) => {
             return res.status(401).json({ success: false, message: "Unauthorized." });
         }
 
+        if (req.user?.role !== "admin") {
+            return res.status(403).json({ success: false, message: "Only Admin can create reviews." });
+        }
+
         const target = resolveTarget(req.body);
 
         if (target.error) {
@@ -312,6 +316,8 @@ export const createReview = async (req, res) => {
             return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
         }
 
+        const reviewStatus = req.body.status || PUBLIC_STATUS;
+
         if (target.productId) {
             const product = await Product.findById(target.productId).select("_id");
 
@@ -319,36 +325,30 @@ export const createReview = async (req, res) => {
                 return res.status(404).json({ success: false, message: "Product not found." });
             }
 
-            const order = await getCompletedOrderForProduct({ userId, productId: target.productId });
-
-            if (!order) {
-                return res.status(403).json({ success: false, message: "Cannot review before purchase." });
-            }
-
-            const existingReview = await Review.findOne({ user: userId, product: target.productId });
-
-            if (existingReview) {
-                return res.status(409).json({ success: false, message: "Duplicate review for this product." });
-            }
-
             const review = await Review.create({
                 user: userId,
                 product: target.productId,
                 doctor: null,
-                order: order._id,
+                order: null,
                 appointment: null,
                 reviewTitle: title,
                 reviewDescription: comment,
                 rating,
                 reviewImages: images,
-                verifiedPurchase: true,
+                verifiedPurchase: Boolean(req.body.verifiedPurchase ?? true),
                 verifiedConsultation: false,
-                status: "Pending",
+                status: reviewStatus,
+                moderatedBy: userId,
+                moderatedDate: new Date(),
             });
+
+            if (reviewStatus === PUBLIC_STATUS) {
+                await recalculateEntityRating({ productId: target.productId });
+            }
 
             return res.status(201).json({
                 success: true,
-                message: "Medicine review submitted successfully.",
+                message: "Product review created successfully.",
                 review,
             });
         }
@@ -359,46 +359,30 @@ export const createReview = async (req, res) => {
             return res.status(404).json({ success: false, message: "Doctor not found." });
         }
 
-        const appointmentId = normalizeText(req.body.appointmentId);
-
-        if (!appointmentId || !isValidObjectId(appointmentId)) {
-            return res.status(400).json({ success: false, message: "Valid appointmentId is required for doctor reviews." });
-        }
-
-        const appointment = await getCompletedAppointment({
-            userId,
-            doctorId: target.doctorId,
-            appointmentId,
-        });
-
-        if (!appointment) {
-            return res.status(403).json({ success: false, message: "Cannot review before consultation." });
-        }
-
-        const existingReview = await Review.findOne({ user: userId, appointment: appointmentId });
-
-        if (existingReview) {
-            return res.status(409).json({ success: false, message: "Duplicate review for this appointment." });
-        }
-
         const review = await Review.create({
             user: userId,
             product: null,
             doctor: target.doctorId,
             order: null,
-            appointment: appointmentId,
+            appointment: null,
             reviewTitle: title,
             reviewDescription: comment,
             rating,
             reviewImages: images,
             verifiedPurchase: false,
-            verifiedConsultation: true,
-            status: "Pending",
+            verifiedConsultation: Boolean(req.body.verifiedConsultation ?? true),
+            status: reviewStatus,
+            moderatedBy: userId,
+            moderatedDate: new Date(),
         });
+
+        if (reviewStatus === PUBLIC_STATUS) {
+            await recalculateEntityRating({ doctorId: target.doctorId });
+        }
 
         return res.status(201).json({
             success: true,
-            message: "Doctor review submitted successfully.",
+            message: "Doctor review created successfully.",
             review,
         });
     } catch (error) {
@@ -489,6 +473,10 @@ export const updateReview = async (req, res) => {
             return res.status(401).json({ success: false, message: "Unauthorized." });
         }
 
+        if (req.user?.role !== "admin") {
+            return res.status(403).json({ success: false, message: "Only Admin can edit reviews." });
+        }
+
         if (!isValidObjectId(reviewId)) {
             return res.status(400).json({ success: false, message: "Invalid reviewId." });
         }
@@ -497,19 +485,6 @@ export const updateReview = async (req, res) => {
 
         if (!review) {
             return res.status(404).json({ success: false, message: "Review not found." });
-        }
-
-        if (review.user.toString() !== userId.toString()) {
-            return res.status(403).json({ success: false, message: "Owner only." });
-        }
-
-        if (review.status === PUBLIC_STATUS) {
-            const moderatedAt = review.moderatedDate || review.updatedAt || review.createdAt;
-            const ageInHours = (Date.now() - new Date(moderatedAt).getTime()) / (1000 * 60 * 60);
-
-            if (ageInHours > EDIT_WINDOW_HOURS) {
-                return res.status(400).json({ success: false, message: "Cannot edit Approved review after 24 hours." });
-            }
         }
 
         const nextRating = req.body.rating !== undefined ? toNumber(req.body.rating) : null;
@@ -534,17 +509,15 @@ export const updateReview = async (req, res) => {
             review.rating = nextRating;
         }
 
-        const previousStatus = review.status;
+        if (req.body.status) {
+            review.status = req.body.status;
+        }
 
-        review.status = "Pending";
-        review.moderatedBy = null;
-        review.moderatedDate = null;
+        review.moderatedBy = userId;
+        review.moderatedDate = new Date();
 
         await review.save();
-
-        if (previousStatus === PUBLIC_STATUS) {
-            await recalculateEntityRating({ productId: review.product, doctorId: review.doctor });
-        }
+        await recalculateEntityRating({ productId: review.product, doctorId: review.doctor });
 
         return res.status(200).json({ success: true, message: "Review updated successfully.", review });
     } catch (error) {
@@ -561,6 +534,10 @@ export const deleteReview = async (req, res) => {
             return res.status(401).json({ success: false, message: "Unauthorized." });
         }
 
+        if (req.user?.role !== "admin") {
+            return res.status(403).json({ success: false, message: "Only Admin can delete reviews." });
+        }
+
         if (!isValidObjectId(reviewId)) {
             return res.status(400).json({ success: false, message: "Invalid reviewId." });
         }
@@ -571,22 +548,13 @@ export const deleteReview = async (req, res) => {
             return res.status(404).json({ success: false, message: "Review not found." });
         }
 
-        if (review.user.toString() !== userId.toString()) {
-            return res.status(403).json({ success: false, message: "Owner only." });
-        }
-
-        const previousStatus = review.status;
-
         review.status = "Hidden";
         review.deletedAt = new Date();
-        review.moderatedBy = null;
-        review.moderatedDate = null;
+        review.moderatedBy = userId;
+        review.moderatedDate = new Date();
 
         await review.save();
-
-        if (previousStatus === PUBLIC_STATUS) {
-            await recalculateEntityRating({ productId: review.product, doctorId: review.doctor });
-        }
+        await recalculateEntityRating({ productId: review.product, doctorId: review.doctor });
 
         return res.status(200).json({ success: true, message: "Review removed successfully." });
     } catch (error) {

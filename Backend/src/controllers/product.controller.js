@@ -64,22 +64,23 @@ const syncHomepageSections = async (productId, flags) => {
 const normalizeVariants = (variants) => {
     if (!Array.isArray(variants)) return variants;
     return variants
-        .filter((v) => v && (v.size || v.potency))
+        .filter((v) => v && (v.size || v.potency || v.mrp_price !== undefined || v.stock !== undefined))
         .map((v) => {
             const mrp = Number(v?.mrp_price) || 0;
             const discount = Math.max(0, Math.min(100, Number(v?.discount_percent) || 0));
+            const stock = Math.max(0, Number(v?.stock) || 0);
             return {
-                size: v?.size || "",
-                potency: v?.potency || "",
+                size: typeof v?.size === "string" ? v.size.trim() : "",
+                potency: typeof v?.potency === "string" ? v.potency.trim() : "",
                 mrp_price: mrp,
                 discount_percent: discount,
                 selling_price: Math.max(0, mrp - (mrp * discount) / 100),
                 min_order_qty: Math.max(1, Number(v?.min_order_qty) || 1),
-                stock: Number(v?.stock) || 0,
-                expiry_date: v?.expiry_date || "",
+                stock: stock,
+                expiry_date: typeof v?.expiry_date === "string" ? v.expiry_date.trim() : "",
                 rating: Number(v?.rating) || 0,
                 review_count: Number(v?.review_count) || 0,
-                out_of_stock: Boolean(v?.out_of_stock),
+                out_of_stock: Boolean(v?.out_of_stock) || stock <= 0,
                 not_available: Boolean(v?.not_available),
             };
         });
@@ -416,7 +417,7 @@ export const deleteProduct = async (req, res) => {
 
         const deletedProduct = await Product.findByIdAndDelete(id);
 
-if (!deletedProduct) {
+        if (!deletedProduct) {
             return res.status(404).json({
                 success: false,
                 message: "Product not found"
@@ -437,5 +438,67 @@ if (!deletedProduct) {
             message: error.message
         });
 
+    }
+};
+
+export const updateProductStock = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { variantId, variantIndex, stock } = req.body;
+
+        const parsedStock = Number(stock);
+        if (!Number.isFinite(parsedStock) || parsedStock < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Stock must be a non-negative number",
+            });
+        }
+
+        const product = await Product.findById(id).populate("category");
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found",
+            });
+        }
+
+        if (Array.isArray(product.variants) && product.variants.length > 0) {
+            let targetVariant = null;
+            if (variantId) {
+                targetVariant = product.variants.find((v) => String(v._id) === String(variantId));
+            } else if (variantIndex !== undefined && variantIndex !== null) {
+                targetVariant = product.variants[Number(variantIndex)];
+            }
+
+            if (targetVariant) {
+                targetVariant.stock = parsedStock;
+                targetVariant.out_of_stock = parsedStock <= 0;
+                if (parsedStock > 0) targetVariant.not_available = false;
+            } else if (variantId || variantIndex !== undefined) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Variant not found",
+                });
+            }
+
+            // Sync total product stock as sum of variant stocks
+            const totalStock = product.variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+            product.stock = totalStock;
+        } else {
+            product.stock = parsedStock;
+        }
+
+        await product.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Stock updated successfully",
+            product,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Database error",
+        });
     }
 };

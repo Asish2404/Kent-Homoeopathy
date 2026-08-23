@@ -21,9 +21,9 @@ const Labtest = () => {
         description: "Essential screening for blood cells and overall health.",
         reportTime: "24–48 hrs",
         homeCollection: "Yes",
-        discountBadge: "Flat ₹100 Off",
-        originalPrice: 499,
-        discountedPrice: 399,
+        discountBadge: "Free Test",
+        originalPrice: 0,
+        discountedPrice: 0,
         formValue: "CBC",
         icon: "🩸",
       },
@@ -34,9 +34,9 @@ const Labtest = () => {
         description: "Helps evaluate thyroid function and related disorders.",
         reportTime: "24–48 hrs",
         homeCollection: "Yes",
-        discountBadge: "Save 20%",
-        originalPrice: 999,
-        discountedPrice: 799,
+        discountBadge: "Free Test",
+        originalPrice: 0,
+        discountedPrice: 0,
         formValue: "Thyroid",
         icon: "🧠",
       },
@@ -47,9 +47,9 @@ const Labtest = () => {
         description: "Track sugar levels with reliable lab diagnostics.",
         reportTime: "24–48 hrs",
         homeCollection: "Yes",
-        discountBadge: "Limited Offer",
-        originalPrice: 799,
-        discountedPrice: 599,
+        discountBadge: "Free Test",
+        originalPrice: 0,
+        discountedPrice: 0,
         formValue: "Blood Sugar",
         icon: "🍬",
       },
@@ -60,9 +60,9 @@ const Labtest = () => {
         description: "Measures cholesterol and triglycerides for heart health.",
         reportTime: "24–48 hrs",
         homeCollection: "Yes",
-        discountBadge: "Save ₹150",
-        originalPrice: 899,
-        discountedPrice: 749,
+        discountBadge: "Free Test",
+        originalPrice: 0,
+        discountedPrice: 0,
         formValue: "Lipid",
         icon: "❤️",
       },
@@ -73,9 +73,9 @@ const Labtest = () => {
         description: "Assess vitamin D levels for bone and immunity health.",
         reportTime: "48–72 hrs",
         homeCollection: "Yes",
-        discountBadge: "Flat ₹120 Off",
-        originalPrice: 1299,
-        discountedPrice: 1179,
+        discountBadge: "Free Test",
+        originalPrice: 0,
+        discountedPrice: 0,
         formValue: "Full Body Checkup",
         icon: "☀️",
       },
@@ -86,9 +86,9 @@ const Labtest = () => {
         description: "Check liver enzymes and function for early detection.",
         reportTime: "24–48 hrs",
         homeCollection: "Yes",
-        discountBadge: "Save 15%",
-        originalPrice: 899,
-        discountedPrice: 764,
+        discountBadge: "Free Test",
+        originalPrice: 0,
+        discountedPrice: 0,
         formValue: "Full Body Checkup",
         icon: "🧪",
       },
@@ -99,9 +99,9 @@ const Labtest = () => {
         description: "Helps assess kidney health and filtering capacity.",
         reportTime: "24–48 hrs",
         homeCollection: "Yes",
-        discountBadge: "Limited Offer",
-        originalPrice: 999,
-        discountedPrice: 849,
+        discountBadge: "Free Test",
+        originalPrice: 0,
+        discountedPrice: 0,
         formValue: "Full Body Checkup",
         icon: "🩺",
       },
@@ -112,9 +112,9 @@ const Labtest = () => {
         description: "Accurate RT-PCR testing for COVID-19.",
         reportTime: "12–24 hrs",
         homeCollection: "Yes",
-        discountBadge: "Fast Results",
-        originalPrice: 1999,
-        discountedPrice: 1599,
+        discountBadge: "Free Test",
+        originalPrice: 0,
+        discountedPrice: 0,
         formValue: "Full Body Checkup",
         icon: "🦠",
       },
@@ -133,9 +133,9 @@ const Labtest = () => {
         fasting: "8–10 hours",
         homeSample: "Yes",
         reportDelivery: "24–72 hrs",
-        originalPrice: 2999,
-        discountedPrice: 2399,
-        saveAmount: 600,
+        originalPrice: 0,
+        discountedPrice: 0,
+        saveAmount: 0,
         formValue: "Full Body Checkup",
       },
       {
@@ -147,9 +147,9 @@ const Labtest = () => {
         fasting: "6–8 hours",
         homeSample: "Yes",
         reportDelivery: "24–48 hrs",
-        originalPrice: 1899,
-        discountedPrice: 1499,
-        saveAmount: 400,
+        originalPrice: 0,
+        discountedPrice: 0,
+        saveAmount: 0,
         formValue: "Blood Sugar",
       },
       {
@@ -161,9 +161,9 @@ const Labtest = () => {
         fasting: "No fasting required",
         homeSample: "Yes",
         reportDelivery: "24–48 hrs",
-        originalPrice: 1599,
-        discountedPrice: 1299,
-        saveAmount: 300,
+        originalPrice: 0,
+        discountedPrice: 0,
+        saveAmount: 0,
         formValue: "Thyroid",
       },
       {
@@ -175,9 +175,9 @@ const Labtest = () => {
         fasting: "8–10 hours",
         homeSample: "Yes",
         reportDelivery: "24–48 hrs",
-        originalPrice: 2199,
-        discountedPrice: 1799,
-        saveAmount: 400,
+        originalPrice: 0,
+        discountedPrice: 0,
+        saveAmount: 0,
         formValue: "Lipid",
       },
     ],
@@ -239,8 +239,8 @@ const Labtest = () => {
                 Phone: ${data.phone}
                 Email: ${data.email}
                 Test: ${data.labtest}
-                Date: ${date.toDateString()}
-                Time: ${data.time}`;
+                Date: ${data.date || date.toDateString()}
+                Price: ₹0`;
     const phone = "917980972894";
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -448,8 +448,7 @@ const Labtest = () => {
                 </div>
 
                 <div className="lab-price-row">
-                  <span className="lab-original">₹{t.originalPrice}</span>
-                  <span className="lab-discount">₹{t.discountedPrice}</span>
+                  <span className="lab-discount">₹0</span>
                 </div>
 
                 <button
@@ -670,7 +669,7 @@ const Labtest = () => {
                       />
                     </div>
 
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Preferred Date
                       </label>
@@ -679,25 +678,6 @@ const Labtest = () => {
                         {...register("date")}
                         className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
                       />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Preferred Time
-                      </label>
-                      <select
-                        {...register("time")}
-                        className="w-full p-3 md:p-4 rounded-2xl border border-gray-300 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 shadow-sm"
-                      >
-                        <option value="">Select Time Slot</option>
-                        <option value="08:00 AM">08:00 AM</option>
-                        <option value="09:00 AM">09:00 AM</option>
-                        <option value="10:00 AM">10:00 AM</option>
-                        <option value="11:00 AM">11:00 AM</option>
-                        <option value="12:00 PM">12:00 PM</option>
-                        <option value="02:00 PM">02:00 PM</option>
-                        <option value="04:00 PM">04:00 PM</option>
-                      </select>
                     </div>
                   </div>
 

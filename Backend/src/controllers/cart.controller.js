@@ -74,6 +74,23 @@ export const addToCart = async (req, res) => {
         const selected = resolveSelectedVariant(product, req.body);
         const variant = selected?.variant || null;
 
+        // Check availability & stock
+        if (variant) {
+            if (variant.out_of_stock || variant.not_available || (Number(variant.stock) <= 0)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Selected product variant is currently out of stock or unavailable",
+                });
+            }
+        } else {
+            if (product.out_of_stock || product.not_available || (Number(product.stock) <= 0)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Product is currently out of stock or unavailable",
+                });
+            }
+        }
+
         // Determine price: use variant selling_price when selected, else product price
         const variantSellingPrice = variant
             ? Number(variant.selling_price) || 0

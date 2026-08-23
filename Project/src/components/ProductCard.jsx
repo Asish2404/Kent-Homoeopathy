@@ -19,7 +19,7 @@ const ProductCard = ({ product, onAdd, onBuy, onWishlist, variant = "default", q
   const cart = useCartContext();
   const navigate = useNavigate();
   const {
-name,
+    name,
     price,
     oldPrice,
     rating = 0,
@@ -29,33 +29,39 @@ name,
     badge,
     pack,
     stock,
+    out_of_stock,
+    not_available,
+    isInStock,
   } = product;
+
+  const isAvailable = isInStock !== false && !out_of_stock && !not_available && (stock === undefined || Number(stock) > 0);
 
   const filledStars = Math.floor(rating);
   const isCompact = variant === "compact";
-  const wishlisted = cart.isWishlisted?.(product.id);
+  const wishlisted = cart.isWishlisted?.(product.id || product._id);
 
-  // Local qty state (only used when qty/onQtyChange are not provided)
+  // Local qty state
   const [localQty, setLocalQty] = useState(1);
   const controlledQty = qty !== undefined ? qty : localQty;
   const setControlledQty = onQtyChange || setLocalQty;
 
   const maxStock = Math.max(1, Number(stock) || 15);
 
-  const handleAdd = onAdd || (() => cart.addToCart(product, controlledQty));
+  const handleAdd = onAdd || (() => isAvailable && cart.addToCart(product, controlledQty));
   const handleBuy =
     onBuy ||
     (() => {
-      if (!cart.isInCart?.(product.id)) {
+      if (!isAvailable) return;
+      const pid = product._id || product.id;
+      if (!cart.isInCart?.(pid)) {
         cart.addToCart(product, controlledQty);
       } else {
-        cart.setQty?.(product.id, controlledQty);
+        cart.setQty?.(pid, controlledQty);
       }
       navigate("/Cart");
     });
   const handleWishlist = onWishlist || (() => cart.toggleWishlist(product));
 
-  // Clicking anywhere on the card opens the product details page.
   const handleCardClick = () => {
     const routeId = product?._id || product?.id;
     if (routeId) {
@@ -81,10 +87,10 @@ name,
       }}
       className={`
         group shrink-0
-        ${isCompact ? "w-[170px] sm:w-[190px] lg:w-auto" : "w-[85%] sm:w-[60%] md:w-[45%] lg:w-[30%] xl:w-[23%]"}
+        ${isCompact ? "w-[155px] sm:w-[170px] lg:w-auto" : "w-[80%] sm:w-[50%] md:w-[38%] lg:w-[28%] xl:w-[22%]"}
         bg-white rounded-2xl overflow-hidden
         border border-neutral-100
-        shadow-sm hover:shadow-xl
+        shadow-sm hover:shadow-lg
         card-lift
         relative
         cursor-pointer
@@ -92,8 +98,9 @@ name,
       `}
     >
       {/* Wishlist top-right */}
-      <div className="absolute top-3 right-3 z-10">
+      <div className="absolute top-2.5 right-2.5 z-20">
         <button
+          type="button"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -101,48 +108,53 @@ name,
             e.currentTarget.blur();
           }}
           aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-          className={`w-9 h-9 rounded-full bg-white/90 backdrop-blur shadow-md flex items-center justify-center transition ${
-            wishlisted ? "text-red-500" : "text-neutral-500 hover:text-red-500 hover:bg-white"
+          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 backdrop-blur shadow-sm flex items-center justify-center transition ${
+            wishlisted ? "text-red-500" : "text-neutral-400 hover:text-red-500 hover:bg-white"
           }`}
         >
-          <FaHeart className={isCompact ? "text-sm" : "text-sm"} />
+          <FaHeart className="text-xs" />
         </button>
+      </div>
+
+      {/* Badges Container - Top Left with Dedicated Positions */}
+      <div className="absolute top-2.5 left-2.5 z-20 flex flex-col items-start gap-1 pointer-events-none">
+        {badge && (
+          <span className="bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm flex items-center gap-1">
+            <HiCheckBadge className="text-[11px]" />
+            {badge}
+          </span>
+        )}
+        {discount && (
+          <span className="bg-[var(--brand-600)] text-white text-[9px] sm:text-[10px] font-extrabold px-1.5 py-0.5 rounded-md shadow-sm">
+            {discount}
+          </span>
+        )}
+        {!isAvailable && (
+          <span className="bg-rose-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">
+            Out of Stock
+          </span>
+        )}
       </div>
 
       {/* Image */}
       <div
-        className={`relative bg-gradient-to-br from-[var(--brand-50)] to-white flex items-center justify-center overflow-hidden ${
-          isCompact ? "p-2 h-[110px] sm:h-[120px]" : "p-5 aspect-square"
+        className={`relative bg-gradient-to-br from-[var(--brand-50)]/60 to-white flex items-center justify-center overflow-hidden ${
+          isCompact ? "p-2 h-[100px] sm:h-[110px]" : "p-3 sm:p-4 aspect-square"
         }`}
       >
-        {/* Discount / Badge */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {discount && (
-            <span className="bg-[var(--brand-600)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
-              {discount}
-            </span>
-          )}
-          {badge && (
-            <span className="bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
-              <HiCheckBadge className="text-[10px]" />
-              {badge}
-            </span>
-          )}
-        </div>
-
         <img
           src={image}
           alt={name}
           loading="lazy"
-          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
         />
       </div>
 
       {/* Content */}
-      <div className={`flex flex-col flex-1 ${isCompact ? "p-2.5" : "p-5"}`}>
+      <div className={`flex flex-col flex-1 ${isCompact ? "p-2" : "p-3 sm:p-3.5"}`}>
         <h3
           className={`font-semibold text-neutral-800 line-clamp-2 leading-snug ${
-            isCompact ? "text-[13px] min-h-[2rem]" : "text-base md:text-lg mb-2 min-h-[2.6rem]"
+            isCompact ? "text-xs min-h-[1.8rem]" : "text-xs sm:text-sm mb-1 min-h-[2.2rem]"
           }`}
         >
           {name}
@@ -150,127 +162,145 @@ name,
 
         {/* Size/qty label */}
         {pack && (
-          <p className="mt-1 text-[11px] text-neutral-500 font-medium">{pack}</p>
+          <p className="text-[10px] sm:text-[11px] text-neutral-500 font-medium truncate">{pack}</p>
         )}
 
-{/* Rating (default only) — only shown when real reviews exist */}
+        {/* Rating — only shown when real reviews exist */}
         {!isCompact && reviews > 0 && rating > 0 && (
-          <div className="flex items-center gap-1.5 mb-3 mt-1">
-            <div className="flex text-amber-400 text-xs gap-0.5">
+          <div className="flex items-center gap-1 mt-1 mb-1.5">
+            <div className="flex text-amber-400 text-[10px] gap-0.5">
               {[...Array(5)].map((_, i) => (
                 <FaStar key={i} className={i < filledStars ? "" : "text-neutral-200"} />
               ))}
             </div>
-            <span className="text-xs text-neutral-500 font-medium">
-              {rating.toFixed(1)} ({reviews.toLocaleString()})
+            <span className="text-[10px] sm:text-[11px] text-neutral-500 font-medium">
+              {rating.toFixed(1)} ({reviews})
             </span>
           </div>
         )}
 
         {/* Price */}
-        <div className={`flex items-baseline gap-2 ${!isCompact ? "mb-4" : "mt-1"}`}>
-          <span className={`font-bold text-neutral-900 ${isCompact ? "text-[15px]" : "text-xl md:text-2xl"}`}>
+        <div className={`flex items-baseline gap-1.5 ${!isCompact ? "my-1.5" : "mt-1"}`}>
+          <span className={`font-extrabold text-neutral-900 ${isCompact ? "text-xs sm:text-sm" : "text-sm sm:text-base"}`}>
             ₹{price}
           </span>
-          {oldPrice && (
-            <span className={`text-neutral-400 line-through ${isCompact ? "text-[11px]" : "text-sm"}`}>
+          {oldPrice && oldPrice > price && (
+            <span className="text-neutral-400 line-through text-[10px] sm:text-xs">
               ₹{oldPrice}
             </span>
           )}
         </div>
 
-        {/* Compact footer: qty stepper + Add + Buy */}
+        {/* Footer Actions */}
         {isCompact ? (
-          <div className="mt-auto pt-2 flex flex-col gap-1.5">
-            {/* Quantity stepper */}
-            <div className="flex items-center justify-between border border-neutral-200 rounded-lg overflow-hidden">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  changeQty(-1);
-                }}
-                aria-label="Decrease quantity"
-                className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:bg-[var(--brand-50)] hover:text-[var(--brand-700)] transition"
-              >
-                <FaMinus className="text-xs" />
-              </button>
-              <span className="text-sm font-bold text-neutral-800">{controlledQty}</span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  changeQty(1);
-                }}
-                aria-label="Increase quantity"
-                className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:bg-[var(--brand-50)] hover:text-[var(--brand-700)] transition"
-              >
-                <FaPlus className="text-xs" />
-              </button>
-            </div>
-
-            <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleAdd();
-                  e.currentTarget.blur();
-                }}
-                className="flex-1 bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition"
-              >
-                <FaShoppingCart className="text-[11px]" />
-                <span className="hidden sm:inline">Add to</span> Cart
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleBuy();
-                  e.currentTarget.blur();
-                }}
-                className="flex-1 border border-[var(--brand-600)] text-[var(--brand-700)] py-2 rounded-lg text-xs font-semibold hover:bg-[var(--brand-50)] transition flex items-center justify-center gap-1"
-              >
-                <FaBolt className="text-[11px]" />
-                Buy
-              </button>
-            </div>
+          <div className="mt-auto pt-1.5 flex flex-col gap-1">
+            {isAvailable ? (
+              <>
+                <div className="flex items-center justify-between border border-neutral-200 rounded-lg overflow-hidden h-7">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      changeQty(-1);
+                    }}
+                    aria-label="Decrease quantity"
+                    className="w-7 h-full flex items-center justify-center text-neutral-600 hover:bg-[var(--brand-50)] hover:text-[var(--brand-700)] transition"
+                  >
+                    <FaMinus className="text-[10px]" />
+                  </button>
+                  <span className="text-xs font-bold text-neutral-800">{controlledQty}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      changeQty(1);
+                    }}
+                    aria-label="Increase quantity"
+                    className="w-7 h-full flex items-center justify-center text-neutral-600 hover:bg-[var(--brand-50)] hover:text-[var(--brand-700)] transition"
+                  >
+                    <FaPlus className="text-[10px]" />
+                  </button>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAdd();
+                      e.currentTarget.blur();
+                    }}
+                    className="flex-1 bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white py-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition"
+                  >
+                    <FaShoppingCart className="text-[10px]" /> Add
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleBuy();
+                      e.currentTarget.blur();
+                    }}
+                    className="flex-1 border border-[var(--brand-600)] text-[var(--brand-700)] py-1.5 rounded-lg text-[11px] font-semibold hover:bg-[var(--brand-50)] transition flex items-center justify-center gap-1"
+                  >
+                    <FaBolt className="text-[10px]" /> Buy
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="py-1.5 text-center text-[10px] font-bold text-neutral-500 bg-neutral-100 rounded-lg">
+                Unavailable
+              </div>
+            )}
           </div>
         ) : (
-          /* Default footer */
-          <div className="flex gap-2 mt-auto">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleAdd();
-                e.currentTarget.blur();
-              }}
-              className="flex-1 bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm hover:shadow-md"
-            >
-              <FaShoppingCart className="text-xs" />
-              Add
-            </button>
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleBuy();
-                e.currentTarget.blur();
-              }}
-              className="px-3 border border-[var(--brand-600)] text-[var(--brand-700)] rounded-lg text-sm font-semibold hover:bg-[var(--brand-50)] transition flex items-center gap-1.5"
-              aria-label="Buy now"
-            >
-              <FaBolt className="text-xs" />
-              Buy
-            </button>
+          <div className="flex gap-1.5 mt-auto pt-1">
+            {isAvailable ? (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAdd();
+                    e.currentTarget.blur();
+                  }}
+                  className="flex-1 bg-[var(--brand-600)] hover:bg-[var(--brand-700)] text-white py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm hover:shadow-md"
+                >
+                  <FaShoppingCart className="text-[11px]" />
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleBuy();
+                    e.currentTarget.blur();
+                  }}
+                  className="px-2.5 border border-[var(--brand-600)] text-[var(--brand-700)] rounded-xl text-xs font-semibold hover:bg-[var(--brand-50)] transition flex items-center gap-1"
+                  aria-label="Buy now"
+                >
+                  <FaBolt className="text-[11px]" />
+                  Buy
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleCardClick();
+                }}
+                className="w-full py-2 bg-neutral-100 text-neutral-600 rounded-xl text-xs font-semibold transition"
+              >
+                Notify Me
+              </button>
+            )}
           </div>
         )}
       </div>
