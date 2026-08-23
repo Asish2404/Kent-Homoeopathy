@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Search, Star, Award, Clock3, Building2, User, ChevronRight, Calendar, Phone, Mail, CheckCircle2, Video, MapPin, X } from "lucide-react";
+import { Search, Star, Award, Clock3, Building2, User, ChevronRight, Calendar, Phone, Mail, CheckCircle2, X } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+
+const WHATSAPP_NUMBER = "918910863893";
 
 const StarRating = ({ rating, size = "w-3.5 h-3.5" }) => {
   const rounded = Math.round(rating || 0);
@@ -17,7 +20,7 @@ const StarRating = ({ rating, size = "w-3.5 h-3.5" }) => {
   );
 };
 
-// Booking Dialog Box Modal
+// Booking Dialog Box Modal with WhatsApp Integration (+91 891 086 3893)
 const BookDoctorModal = ({ doctor, onClose }) => {
   const [formData, setFormData] = useState({
     patientName: "",
@@ -37,6 +40,34 @@ const BookDoctorModal = ({ doctor, onClose }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrorMsg("");
+  };
+
+  const sendWhatsAppNotification = (appointmentNo, details) => {
+    const docName = doctor.doctor_name || doctor.name || "Doctor";
+    const docSpec = doctor.specialization || "Homoeopathic Specialist";
+    const clinic = doctor.hospital || "Kent Healthcare Center";
+
+    const msg = `*🏥 Doctor Appointment Booking - Kent Web*
+━━━━━━━━━━━━━━━━━━━━
+*Doctor:* ${docName} (${docSpec})
+*Clinic / Location:* ${clinic}
+
+*Patient Details:*
+• *Name:* ${details.patientName}
+• *Phone:* ${details.phoneNumber}
+• *Email:* ${details.email || "N/A"}
+• *Age / Gender:* ${details.age ? `${details.age} yrs` : "N/A"} / ${details.gender}
+
+*Appointment Details:*
+• *Preferred Date:* ${details.appointmentDate}
+• *Consultation Mode:* ${details.consultationType}
+• *Health Concern:* ${details.reasonForVisit || "General Consultation"}
+• *Booking Ref:* #${appointmentNo}
+━━━━━━━━━━━━━━━━━━━━
+Please confirm my appointment slot. Thank you!`;
+
+    const wpUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    window.open(wpUrl, "_blank");
   };
 
   const handleBookSubmit = async (e) => {
@@ -71,23 +102,28 @@ const BookDoctorModal = ({ doctor, onClose }) => {
         reasonForVisit: formData.reasonForVisit.trim(),
       };
 
-      const res = await api.post("/doctor/book-appointment", payload);
-      if (res.data?.success && res.data?.appointment) {
-        setBookingSuccess(res.data.appointment);
-      } else {
-        // Fallback simulated success
-        setBookingSuccess({
-          appointmentNumber: `APT-${Date.now().toString().slice(-6)}`,
-          ...payload,
-        });
+      let appointmentNo = `APT-${Date.now().toString().slice(-6)}`;
+
+      try {
+        const res = await api.post("/doctor/book-appointment", payload);
+        if (res.data?.appointment?.appointmentNumber) {
+          appointmentNo = res.data.appointment.appointmentNumber;
+        }
+      } catch {
+        // Backend fallback
       }
+
+      const successData = {
+        appointmentNumber: appointmentNo,
+        ...payload,
+      };
+
+      setBookingSuccess(successData);
+
+      // Open WhatsApp chat with prefilled appointment details to +91 891 086 3893
+      sendWhatsAppNotification(appointmentNo, payload);
     } catch (err) {
-      // Graceful fallback so user is never blocked
-      setBookingSuccess({
-        appointmentNumber: `APT-${Date.now().toString().slice(-6)}`,
-        doctorName: doctor.doctor_name || doctor.name,
-        ...formData,
-      });
+      setErrorMsg(err.message || "Failed to submit booking. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -135,14 +171,14 @@ const BookDoctorModal = ({ doctor, onClose }) => {
             <div>
               <h4 className="text-xl font-extrabold text-neutral-900">Appointment Booked!</h4>
               <p className="text-xs text-neutral-500 mt-1">
-                Your consultation request has been confirmed.
+                Your appointment details have been prepared and sent to WhatsApp (<strong>+91 891 086 3893</strong>).
               </p>
             </div>
 
             <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-200 text-left text-xs space-y-2">
               <div className="flex justify-between items-center pb-2 border-b border-neutral-200">
                 <span className="text-neutral-500 font-medium">Reference No:</span>
-                <span className="font-mono font-bold text-[var(--brand-700)]">{bookingSuccess.appointmentNumber}</span>
+                <span className="font-mono font-bold text-[var(--brand-700)]">#{bookingSuccess.appointmentNumber}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-neutral-500">Doctor:</span>
@@ -168,13 +204,21 @@ const BookDoctorModal = ({ doctor, onClose }) => {
               )}
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
+              <button
+                type="button"
+                onClick={() => sendWhatsAppNotification(bookingSuccess.appointmentNumber, bookingSuccess)}
+                className="w-full bg-[#25D366] hover:bg-[#1EBE5D] text-white py-3 rounded-2xl text-xs sm:text-sm font-bold shadow-md flex items-center justify-center gap-2 transition"
+              >
+                <FaWhatsapp className="text-base" />
+                Resend on WhatsApp (+91 891 086 3893)
+              </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full btn-primary py-3 rounded-2xl text-sm font-bold shadow-md"
+                className="w-full btn-outline py-2.5 rounded-2xl text-xs font-semibold"
               >
-                Done
+                Close
               </button>
             </div>
           </div>
@@ -317,6 +361,14 @@ const BookDoctorModal = ({ doctor, onClose }) => {
               />
             </div>
 
+            {/* WhatsApp Integration Notice */}
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 text-emerald-800 text-[11px] font-medium border border-emerald-200">
+              <FaWhatsapp className="text-base text-emerald-600 shrink-0" />
+              <span>
+                Booking details will be automatically connected to WhatsApp support at <strong>+91 891 086 3893</strong>.
+              </span>
+            </div>
+
             {/* CTA Buttons */}
             <div className="flex gap-2.5 pt-2">
               <button
@@ -339,8 +391,8 @@ const BookDoctorModal = ({ doctor, onClose }) => {
                   </>
                 ) : (
                   <>
-                    <Calendar className="w-4 h-4" />
-                    Confirm & Book Now
+                    <FaWhatsapp className="text-sm" />
+                    Confirm & Book via WhatsApp
                   </>
                 )}
               </button>
