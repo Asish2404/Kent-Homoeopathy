@@ -11,14 +11,6 @@ const Layout = () => {
         window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     }, [location.pathname]);
 
-    if (isAdmin) {
-        return (
-            <main className="min-h-screen">
-                <Outlet />
-            </main>
-        );
-    }
-
     return (
         <div className="min-h-screen flex flex-col">
             <Navbar />
@@ -27,9 +19,9 @@ const Layout = () => {
                 <Outlet />
             </main>
 
-            <Footer />
+            {!isAdmin && <Footer />}
         </div>
     );
 };
 
-export default Layout
+export default Layout;
