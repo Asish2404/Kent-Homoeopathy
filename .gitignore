@@ -20,6 +20,11 @@ Backend/createAdmin.js
 *.tar.gz
 *.tgz
 
+# Deployment documentation
+DEPLOYMENT_HOSTINGER.md
+HOSTINGER_DEPLOYMENT_CHECKLIST.md
+TODO.md
+
 # Logs and test results
 *.log
 npm-debug.log*
