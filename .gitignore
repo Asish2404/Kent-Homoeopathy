@@ -1,8 +1,30 @@
 node_modules/
 dist/
+build/
+dist-ssr/
+coverage
+coverage/
+
+# Environment files
 .env
-README/
+.env.*
+!.env.example
+
+# Local maintenance and seed scripts
+createAdmin.js
+createAdmin.mjs
+Backend/createAdmin.js
+
+# Archives and backup files
+*.zip
+*.tar.gz
+*.tgz
+
+# Logs and test results
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 test-results/
-/TODO.md
-.env.example
-package.json
+.DS_Store

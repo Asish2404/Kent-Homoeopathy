@@ -11,6 +11,18 @@ node_modules
 dist
 dist-ssr
 *.local
+coverage
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Archives and backup files
+*.zip
+*.tar.gz
+*.tgz
 
 # Editor directories and files
 .vscode/*

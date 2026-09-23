@@ -1,8 +1,14 @@
 import axios from "axios";
 
-const API_BASE_URL =
+const rawApiUrl =
   import.meta.env.VITE_API_URL ||
   "https://kent-homoeopathy.onrender.com/api";
+
+// Ensure URL does not end with trailing slashes and correctly targets the /api path
+const cleanApiUrl = String(rawApiUrl).trim().replace(/\/+$/, "");
+const API_BASE_URL = cleanApiUrl.endsWith("/api")
+  ? cleanApiUrl
+  : `${cleanApiUrl}/api`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

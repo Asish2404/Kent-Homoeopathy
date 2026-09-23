@@ -1,4 +1,6 @@
-const base = "http://localhost:4000/api";
+const base = process.env.TEST_API_URL || "http://localhost:4000/api";
+const testEmail = process.env.TEST_CUSTOMER_EMAIL || "test_customer@example.com";
+const testPassword = process.env.TEST_CUSTOMER_PASSWORD || "TestPlaceholderPassword!123";
 
 // 1. Signup a new user
 async function signup() {
@@ -7,8 +9,8 @@ async function signup() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       user_name: "Test Customer",
-      email: "customer@test.com",
-      password: "TestPass123",
+      email: testEmail,
+      password: testPassword,
       phone: "9876543210",
       address: "Test Address",
     }),
@@ -25,7 +27,7 @@ async function loginCustomer() {
   const res = await fetch(`${base}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "customer@test.com", password: "TestPass123" }),
+    body: JSON.stringify({ email: testEmail, password: testPassword }),
   });
   const data = await res.json();
   console.log("CUSTOMER LOGIN STATUS:", res.status);
@@ -40,8 +42,8 @@ async function dupSignup() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       user_name: "Test Customer 2",
-      email: "customer@test.com",
-      password: "TestPass123",
+      email: testEmail,
+      password: testPassword,
       phone: "9876543211",
       address: "Test Address 2",
     }),

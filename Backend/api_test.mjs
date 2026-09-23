@@ -1,11 +1,17 @@
-const base = "http://localhost:4000/api";
+const base = process.env.TEST_API_URL || "http://localhost:4000/api";
+const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+const adminPassword = process.env.ADMIN_PASSWORD;
 
 // 1. Login as admin
 async function login() {
+  if (!adminPassword) {
+    console.log("LOGIN TEST SKIPPED: Set ADMIN_PASSWORD environment variable to run this test.");
+    return null;
+  }
   const res = await fetch(`${base}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "admin@drkent.com", password: "Admin@123" }),
+    body: JSON.stringify({ email: adminEmail, password: adminPassword }),
   });
   const data = await res.json();
   console.log("LOGIN STATUS:", res.status);
@@ -70,4 +76,6 @@ if (token) {
     await createProduct(token, catId);
   }
   await getProducts();
+} else {
+  console.log("Product creation skipped because admin token was not acquired.");
 }

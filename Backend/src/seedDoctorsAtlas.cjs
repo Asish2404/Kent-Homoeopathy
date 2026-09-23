@@ -92,7 +92,11 @@ const SEED_DOCTORS = [
 
 async function seedAtlas() {
     try {
-        const uri = process.env.MONGODB_URI || "mongodb://Asish2404:Asish2404@ac-wpvclcu-shard-00-00.kqxhlor.mongodb.net:27017,ac-wpvclcu-shard-00-01.kqxhlor.mongodb.net:27017,ac-wpvclcu-shard-00-02.kqxhlor.mongodb.net:27017/?ssl=true&replicaSet=atlas-1wywns-shard-0&authSource=admin&appName=AsishBackend";
+        const uri = process.env.MONGODB_URI;
+        if (!uri) {
+            console.error("❌ MONGODB_URI environment variable is required to run seedAtlas.");
+            process.exit(1);
+        }
         await mongoose.connect(uri);
         console.log("Connected to MongoDB Atlas");
 

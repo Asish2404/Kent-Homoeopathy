@@ -1,4 +1,12 @@
 {
+  "name": "kent-homoeopathy-monorepo",
+  "private": true,
+  "scripts": {
+    "build:frontend": "npm run --prefix Project build",
+    "dev:frontend": "npm run --prefix Project dev",
+    "start:backend": "npm run --prefix Backend start",
+    "dev:backend": "npm run --prefix Backend dev"
+  },
   "dependencies": {
     "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",

@@ -29,27 +29,44 @@ const app = express();
 
 
 
+const configuredOrigins = (process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((url) => url.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
+
+const isProduction = process.env.NODE_ENV === "production";
+
+if (isProduction && configuredOrigins.length === 0) {
+    console.warn("⚠️  WARNING: FRONTEND_URL is not configured! All cross-origin browser requests will be blocked in production.");
+}
+
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow requests with no Origin (same-origin / server-to-server / curl).
+            // Allow requests with no Origin (same-origin / server-to-server / curl / uptime monitors).
             if (!origin) {
                 return callback(null, true);
             }
 
-            // Allow all localhost dev-server origins (5173, 5174, 4173, etc.).
-            const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+            const normalizedOrigin = origin.replace(/\/+$/, "");
 
-            // Allow any production origin served over HTTPS.
-            const isHttps = /^https:\/\//.test(origin);
-
-            if (isLocalhost || isHttps) {
+            // 1. Allow explicitly configured frontend domains
+            if (configuredOrigins.includes(normalizedOrigin)) {
                 return callback(null, true);
             }
 
+            // 2. In non-production environments, allow localhost dev servers
+            const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+            if (!isProduction && isLocalhost) {
+                return callback(null, true);
+            }
+
+            // 3. Strict rejection: never allow arbitrary origins in production
             return callback(null, false);
         },
-        credentials: true
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
     })
 );
 

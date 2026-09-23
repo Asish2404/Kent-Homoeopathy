@@ -1,4 +1,4 @@
-const base = "http://localhost:4000/api";
+const base = process.env.TEST_API_URL || "http://localhost:4000/api";
 
 // 1. GET single product
 async function getProduct(id) {
@@ -19,21 +19,44 @@ async function getInvalidProduct() {
 
 // 3. Invalid login (wrong password)
 async function invalidLogin() {
+  const testEmail = process.env.TEST_USER_EMAIL || "testuser@example.com";
+  const invalidPassword = process.env.TEST_INVALID_PASSWORD || "invalid-password-placeholder";
   const res = await fetch(`${base}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "admin@drkent.com", password: "WrongPass" }),
+    body: JSON.stringify({ email: testEmail, password: invalidPassword }),
   });
   console.log("INVALID LOGIN STATUS:", res.status);
   console.log("INVALID LOGIN MSG:", (await res.json()).message);
 }
 
-// 4. Invalid login (nonexistent user)
-async function noUser() {
+async function adminLogin() {
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!email || !password) {
+    console.log("ADMIN LOGIN TEST SKIPPED: ADMIN_EMAIL and ADMIN_PASSWORD environment variables required.");
+    return;
+  }
+
   const res = await fetch(`${base}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "ghost@drkent.com", password: "whatever" }),
+    body: JSON.stringify({ email, password }),
+  });
+
+  console.log("ADMIN LOGIN STATUS:", res.status);
+  const data = await res.json();
+  console.log("ADMIN LOGIN SUCCESS:", !!data.token);
+}
+
+// 4. Invalid login (nonexistent user)
+async function noUser() {
+  const ghostPassword = process.env.TEST_GHOST_PASSWORD || "sample-nonexistent-password";
+  const res = await fetch(`${base}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "nonexistent_ghost@example.com", password: ghostPassword }),
   });
   console.log("NO USER STATUS:", res.status);
   console.log("NO USER MSG:", (await res.json()).message);
@@ -54,3 +77,4 @@ await getInvalidProduct();
 await invalidLogin();
 await noUser();
 await noToken();
+await adminLogin();
