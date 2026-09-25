@@ -193,7 +193,7 @@ export default function SearchBox({
   const getItemMeta = (group, item) => {
     if (group === "products") return item.brand;
     if (group === "categories") return "Category";
-    if (group === "labTests") return `₹${item.price ?? 0}`;
+    if (group === "labTests") return item.price ? `₹${item.price}` : "Lab Test";
     if (group === "faqs") return item.category;
     return "";
   };

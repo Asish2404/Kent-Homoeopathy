@@ -239,8 +239,7 @@ const Labtest = () => {
                 Phone: ${data.phone}
                 Email: ${data.email}
                 Test: ${data.labtest}
-                Date: ${data.date || date.toDateString()}
-                Price: ₹0`;
+                Date: ${data.date || date.toDateString()}`;
     const phone = "917980972894";
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -447,9 +446,11 @@ const Labtest = () => {
                   </div>
                 </div>
 
-                <div className="lab-price-row">
-                  <span className="lab-discount">₹0</span>
-                </div>
+                {t.discountedPrice > 0 && (
+                  <div className="lab-price-row">
+                    <span className="lab-discount">₹{t.discountedPrice}</span>
+                  </div>
+                )}
 
                 <button
                   className="lab-btn"
@@ -486,7 +487,7 @@ const Labtest = () => {
 
                 <div className="lab-card-head">
                   <div className="lab-card-icon">📦</div>
-                  <div className="lab-badge">Save ₹{p.saveAmount}</div>
+                  {p.saveAmount > 0 && <div className="lab-badge">Save ₹{p.saveAmount}</div>}
                 </div>
 
                 <h3 className="lab-card-title">{p.name}</h3>
@@ -509,10 +510,14 @@ const Labtest = () => {
                   </div>
                 </div>
 
-                <div className="lab-price-row">
-                  <span className="lab-original">₹{p.originalPrice}</span>
-                  <span className="lab-discount">₹{p.discountedPrice}</span>
-                </div>
+                {p.discountedPrice > 0 && (
+                  <div className="lab-price-row">
+                    {p.originalPrice > p.discountedPrice && (
+                      <span className="lab-original">₹{p.originalPrice}</span>
+                    )}
+                    <span className="lab-discount">₹{p.discountedPrice}</span>
+                  </div>
+                )}
 
                 <button
                   className="lab-btn"
