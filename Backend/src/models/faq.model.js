@@ -57,20 +57,17 @@ const faqSchema = new Schema(
     displayOrder: {
       type: Number,
       default: 0,
-      index: true,
     },
 
     priority: {
       type: String,
       enum: ["Low", "Medium", "High"],
       default: "Medium",
-      index: true,
     },
 
     isActive: {
       type: Boolean,
       default: true,
-      index: true,
     },
 
     // --------------------
