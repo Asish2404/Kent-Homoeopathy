@@ -116,6 +116,7 @@
 }
 
 .navIconBtn {
+    position: relative;
     width: 44px;
     height: 44px;
     border-radius: 9999px;

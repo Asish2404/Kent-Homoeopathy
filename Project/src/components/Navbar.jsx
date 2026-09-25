@@ -246,7 +246,7 @@ const readUser = () => {
                   type="button"
                   aria-label="Wishlist"
                   onClick={handleWishlistOpen}
-                  className="navIconBtn"
+                  className="navIconBtn relative"
                 >
                   <FiHeart className="text-base" />
 
