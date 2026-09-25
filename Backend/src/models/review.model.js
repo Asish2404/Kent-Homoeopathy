@@ -109,7 +109,18 @@ const reviewSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["Pending", "Approved", "Rejected", "Hidden"],
+            enum: ["Pending", "Approved", "Rejected", "Hidden", "pending", "approved", "rejected", "hidden"],
+            set: (val) => {
+                if (!val) return val;
+                const lower = String(val).trim().toLowerCase();
+                const map = {
+                    pending: "Pending",
+                    approved: "Approved",
+                    rejected: "Rejected",
+                    hidden: "Hidden",
+                };
+                return map[lower] || val;
+            },
             default: "Pending",
             required: true,
             trim: true,

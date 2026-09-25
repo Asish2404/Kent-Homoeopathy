@@ -34,6 +34,19 @@ const normalizeText = (value) => (typeof value === "string" ? value.trim() : "")
 
 const normalizeStatus = (value) => normalizeText(value).toLowerCase();
 
+const CANONICAL_STATUS_MAP = {
+    pending: "Pending",
+    approved: "Approved",
+    rejected: "Rejected",
+    hidden: "Hidden",
+};
+
+const resolveStatus = (value, defaultStatus = PUBLIC_STATUS) => {
+    if (!value) return defaultStatus;
+    const lower = normalizeStatus(value);
+    return CANONICAL_STATUS_MAP[lower] || value;
+};
+
 const getSort = (query) => {
     const sortBy = normalizeText(query.sortBy || query.sort || "newest").toLowerCase();
 
@@ -217,7 +230,7 @@ const buildReviewMatch = (query) => {
         match.rating = numericRating;
     }
 
-    if (status && status !== PUBLIC_STATUS.toLowerCase()) {
+    if (status && normalizeStatus(status) !== PUBLIC_STATUS.toLowerCase()) {
         return { error: "Public review listings only expose approved reviews." };
     }
 
@@ -316,7 +329,7 @@ export const createReview = async (req, res) => {
             return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
         }
 
-        const reviewStatus = req.body.status || PUBLIC_STATUS;
+        const reviewStatus = resolveStatus(req.body.status, PUBLIC_STATUS);
 
         if (target.productId) {
             const product = await Product.findById(target.productId).select("_id");
@@ -510,7 +523,7 @@ export const updateReview = async (req, res) => {
         }
 
         if (req.body.status) {
-            review.status = req.body.status;
+            review.status = resolveStatus(req.body.status, review.status);
         }
 
         review.moderatedBy = userId;

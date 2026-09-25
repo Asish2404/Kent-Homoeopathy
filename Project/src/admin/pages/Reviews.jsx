@@ -32,7 +32,7 @@ const ReviewModal = ({ review, products, doctors, onClose, onSave, saving }) => 
     rating: review?.rating || 5,
     title: review?.reviewTitle || review?.title || "",
     comment: review?.reviewDescription || review?.comment || "",
-    status: review?.status || "approved",
+    status: review?.status || "Approved",
   }));
 
   const handleSubmit = (e) => {
@@ -174,10 +174,10 @@ const ReviewModal = ({ review, products, doctors, onClose, onSave, saving }) => 
               onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
               className="w-full border border-neutral-200 rounded-xl px-3 py-2 text-xs outline-none bg-white capitalize"
             >
-              <option value="approved">Approved (Visible)</option>
-              <option value="pending">Pending</option>
-              <option value="hidden">Hidden</option>
-              <option value="rejected">Rejected</option>
+              <option value="Approved">Approved (Visible)</option>
+              <option value="Pending">Pending</option>
+              <option value="Hidden">Hidden</option>
+              <option value="Rejected">Rejected</option>
             </select>
           </div>
 
@@ -353,10 +353,10 @@ const Reviews = () => {
               className="border border-neutral-200 rounded-xl px-3 py-2 outline-none text-xs sm:text-sm bg-white capitalize"
             >
               <option value="All">All Statuses</option>
-              <option value="approved">Approved</option>
-              <option value="pending">Pending</option>
-              <option value="hidden">Hidden</option>
-              <option value="rejected">Rejected</option>
+              <option value="Approved">Approved</option>
+              <option value="Pending">Pending</option>
+              <option value="Hidden">Hidden</option>
+              <option value="Rejected">Rejected</option>
             </select>
           </div>
           <div className="text-xs text-neutral-500">
@@ -384,7 +384,8 @@ const Reviews = () => {
                 const productName = r.product?.product_name || r.productName || "";
                 const doctorName = r.doctor?.fullName || r.doctor?.doctor_name || r.doctorName || "";
                 const userName = r.user?.user_name || r.userName || "Verified Customer";
-                const status = r.status || "approved";
+                const status = r.status || "Approved";
+                const s = String(status).toLowerCase();
                 const rating = r.rating || 5;
 
                 return (
@@ -426,7 +427,7 @@ const Reviews = () => {
                     {/* Action Bar */}
                     <div className="flex items-center justify-between pt-3 mt-3 border-t border-neutral-100 gap-1 text-xs">
                       <div className="flex items-center gap-1">
-                        {status !== "approved" && (
+                        {s !== "approved" && (
                           <button
                             type="button"
                             onClick={() => handleApprove(r._id)}
@@ -436,7 +437,7 @@ const Reviews = () => {
                             <Check size={14} />
                           </button>
                         )}
-                        {status !== "hidden" && (
+                        {s !== "hidden" && (
                           <button
                             type="button"
                             onClick={() => handleHide(r._id)}
@@ -446,7 +447,7 @@ const Reviews = () => {
                             <EyeOff size={14} />
                           </button>
                         )}
-                        {status !== "rejected" && (
+                        {s !== "rejected" && (
                           <button
                             type="button"
                             onClick={() => handleReject(r._id)}

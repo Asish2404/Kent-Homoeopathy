@@ -56,6 +56,7 @@ const DoctorModal = ({ doctor, onClose, onSave, saving }) => {
         rating: Number(newReview.rating),
         title: newReview.reviewTitle,
         comment: newReview.reviewDescription,
+        status: "Approved",
       });
       setNewReview({ userName: "", rating: 5, reviewTitle: "", reviewDescription: "" });
       setReviewMsg({ type: "success", text: "Doctor review added successfully!" });
